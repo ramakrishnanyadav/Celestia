@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from sqlalchemy import (
     Column, String, Integer, BigInteger, Float, Boolean, 
-    Text, ForeignKey, DateTime, JSON
+    Text, ForeignKey, DateTime, JSON, CheckConstraint
 )
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -48,6 +48,12 @@ class Event(Base):
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     user = relationship("User", back_populates="events")
+
+    __table_args__ = (
+        CheckConstraint("guest_count > 0 AND guest_count <= 50000", name="check_event_guest_count"),
+        CheckConstraint("budget_minor > 0", name="check_event_budget_minor"),
+        CheckConstraint("preparation_months >= 1 AND preparation_months <= 60", name="check_event_prep_months"),
+    )
     preference = relationship("EventPreference", back_populates="event", uselist=False, cascade="all, delete-orphan")
     plans = relationship("EventPlan", back_populates="event", cascade="all, delete-orphan")
     budget_categories = relationship("BudgetCategory", back_populates="event", cascade="all, delete-orphan")
@@ -104,6 +110,11 @@ class BudgetCategory(Base):
     event = relationship("Event", back_populates="budget_categories")
     expenses = relationship("Expense", back_populates="category", cascade="all, delete-orphan")
 
+    __table_args__ = (
+        CheckConstraint("allocation_percent >= 0.0 AND allocation_percent <= 100.0", name="check_cat_allocation_percent"),
+        CheckConstraint("allocated_amount_minor >= 0", name="check_cat_allocated_amount"),
+    )
+
 class Expense(Base):
     __tablename__ = "expenses"
 
@@ -118,6 +129,11 @@ class Expense(Base):
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     category = relationship("BudgetCategory", back_populates="expenses")
+
+    __table_args__ = (
+        CheckConstraint("planned_amount_minor >= 0", name="check_exp_planned_amount"),
+        CheckConstraint("actual_amount_minor >= 0", name="check_exp_actual_amount"),
+    )
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -156,6 +172,11 @@ class Task(Base):
         cascade="all, delete-orphan"
     )
 
+    __table_args__ = (
+        CheckConstraint("duration_days >= 0 AND duration_days <= 365", name="check_task_duration_days"),
+        CheckConstraint("days_before_event >= 0 AND days_before_event <= 1825", name="check_task_days_before_event"),
+    )
+
 class TaskDependency(Base):
     __tablename__ = "task_dependencies"
 
@@ -165,6 +186,10 @@ class TaskDependency(Base):
 
     task = relationship("Task", foreign_keys=[task_id], back_populates="dependencies")
     depends_on_task = relationship("Task", foreign_keys=[depends_on_task_id], back_populates="dependents")
+
+    __table_args__ = (
+        CheckConstraint("task_id != depends_on_task_id", name="check_no_self_dependency"),
+    )
 
 class Vendor(Base):
     __tablename__ = "vendors"
@@ -199,6 +224,10 @@ class Quotation(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now)
 
     vendor = relationship("Vendor", back_populates="quotations")
+
+    __table_args__ = (
+        CheckConstraint("quoted_amount_minor >= 0", name="check_quote_amount"),
+    )
 
 class Document(Base):
     __tablename__ = "documents"

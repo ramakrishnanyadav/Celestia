@@ -36,22 +36,35 @@ def execute_proposal_action(
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
         
-    proposal = db.query(Approval).filter(
-        Approval.id == proposal_id,
-        Approval.event_id == event_id
-    ).first()
-    if not proposal:
-        raise HTTPException(status_code=404, detail="Proposal not found")
-        
-    if proposal.status != "pending":
-        raise HTTPException(status_code=400, detail=f"Proposal is already {proposal.status}")
-        
     action = action_in.action.lower()
+    if action not in ["approve", "reject"]:
+        raise HTTPException(status_code=400, detail="Invalid action. Must be 'approve' or 'reject'.")
+        
+    new_status = "approved" if action == "approve" else "rejected"
     now = datetime.now(timezone.utc)
+
+    # Atomic UPDATE with row-count check in one transaction
+    rows_updated = db.query(Approval).filter(
+        Approval.id == proposal_id,
+        Approval.event_id == event_id,
+        Approval.status == "pending"
+    ).update({
+        Approval.status: new_status,
+        Approval.reviewed_at: now
+    }, synchronize_session=False)
+
+    if rows_updated == 0:
+        existing = db.query(Approval).filter(
+            Approval.id == proposal_id,
+            Approval.event_id == event_id
+        ).first()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Proposal not found")
+        raise HTTPException(status_code=409, detail=f"Proposal is already {existing.status}")
+
+    proposal = db.query(Approval).filter(Approval.id == proposal_id).first()
     
     if action == "approve":
-        proposal.status = "approved"
-        proposal.reviewed_at = now
         
         # Apply proposed changes deterministically
         changes = proposal.proposed_changes_json or {}

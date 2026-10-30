@@ -42,19 +42,20 @@ def seed_event_budget(db: Session, event: Event):
     allocations = BENCHMARK_ALLOCATIONS.get(event_type, BENCHMARK_ALLOCATIONS["wedding"])
     
     total_budget_minor = event.budget_minor
-    # Reserve 10% contingency automatically
-    contingency_reserve = int(total_budget_minor * 0.10)
+    # Reserve 10% contingency automatically with pure integer division
+    contingency_reserve = (total_budget_minor * 10) // 100
     allocatable_budget = total_budget_minor - contingency_reserve
     
     # Clear existing categories if any
     db.query(BudgetCategory).filter(BudgetCategory.event_id == event.id).delete()
     
     categories = []
-    total_percent = sum(item["percent"] for item in allocations)
+    total_percent_basis = sum(int(round(item["percent"] * 100)) for item in allocations)
     
     for i, item in enumerate(allocations):
         # Calculate allocation strictly in integer minor units
-        allocated_minor = int((item["percent"] / total_percent) * allocatable_budget)
+        item_basis = int(round(item["percent"] * 100))
+        allocated_minor = (item_basis * allocatable_budget) // total_percent_basis
         
         per_guest_minor = item.get("per_guest_minor", 0)
         if item.get("is_per_guest") and event.guest_count > 0:
@@ -163,8 +164,8 @@ def calculate_budget_summary(event: Event, categories: List[BudgetCategory]) -> 
     planned_total_rupees = paise_to_rupees(planned_total_minor)
     actual_total_rupees = paise_to_rupees(actual_total_minor)
     
-    # 10% explicit contingency reserve
-    contingency_reserve_minor = int(total_budget_minor * 0.10)
+    # 10% explicit contingency reserve via pure integer arithmetic
+    contingency_reserve_minor = (total_budget_minor * 10) // 100
     contingency_reserve_rupees = paise_to_rupees(contingency_reserve_minor)
     
     remaining_balance_minor = total_budget_minor - planned_total_minor

@@ -32,6 +32,10 @@ def create_event(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    budget_minor = event_in.budget_minor
+    if event_in.budget_rupees is not None:
+        budget_minor = rupees_to_paise(event_in.budget_rupees)
+
     event = Event(
         user_id=current_user.id,
         title=event_in.title,
@@ -39,7 +43,7 @@ def create_event(
         city=event_in.city,
         venue_type=event_in.venue_type,
         guest_count=event_in.guest_count,
-        budget_minor=event_in.budget_minor,
+        budget_minor=budget_minor,
         currency=event_in.currency,
         timezone=event_in.timezone,
         preparation_months=event_in.preparation_months,

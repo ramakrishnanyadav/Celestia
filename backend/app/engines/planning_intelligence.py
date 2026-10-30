@@ -83,6 +83,36 @@ def seed_event_tasks(db: Session, event: Event):
     # Run Critical Path Method calculation
     run_cpm_calculation(db, event.id)
 
+def check_dependency_cycle(db: Session, event_id: str, task_id: str, depends_on_id: str) -> bool:
+    """
+    Returns True if adding dependency (task_id depends on depends_on_id) would introduce a cycle.
+    In our execution graph: depends_on_id -> task_id.
+    A cycle occurs if task_id can already reach depends_on_id.
+    """
+    if task_id == depends_on_id:
+        return True
+
+    deps = db.query(TaskDependency).join(Task, Task.id == TaskDependency.task_id).filter(
+        Task.event_id == event_id
+    ).all()
+
+    adj: Dict[str, List[str]] = {}
+    for d in deps:
+        adj.setdefault(d.depends_on_task_id, []).append(d.task_id)
+
+    visited = set()
+    queue = [task_id]
+    while queue:
+        curr = queue.pop(0)
+        if curr == depends_on_id:
+            return True
+        if curr not in visited:
+            visited.add(curr)
+            for neighbor in adj.get(curr, []):
+                if neighbor not in visited:
+                    queue.append(neighbor)
+    return False
+
 def run_cpm_calculation(db: Session, event_id: str) -> Dict[str, Any]:
     """
     Computes Early Start (ES), Early Finish (EF), Late Start (LS), Late Finish (LF),
@@ -123,9 +153,9 @@ def run_cpm_calculation(db: Session, event_id: str) -> Dict[str, Any]:
             if in_degree[succ] == 0:
                 queue.append(succ)
                 
-    # If cycle detected, fallback to original order
+    # If cycle detected, raise ValueError
     if len(topological_order) < len(tasks):
-        topological_order = list(task_map.keys())
+        raise ValueError("Circular dependency detected in task graph")
         
     # --- FORWARD PASS: Early Start (ES) and Early Finish (EF) ---
     es: Dict[str, int] = {}

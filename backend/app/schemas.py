@@ -53,11 +53,12 @@ class EventCreate(BaseModel):
     event_type: str = "wedding" # wedding, birthday, community
     city: str = "Mumbai"
     venue_type: str = "Banquet Hall"
-    guest_count: int = 300
-    budget_minor: int = 150000000 # 15,00,000 INR in paise
+    guest_count: int = Field(300, ge=1, le=50000)
+    budget_minor: int = Field(150000000, ge=10000, le=100000000000) # 15,00,000 INR in paise
+    budget_rupees: Optional[float] = Field(None, ge=100.0, le=1000000000.0)
     currency: str = "INR"
     timezone: str = "Asia/Kolkata"
-    preparation_months: int = 6
+    preparation_months: int = Field(6, ge=1, le=60)
     target_date: Optional[datetime] = None
     autonomy_mode: str = "Draft" # Suggest, Draft, Approve
     preferences: Optional[EventPreferenceBase] = None
@@ -67,10 +68,11 @@ class EventUpdate(BaseModel):
     event_type: Optional[str] = None
     city: Optional[str] = None
     venue_type: Optional[str] = None
-    guest_count: Optional[int] = None
-    budget_minor: Optional[int] = None
+    guest_count: Optional[int] = Field(None, ge=1, le=50000)
+    budget_minor: Optional[int] = Field(None, ge=10000, le=100000000000)
+    budget_rupees: Optional[float] = Field(None, ge=100.0, le=1000000000.0)
     target_date: Optional[datetime] = None
-    preparation_months: Optional[int] = None
+    preparation_months: Optional[int] = Field(None, ge=1, le=60)
     status: Optional[str] = None
     autonomy_mode: Optional[str] = None
     ai_paused: Optional[bool] = None
@@ -99,15 +101,19 @@ class EventResponse(BaseModel):
 # --- EXPENSE & BUDGET SCHEMAS ---
 class ExpenseCreate(BaseModel):
     name: str
-    planned_amount_minor: int
-    actual_amount_minor: int = 0
+    planned_amount_minor: int = Field(0, ge=0, le=100000000000)
+    planned_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
+    actual_amount_minor: int = Field(0, ge=0, le=100000000000)
+    actual_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
     provenance: str = "estimated"
     notes: Optional[str] = None
 
 class ExpenseUpdate(BaseModel):
     name: Optional[str] = None
-    planned_amount_minor: Optional[int] = None
-    actual_amount_minor: Optional[int] = None
+    planned_amount_minor: Optional[int] = Field(None, ge=0, le=100000000000)
+    planned_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
+    actual_amount_minor: Optional[int] = Field(None, ge=0, le=100000000000)
+    actual_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
     provenance: Optional[str] = None
     notes: Optional[str] = None
 
@@ -199,13 +205,16 @@ class TaskDependencyItem(BaseModel):
     task_id: str
     depends_on_task_id: str
 
+class TaskDependencyCreate(BaseModel):
+    depends_on_task_id: str
+
 class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
     category: str = "General"
     milestone_name: str = "6 Months Out"
-    days_before_event: int = 180
-    duration_days: int = 7
+    days_before_event: int = Field(180, ge=0, le=1825)
+    duration_days: int = Field(7, ge=0, le=365)
     priority: str = "medium"
     assigned_to: str = "Host"
     depends_on_ids: List[str] = Field(default_factory=list)
@@ -215,8 +224,8 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     milestone_name: Optional[str] = None
-    days_before_event: Optional[int] = None
-    duration_days: Optional[int] = None
+    days_before_event: Optional[int] = Field(None, ge=0, le=1825)
+    duration_days: Optional[int] = Field(None, ge=0, le=365)
     priority: Optional[str] = None
     status: Optional[str] = None
     assigned_to: Optional[str] = None
