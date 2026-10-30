@@ -1,0 +1,44 @@
+{
+  "GET /health": {
+    "p50_ms": 2.26,
+    "p95_ms": 3.26,
+    "p99_ms": 3.32,
+    "avg_size_bytes": 49,
+    "status": 200
+  },
+  "GET /api/events/": {
+    "p50_ms": 5.27,
+    "p95_ms": 6.52,
+    "p99_ms": 6.92,
+    "avg_size_bytes": 497,
+    "status": 200
+  },
+  "GET /api/events/{id}/budget/summary": {
+    "p50_ms": 7.39,
+    "p95_ms": 8.66,
+    "p99_ms": 8.86,
+    "avg_size_bytes": 10387,
+    "status": 200
+  },
+  "GET /api/events/{id}/tasks/": {
+    "p50_ms": 12.23,
+    "p95_ms": 14.87,
+    "p99_ms": 16.93,
+    "avg_size_bytes": 13263,
+    "status": 200
+  },
+  "GET /api/events/{id}/vendors": {
+    "p50_ms": 6.24,
+    "p95_ms": 9.96,
+    "p99_ms": 16.96,
+    "avg_size_bytes": 5676,
+    "status": 200
+  },
+  "GET /api/events/{id}/approvals": {
+    "p50_ms": 4.52,
+    "p95_ms": 5.5,
+    "p99_ms": 5.53,
+    "avg_size_bytes": 1279,
+    "status": 200
+  }
+}

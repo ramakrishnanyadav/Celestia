@@ -1,0 +1,27 @@
+{
+  "Task List by Event": {
+    "p50": 1.433,
+    "p95": 1.855,
+    "p99": 2.832
+  },
+  "Category List by Event": {
+    "p50": 0.08,
+    "p95": 0.135,
+    "p99": 0.192
+  },
+  "Expenses by Category": {
+    "p50": 0.314,
+    "p95": 0.448,
+    "p99": 0.833
+  },
+  "Task Dependencies by Task": {
+    "p50": 0.049,
+    "p95": 0.054,
+    "p99": 0.113
+  },
+  "Quotations by Category": {
+    "p50": 0.682,
+    "p95": 0.852,
+    "p99": 1.19
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "probe": "Unauthenticated Access Bypass",
+    "severity": "High",
+    "evidence": "GET /api/events with NO auth header returned HTTP 200 with 1 events",
+    "vulnerability": "get_current_user automatically logs in anonymous requests as demo@celestia.ai"
+  },
+  {
+    "probe": "Tampered Token Fallback",
+    "severity": "High",
+    "evidence": "GET /auth/me with invalid signature fell back to demo user (HTTP 200)",
+    "vulnerability": "Invalid token does not return 401; it returns demo user identity"
+  },
+  {
+    "probe": "Stored XSS in Event Fields",
+    "severity": "Medium",
+    "evidence": "Server stored raw HTML script tag: <script>alert('XSS')</script>",
+    "vulnerability": "Input sanitization missing on text fields; relies entirely on React DOM escaping"
+  },
+  {
+    "probe": "Missing HTTP Security Headers",
+    "severity": "Medium",
+    "evidence": "Missing headers: Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options, X-Frame-Options",
+    "vulnerability": "Defense in depth headers missing from FastAPI root/api responses"
+  },
+  {
+    "probe": "No Rate Limiting on Auth Routes",
+    "severity": "High",
+    "evidence": "15 consecutive failed login requests returned status codes: [401, 401, 401, 401, 401]... (no 429)",
+    "vulnerability": "Susceptible to credential stuffing and brute force password attacks"
+  }
+]

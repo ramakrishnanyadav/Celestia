@@ -1,0 +1,692 @@
+{
+  "Dashboard_desktop_1280": {
+    "tab": "Dashboard",
+    "viewport": "desktop_1280",
+    "violation_count": 3,
+    "total_nodes_affected": 15,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            ".max-w-7xl.gap-3.sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "description": "Ensure the order of headings is semantically correct",
+        "help": "Heading levels should only increase by one",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/heading-order?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            ".bg-\\[\\#1C2541\\]\\/60.hover\\:border-teal-500\\/40.p-4:nth-child(1) > h3"
+          ]
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "description": "Ensure all page content is contained by landmarks",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/region?application=axeAPI",
+        "nodes_count": 13,
+        "targets": [
+          [
+            ".inline-flex > span"
+          ],
+          [
+            ".text-4xl"
+          ],
+          [
+            ".sm\\:text-lg"
+          ]
+        ]
+      }
+    ]
+  },
+  "Ideas_desktop_1280": {
+    "tab": "Ideas",
+    "viewport": "desktop_1280",
+    "violation_count": 2,
+    "total_nodes_affected": 3,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 2,
+        "targets": [
+          [
+            ".bg-teal-600"
+          ],
+          [
+            ".sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Budget_desktop_1280": {
+    "tab": "Budget",
+    "viewport": "desktop_1280",
+    "violation_count": 4,
+    "total_nodes_affected": 13,
+    "violations": [
+      {
+        "id": "button-name",
+        "impact": "critical",
+        "description": "Ensure buttons have discernible text",
+        "help": "Buttons must have discernible text",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/button-name?application=axeAPI",
+        "nodes_count": 8,
+        "targets": [
+          [
+            ".bg-\\[\\#0B132B\\]\\/60.overflow-hidden.rounded-xl:nth-child(1) > .hover\\:bg-white\\/5.p-4.transition-colors > .gap-3.items-center.flex > button"
+          ],
+          [
+            ".bg-\\[\\#0B132B\\]\\/60.overflow-hidden.rounded-xl:nth-child(2) > .hover\\:bg-white\\/5.p-4.transition-colors > .gap-3.items-center.flex > button"
+          ],
+          [
+            ".bg-\\[\\#0B132B\\]\\/60.overflow-hidden.rounded-xl:nth-child(3) > .hover\\:bg-white\\/5.p-4.transition-colors > .gap-3.items-center.flex > button"
+          ]
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 2,
+        "targets": [
+          [
+            ".px-3\\.5 > span"
+          ],
+          [
+            ".px-4.max-w-7xl.sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "label",
+        "impact": "critical",
+        "description": "Ensure every form element has a label",
+        "help": "Form elements must have labels",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/label?application=axeAPI",
+        "nodes_count": 2,
+        "targets": [
+          [
+            ".accent-teal-400"
+          ],
+          [
+            ".accent-amber-400"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Timeline_desktop_1280": {
+    "tab": "Timeline",
+    "viewport": "desktop_1280",
+    "violation_count": 3,
+    "total_nodes_affected": 25,
+    "violations": [
+      {
+        "id": "button-name",
+        "impact": "critical",
+        "description": "Ensure buttons have discernible text",
+        "help": "Buttons must have discernible text",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/button-name?application=axeAPI",
+        "nodes_count": 21,
+        "targets": [
+          [
+            ".bg-\\[\\#1C2541\\]\\/90.border-amber-500\\/40.shadow-amber-950\\/10:nth-child(1) > div:nth-child(1) > .items-start.gap-3.flex > .hover\\:text-teal-400.mt-0\\.5.shrink-0"
+          ],
+          [
+            ".bg-\\[\\#1C2541\\]\\/70.hover\\:border-teal-500\\/30.border-white\\/10:nth-child(2) > div:nth-child(1) > .items-start.gap-3.flex > .hover\\:text-teal-400.mt-0\\.5.shrink-0"
+          ],
+          [
+            ".bg-\\[\\#1C2541\\]\\/70.hover\\:border-teal-500\\/30.border-white\\/10:nth-child(3) > div:nth-child(1) > .items-start.gap-3.flex > .hover\\:text-teal-400.mt-0\\.5.shrink-0"
+          ]
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 3,
+        "targets": [
+          [
+            ".hover\\:bg-teal-500 > span"
+          ],
+          [
+            ".overflow-x-auto.scrollbar-none.pb-1 > .bg-teal-600.shadow-teal-950\\/40.shadow-md"
+          ],
+          [
+            ".sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Vendors_desktop_1280": {
+    "tab": "Vendors",
+    "viewport": "desktop_1280",
+    "violation_count": 2,
+    "total_nodes_affected": 3,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 2,
+        "targets": [
+          [
+            ".bg-teal-600"
+          ],
+          [
+            ".sm\\:flex-row.gap-3.max-w-7xl > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Approvals_desktop_1280": {
+    "tab": "Approvals",
+    "viewport": "desktop_1280",
+    "violation_count": 2,
+    "total_nodes_affected": 2,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            ".max-w-7xl.sm\\:flex-row.mx-auto > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Settings_desktop_1280": {
+    "tab": "Settings",
+    "viewport": "desktop_1280",
+    "violation_count": 3,
+    "total_nodes_affected": 9,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            ".sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "label",
+        "impact": "critical",
+        "description": "Ensure every form element has a label",
+        "help": "Form elements must have labels",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/label?application=axeAPI",
+        "nodes_count": 7,
+        "targets": [
+          [
+            ".md\\:grid-cols-2 > div:nth-child(1) > input[type=\"text\"]"
+          ],
+          [
+            "input[value=\"Mumbai\"]"
+          ],
+          [
+            "input[value=\"Grand Banquet Hall\"]"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Dashboard_mobile_360": {
+    "tab": "Dashboard",
+    "viewport": "mobile_360",
+    "violation_count": 3,
+    "total_nodes_affected": 15,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            ".max-w-7xl.gap-3.sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "description": "Ensure the order of headings is semantically correct",
+        "help": "Heading levels should only increase by one",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/heading-order?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            ".bg-\\[\\#1C2541\\]\\/60.hover\\:border-teal-500\\/40.p-4:nth-child(1) > h3"
+          ]
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "description": "Ensure all page content is contained by landmarks",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/region?application=axeAPI",
+        "nodes_count": 13,
+        "targets": [
+          [
+            ".inline-flex > span"
+          ],
+          [
+            ".text-4xl"
+          ],
+          [
+            ".sm\\:text-lg"
+          ]
+        ]
+      }
+    ]
+  },
+  "Ideas_mobile_360": {
+    "tab": "Ideas",
+    "viewport": "mobile_360",
+    "violation_count": 2,
+    "total_nodes_affected": 3,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 2,
+        "targets": [
+          [
+            ".bg-teal-600"
+          ],
+          [
+            ".sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Budget_mobile_360": {
+    "tab": "Budget",
+    "viewport": "mobile_360",
+    "violation_count": 4,
+    "total_nodes_affected": 13,
+    "violations": [
+      {
+        "id": "button-name",
+        "impact": "critical",
+        "description": "Ensure buttons have discernible text",
+        "help": "Buttons must have discernible text",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/button-name?application=axeAPI",
+        "nodes_count": 8,
+        "targets": [
+          [
+            ".bg-\\[\\#0B132B\\]\\/60.overflow-hidden.rounded-xl:nth-child(1) > .hover\\:bg-white\\/5.p-4.transition-colors > .gap-3.items-center.flex > button"
+          ],
+          [
+            ".bg-\\[\\#0B132B\\]\\/60.overflow-hidden.rounded-xl:nth-child(2) > .hover\\:bg-white\\/5.p-4.transition-colors > .gap-3.items-center.flex > button"
+          ],
+          [
+            ".bg-\\[\\#0B132B\\]\\/60.overflow-hidden.rounded-xl:nth-child(3) > .hover\\:bg-white\\/5.p-4.transition-colors > .gap-3.items-center.flex > button"
+          ]
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 2,
+        "targets": [
+          [
+            ".px-3\\.5 > span"
+          ],
+          [
+            ".px-4.max-w-7xl.sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "label",
+        "impact": "critical",
+        "description": "Ensure every form element has a label",
+        "help": "Form elements must have labels",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/label?application=axeAPI",
+        "nodes_count": 2,
+        "targets": [
+          [
+            ".accent-teal-400"
+          ],
+          [
+            ".accent-amber-400"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Timeline_mobile_360": {
+    "tab": "Timeline",
+    "viewport": "mobile_360",
+    "violation_count": 3,
+    "total_nodes_affected": 25,
+    "violations": [
+      {
+        "id": "button-name",
+        "impact": "critical",
+        "description": "Ensure buttons have discernible text",
+        "help": "Buttons must have discernible text",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/button-name?application=axeAPI",
+        "nodes_count": 21,
+        "targets": [
+          [
+            ".bg-\\[\\#1C2541\\]\\/90.border-amber-500\\/40.shadow-amber-950\\/10:nth-child(1) > div:nth-child(1) > .items-start.gap-3.flex > .hover\\:text-teal-400.mt-0\\.5.shrink-0"
+          ],
+          [
+            ".bg-\\[\\#1C2541\\]\\/70.hover\\:border-teal-500\\/30.border-white\\/10:nth-child(2) > div:nth-child(1) > .items-start.gap-3.flex > .hover\\:text-teal-400.mt-0\\.5.shrink-0"
+          ],
+          [
+            ".bg-\\[\\#1C2541\\]\\/70.hover\\:border-teal-500\\/30.border-white\\/10:nth-child(3) > div:nth-child(1) > .items-start.gap-3.flex > .hover\\:text-teal-400.mt-0\\.5.shrink-0"
+          ]
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 3,
+        "targets": [
+          [
+            ".hover\\:bg-teal-500 > span"
+          ],
+          [
+            ".overflow-x-auto.scrollbar-none.pb-1 > .bg-teal-600.shadow-teal-950\\/40.shadow-md"
+          ],
+          [
+            ".sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Vendors_mobile_360": {
+    "tab": "Vendors",
+    "viewport": "mobile_360",
+    "violation_count": 2,
+    "total_nodes_affected": 3,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 2,
+        "targets": [
+          [
+            ".bg-teal-600"
+          ],
+          [
+            ".sm\\:flex-row.gap-3.max-w-7xl > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Approvals_mobile_360": {
+    "tab": "Approvals",
+    "viewport": "mobile_360",
+    "violation_count": 2,
+    "total_nodes_affected": 2,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            ".max-w-7xl.sm\\:flex-row.mx-auto > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  },
+  "Settings_mobile_360": {
+    "tab": "Settings",
+    "viewport": "mobile_360",
+    "violation_count": 3,
+    "total_nodes_affected": 9,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            ".sm\\:flex-row > .text-slate-500"
+          ]
+        ]
+      },
+      {
+        "id": "label",
+        "impact": "critical",
+        "description": "Ensure every form element has a label",
+        "help": "Form elements must have labels",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/label?application=axeAPI",
+        "nodes_count": 7,
+        "targets": [
+          [
+            ".md\\:grid-cols-2 > div:nth-child(1) > input[type=\"text\"]"
+          ],
+          [
+            "input[value=\"Mumbai\"]"
+          ],
+          [
+            "input[value=\"Grand Banquet Hall\"]"
+          ]
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+        "help": "Page should contain a level-one heading",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=axeAPI",
+        "nodes_count": 1,
+        "targets": [
+          [
+            "html"
+          ]
+        ]
+      }
+    ]
+  }
+}
