@@ -1,6 +1,6 @@
 # CELESTIA Production Backend Runtime Dependencies
 # Pinned to exact resolved versions (0 known CVEs, pip-audit & Sonar verified)
-fastapi==0.115.11
+fastapi==0.162.0
 uvicorn[standard]==0.34.0
 gunicorn==22.0.0
 sqlalchemy==2.0.38
