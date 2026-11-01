@@ -29,6 +29,46 @@ TASK_MODEL_MAPPING = {
 # PROVIDER INTERFACE ARCHITECTURE (REAL + RULE-BASED)
 # ============================================================================
 
+# ============================================================================
+# CIRCUIT BREAKER & CONCURRENCY CONTROLS
+# ============================================================================
+
+class AICircuitBreaker:
+    """
+    Three-state circuit breaker for AI model execution:
+    - CLOSED: normal execution, counts consecutive failures.
+    - OPEN: trips after failure_threshold (3), immediately routes to fallback without external latency.
+    - HALF_OPEN: allows 1 test trial after recovery_timeout_sec (30s).
+    """
+    def __init__(self, failure_threshold: int = 3, recovery_timeout_sec: float = 30.0):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout_sec = recovery_timeout_sec
+        self.state = "CLOSED"
+        self.failure_count = 0
+        self.last_failure_time = 0.0
+
+    def can_execute(self) -> bool:
+        now = time.time()
+        if self.state == "OPEN":
+            if now - self.last_failure_time > self.recovery_timeout_sec:
+                self.state = "HALF_OPEN"
+                return True
+            return False
+        return True
+
+    def record_success(self) -> None:
+        self.failure_count = 0
+        self.state = "CLOSED"
+
+    def record_failure(self) -> None:
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        if self.failure_count >= self.failure_threshold:
+            self.state = "OPEN"
+
+ai_circuit_breaker = AICircuitBreaker()
+ai_concurrency_semaphore = asyncio.Semaphore(10) # Bounded concurrency cap: max 10 concurrent async AI workers
+
 class AIProvider(ABC):
     """Abstract interface defining contract for AI execution engines."""
     @abstractmethod
@@ -240,17 +280,22 @@ class AIEfficiencyService:
         prompt_text = CompactPromptBuilder.build_event_context(event, pref)
         prompt_tokens = TokenCostTracker.estimate_tokens(prompt_text)
 
-        # Helper with per-call timeout & fallback
+        # Helper with per-call timeout, concurrency limit, circuit breaker & fallback
         async def run_guarded(name: str, coro, fallback_fn):
             # Check cache first
             cached = UserPlanCache.get(event.user_id, event.id, name)
             if cached:
                 return cached
+            if not ai_circuit_breaker.can_execute():
+                return fallback_fn()
             try:
-                res = await asyncio.wait_for(coro, timeout=timeout_sec)
+                async with ai_concurrency_semaphore:
+                    res = await asyncio.wait_for(coro, timeout=timeout_sec)
                 UserPlanCache.set(event.user_id, event.id, name, res)
+                ai_circuit_breaker.record_success()
                 return res
             except (TimeoutError, Exception):
+                ai_circuit_breaker.record_failure()
                 return fallback_fn()
 
         # Define fallbacks

@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -68,6 +69,7 @@ class Event(Base):
         CheckConstraint("guest_count >= 10 AND guest_count <= 5000", name="check_event_guest_count"),
         CheckConstraint("budget_minor >= 1000000 AND budget_minor <= 10000000000", name="check_event_budget_minor"),
         CheckConstraint("preparation_months >= 1 AND preparation_months <= 36", name="check_event_prep_months"),
+        Index("ix_events_user_created", "user_id", "created_at"),
     )
     preference = relationship("EventPreference", back_populates="event", uselist=False, cascade="all, delete-orphan")
     plans = relationship("EventPlan", back_populates="event", cascade="all, delete-orphan")
@@ -137,6 +139,7 @@ class BudgetCategory(Base):
     __table_args__ = (
         CheckConstraint("allocation_basis_points >= 0 AND allocation_basis_points <= 10000", name="check_cat_allocation_basis_points"),
         CheckConstraint("allocated_amount_minor >= 0", name="check_cat_allocated_amount"),
+        Index("ix_budget_cat_event_sort", "event_id", "sort_order"),
     )
 
 class Expense(Base):
@@ -201,6 +204,7 @@ class Task(Base):
     __table_args__ = (
         CheckConstraint("duration_days >= 1 AND duration_days <= 365", name="check_task_duration_days"),
         CheckConstraint("days_before_event >= 0 AND days_before_event <= 1825", name="check_task_days_before_event"),
+        Index("ix_tasks_event_days", "event_id", "days_before_event"),
     )
 
 class TaskDependency(Base):
@@ -286,6 +290,7 @@ class Approval(Base):
 
     __table_args__ = (
         CheckConstraint("status IN ('pending', 'approved', 'rejected')", name="check_approval_status"),
+        Index("ix_approvals_event_status", "event_id", "status"),
     )
 
 class ActivityLog(Base):
@@ -301,6 +306,10 @@ class ActivityLog(Base):
 
     event = relationship("Event", back_populates="activity_logs")
 
+    __table_args__ = (
+        Index("ix_activity_logs_event_time", "event_id", "timestamp"),
+    )
+
 class IdempotencyRecord(Base):
     __tablename__ = "idempotency_records"
 
@@ -312,6 +321,10 @@ class IdempotencyRecord(Base):
     response_code = Column(Integer, nullable=False, default=200)
     response_body = Column(JSON, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now)
+
+    __table_args__ = (
+        Index("ix_idempotency_lookup", "key", "user_id", "endpoint"),
+    )
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"

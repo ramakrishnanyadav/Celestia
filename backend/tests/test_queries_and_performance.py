@@ -156,3 +156,80 @@ def test_query_count_budget_summary_has_no_n_plus_one():
             sa_event.remove(engine, "before_cursor_execute", counter)
     finally:
         db.close()
+
+def test_event_overview_aggregated_query_budget_and_etag():
+    """
+    Verify high-performance aggregated overview:
+    1. Executes <= 5 database queries despite loading event, budget, tasks, approvals, and logs.
+    2. Emits ETag and Cache-Control headers.
+    3. Returns HTTP 304 Not Modified when client sends matching If-None-Match header.
+    """
+    db = SessionLocal()
+    try:
+        user = User(
+            email=f"qtest_ov_{uuid.uuid4().hex[:6]}@celestia.ai",
+            name="Overview Tester",
+            password_hash=hash_password("pass123"),
+            role="planner"
+        )
+        db.add(user)
+        db.commit()
+
+        event = Event(
+            user_id=user.id,
+            title="Overview Heavy Event",
+            event_type="wedding",
+            guest_count=400,
+            budget_minor=250000000
+        )
+        db.add(event)
+        db.commit()
+
+        # Seed categories and expenses
+        for i in range(10):
+            cat = BudgetCategory(event_id=event.id, name=f"Cat {i}", allocated_amount_minor=5000000, sort_order=i)
+            db.add(cat)
+            db.commit()
+            db.refresh(cat)
+            exp = Expense(category_id=cat.id, name=f"Exp {i}", planned_amount_minor=2000000)
+            db.add(exp)
+            db.commit()
+
+        # Seed tasks
+        for j in range(20):
+            t = Task(event_id=event.id, title=f"Task {j}", category="Decor", days_before_event=90 - j, duration_days=2)
+            db.add(t)
+        db.commit()
+
+        token = create_access_token({"sub": user.id, "email": user.email})
+        headers = {"Authorization": f"Bearer {token}"}
+
+        counter = QueryCounter()
+        sa_event.listen(engine, "before_cursor_execute", counter)
+
+        try:
+            # 1. Fetch overview
+            res = client.get(f"/api/v1/events/{event.id}/overview", headers=headers)
+            assert res.status_code == 200
+            data = res.json()
+
+            # Confirm payload contents
+            assert data["event"]["id"] == event.id
+            assert "budget" in data
+            assert len(data["next_tasks"]) <= 10
+            assert "ETag" in res.headers
+            assert "Cache-Control" in res.headers
+            etag = res.headers["ETag"]
+
+            # Query budget assertion: <= 5 queries
+            print(f"Total queries for full event overview: {counter.count}")
+            assert counter.count <= 5, f"Expected <= 5 queries, got {counter.count} (N+1 regression)"
+
+            # 2. Test conditional GET (HTTP 304 Not Modified)
+            cond_headers = {**headers, "If-None-Match": etag}
+            cached_res = client.get(f"/api/v1/events/{event.id}/overview", headers=cond_headers)
+            assert cached_res.status_code == 304
+        finally:
+            sa_event.remove(engine, "before_cursor_execute", counter)
+    finally:
+        db.close()

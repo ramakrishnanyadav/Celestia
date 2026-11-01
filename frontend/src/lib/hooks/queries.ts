@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
 import type {
   EventItem,
+  EventOverview,
   EventCreateInput,
   EventUpdateInput,
   BudgetSummary,
@@ -27,6 +28,7 @@ export const queryKeys = {
   currentUser: ["auth", "me"] as const,
   events: ["events"] as const,
   event: (id: string) => ["events", id] as const,
+  overview: (id: string) => ["events", id, "overview"] as const,
   budgetSummary: (eventId: string) =>
     ["events", eventId, "budget", "summary"] as const,
   budgetCategories: (eventId: string) =>
@@ -62,6 +64,27 @@ export function useEvent(eventId: string | null | undefined) {
   return useQuery<EventItem>({
     queryKey: queryKeys.event(eventId ?? ""),
     queryFn: () => api.getEvent(eventId!),
+    enabled: Boolean(eventId),
+  });
+}
+
+export function useEventOverview(eventId: string | null | undefined) {
+  const queryClient = useQueryClient();
+  return useQuery<EventOverview>({
+    queryKey: queryKeys.overview(eventId ?? ""),
+    queryFn: async () => {
+      const data = await api.getEventOverview(eventId!);
+      if (data?.event) {
+        queryClient.setQueryData(queryKeys.event(eventId!), data.event);
+      }
+      if (data?.budget) {
+        queryClient.setQueryData(
+          queryKeys.budgetSummary(eventId!),
+          data.budget
+        );
+      }
+      return data;
+    },
     enabled: Boolean(eventId),
   });
 }

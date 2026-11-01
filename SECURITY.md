@@ -86,3 +86,4 @@ We take security vulnerabilities seriously. If you discover a potential vulnerab
    - Severity triage & reproduction: **Within 48 hours**.
    - Fix deployment: **Within 7 business days** (Critical/High).
 4. **Safe Harbor:** We commit not to pursue legal action against security researchers who conduct research in good faith, avoid privacy violations, avoid data destruction, and give us reasonable time to remediate before public disclosure.
+

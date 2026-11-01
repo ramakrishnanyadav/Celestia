@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/hooks/queries";
+import { api } from "@/lib/api";
 import {
   Sparkles,
   LayoutDashboard,
@@ -25,6 +28,44 @@ interface SidebarProps {
 export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handlePrefetch = useCallback(
+    (href: string) => {
+      if (!eventId) return;
+      if (href.endsWith("/budget")) {
+        queryClient.prefetchQuery({
+          queryKey: queryKeys.budgetSummary(eventId),
+          queryFn: () => api.getBudgetSummary(eventId),
+          staleTime: 60 * 1000,
+        });
+        queryClient.prefetchQuery({
+          queryKey: queryKeys.budgetCategories(eventId),
+          queryFn: () => api.getCategories(eventId),
+          staleTime: 60 * 1000,
+        });
+      } else if (href.endsWith("/timeline")) {
+        queryClient.prefetchQuery({
+          queryKey: queryKeys.tasks(eventId),
+          queryFn: () => api.getTasks(eventId),
+          staleTime: 60 * 1000,
+        });
+      } else if (href.endsWith("/vendors")) {
+        queryClient.prefetchQuery({
+          queryKey: queryKeys.vendors(eventId),
+          queryFn: () => api.getVendors(eventId),
+          staleTime: 60 * 1000,
+        });
+      } else if (href.endsWith("/approvals")) {
+        queryClient.prefetchQuery({
+          queryKey: queryKeys.approvals(eventId),
+          queryFn: () => api.getApprovals(eventId),
+          staleTime: 60 * 1000,
+        });
+      }
+    },
+    [eventId, queryClient]
+  );
 
   const navItems = [
     {
@@ -119,6 +160,7 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onMouseEnter={() => handlePrefetch(item.href)}
               aria-current={isActive ? "page" : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 isActive

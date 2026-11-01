@@ -8,6 +8,7 @@ import type {
   User,
   TokenResponse,
   EventItem,
+  EventOverview,
   EventCreateInput,
   EventUpdateInput,
   EventPreference,
@@ -66,6 +67,9 @@ export const api = {
   getEvents: () => apiClient<EventItem[]>("/events"),
 
   getEvent: (id: string) => apiClient<EventItem>(`/events/${id}`),
+
+  getEventOverview: (id: string) =>
+    apiClient<EventOverview>(`/v1/events/${id}/overview`),
 
   createEvent: (data: EventCreateInput) =>
     apiClient<EventItem>("/events", {

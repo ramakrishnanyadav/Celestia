@@ -542,3 +542,12 @@ class PlanGenerationResponse(BaseModel):
     budget_allocation_summary: dict[str, Any]
     task_count: int
     milestone_count: int
+
+# --- AGGREGATED EVENT OVERVIEW (PERFORMANCE OPTIMIZATION) ---
+class EventOverviewResponse(BaseModel):
+    event: EventResponse
+    budget: BudgetSummaryResponse
+    next_tasks: list[TaskResponse] = Field(default_factory=list)
+    pending_approvals: list[ApprovalResponse] = Field(default_factory=list)
+    vendors_count: int = 0
+    recent_activities: list[ActivityLogResponse] = Field(default_factory=list)

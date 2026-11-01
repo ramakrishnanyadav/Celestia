@@ -1,0 +1,52 @@
+Engine Dialect: SQLITE
+================================================================================
+
+Query: Events by user (Ordered by created_at)
+SQL: EXPLAIN QUERY PLAN SELECT * FROM events WHERE user_id = 'test-user-id' ORDER BY created_at DESC
+    4 | 0 | 61 | SEARCH events USING INDEX ix_events_user_created (user_id=?)
+    -> Status: PASS (Index Utilized)
+
+Query: Tasks by event (Ordered by days_before_event)
+SQL: EXPLAIN QUERY PLAN SELECT * FROM tasks WHERE event_id = 'test-event-id' ORDER BY days_before_event DESC
+    4 | 0 | 61 | SEARCH tasks USING INDEX ix_tasks_event_days (event_id=?)
+    -> Status: PASS (Index Utilized)
+
+Query: Budget Categories by event (Ordered by sort_order)
+SQL: EXPLAIN QUERY PLAN SELECT * FROM budget_categories WHERE event_id = 'test-event-id' ORDER BY sort_order ASC
+    4 | 0 | 62 | SEARCH budget_categories USING INDEX ix_budget_cat_event_sort (event_id=?)
+    -> Status: PASS (Index Utilized)
+
+Query: Approvals by event & pending status
+SQL: EXPLAIN QUERY PLAN SELECT * FROM approvals WHERE event_id = 'test-event-id' AND status = 'pending'
+    3 | 0 | 61 | SEARCH approvals USING INDEX ix_approvals_event_status (event_id=? AND status=?)
+    -> Status: PASS (Index Utilized)
+
+Query: Activity logs by event (Ordered by timestamp)
+SQL: EXPLAIN QUERY PLAN SELECT * FROM activity_logs WHERE event_id = 'test-event-id' ORDER BY timestamp DESC
+    4 | 0 | 62 | SEARCH activity_logs USING INDEX ix_activity_logs_event_time (event_id=?)
+    -> Status: PASS (Index Utilized)
+
+Verified Database Indexes:
+    Table 'activity_logs': Index 'ix_activity_logs_event_id'
+    Table 'activity_logs': Index 'ix_activity_logs_event_time'
+    Table 'approvals': Index 'ix_approvals_event_id'
+    Table 'approvals': Index 'ix_approvals_event_status'
+    Table 'budget_categories': Index 'ix_budget_cat_event_sort'
+    Table 'budget_categories': Index 'ix_budget_categories_event_id'
+    Table 'documents': Index 'ix_documents_event_id'
+    Table 'event_plans': Index 'ix_event_plans_event_id'
+    Table 'events': Index 'ix_events_event_type'
+    Table 'events': Index 'ix_events_user_created'
+    Table 'events': Index 'ix_events_user_id'
+    Table 'expenses': Index 'ix_expenses_category_id'
+    Table 'idempotency_records': Index 'ix_idempotency_records_key'
+    Table 'idempotency_records': Index 'ix_idempotency_records_user_id'
+    Table 'quotations': Index 'ix_quotations_vendor_id'
+    Table 'refresh_tokens': Index 'ix_refresh_tokens_token_hash'
+    Table 'refresh_tokens': Index 'ix_refresh_tokens_user_id'
+    Table 'task_dependencies': Index 'ix_task_dependencies_depends_on_task_id'
+    Table 'task_dependencies': Index 'ix_task_dependencies_task_id'
+    Table 'tasks': Index 'ix_tasks_event_days'
+    Table 'tasks': Index 'ix_tasks_event_id'
+    Table 'users': Index 'ix_users_email'
+    Table 'vendors': Index 'ix_vendors_event_id'

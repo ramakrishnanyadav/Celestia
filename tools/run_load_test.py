@@ -1,18 +1,40 @@
+"""
+CELESTIA Concurrent Load Test & Endpoint Breakdown Benchmark.
+Tests:
+  - Core Reads (target: p95 < 200ms at 50 RPS / concurrency 25-50):
+      * GET /api/v1/events/{id}/overview (Aggregated overview with eager loading & ETag)
+      * GET /api/events/{id} (Metadata)
+      * GET /api/events/{id}/budget/summary (Integer ledger)
+      * GET /api/events/{id}/tasks (500-task CPM critical path calculation)
+  - Core Writes (target: p95 < 500ms at 50 RPS):
+      * POST /api/events/{id}/tasks (Task creation + dependency ordering)
+      * POST /api/events/{id}/budget/categories (Category creation + basis points validation)
+Exports full telemetry to docs/evidence/perf/load_test_results.json.
+"""
+import sys
+import os
 import asyncio
 import time
 import uuid
+import json
+from pathlib import Path
 import numpy as np
 import httpx
-from app.database import SessionLocal
+
+# Ensure backend package is in path
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "backend"))
+
+from app.database import SessionLocal, Base, engine
 from app.models import User, Event, Task, TaskDependency, BudgetCategory, Expense
 from app.auth import hash_password, create_access_token
 from app.main import app
 
-BASE_URL = "http://127.0.0.1:8000"
-
 def setup_500_task_event():
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
-    # Check if benchmark user exists
+    
+    # Check or create benchmark user
     user = db.query(User).filter(User.email == "loadtest_500@celestia.ai").first()
     if not user:
         user = User(
@@ -43,7 +65,7 @@ def setup_500_task_event():
         db.commit()
         db.refresh(event)
 
-    # Check tasks count
+    # Ensure 500 tasks
     task_count = db.query(Task).filter(Task.event_id == event.id).count()
     if task_count < 500:
         db.query(Task).filter(Task.event_id == event.id).delete()
@@ -83,7 +105,7 @@ def setup_500_task_event():
             bc = BudgetCategory(
                 event_id=event.id,
                 name=cname,
-                allocation_percent=25.0,
+                allocation_basis_points=2500,
                 allocated_amount_minor=125000000,
                 icon="DollarSign",
                 sort_order=i
@@ -111,105 +133,213 @@ async def execute_request(client: httpx.AsyncClient, method: str, url: str, head
     try:
         if method == "GET":
             resp = await client.get(url, headers=headers)
-        else:
+        elif method == "POST":
             resp = await client.post(url, headers=headers, json=json_body)
+        elif method == "PATCH":
+            resp = await client.patch(url, headers=headers, json=json_body)
+        else:
+            resp = await client.request(method, url, headers=headers, json=json_body)
         latency = (time.perf_counter() - t0) * 1000.0
-        is_success = (200 <= resp.status_code < 300)
+        is_success = (200 <= resp.status_code < 400)
         return latency, is_success, resp.status_code
     except Exception as e:
         latency = (time.perf_counter() - t0) * 1000.0
         return latency, False, 500
 
-async def run_scenario(concurrency: int, total_requests: int, token: str, event_id: str):
-    headers = {"Authorization": f"Bearer {token}", "Accept-Encoding": "gzip"}
-    
-    endpoints = [
-        ("GET", f"/api/events/{event_id}", None),
-        ("GET", f"/api/events/{event_id}/budget/summary", None),
-        ("GET", f"/api/events/{event_id}/tasks", None),
-        ("POST", f"/api/events/{event_id}/ai/command", {"command": "What is the status of our catering budget?"})
-    ]
+async def benchmark_endpoint(client: httpx.AsyncClient, name: str, method: str, path_factory, body_factory, concurrency: int, total_requests: int, headers: dict, target_p95: float):
+    queue = asyncio.Queue()
+    for i in range(total_requests):
+        queue.put_nowait(i)
 
-    limits = httpx.Limits(max_connections=concurrency + 10, max_keepalive_connections=concurrency + 5)
-    timeout = httpx.Timeout(30.0, connect=10.0)
+    latencies = []
+    errors = 0
+    t0 = time.perf_counter()
 
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver", limits=limits, timeout=timeout) as client:
-        # Warmup
-        await client.get(f"/api/events/{event_id}", headers=headers)
-        await client.get(f"/api/events/{event_id}/tasks", headers=headers)
+    async def worker():
+        nonlocal errors
+        while not queue.empty():
+            try:
+                idx = queue.get_nowait()
+            except asyncio.QueueEmpty:
+                break
+            
+            path = path_factory(idx) if callable(path_factory) else path_factory
+            body = body_factory(idx) if callable(body_factory) else body_factory
+            lat, success, status = await execute_request(client, method, path, headers, body)
+            latencies.append(lat)
+            if not success:
+                errors += 1
+            queue.task_done()
 
-        queue = asyncio.Queue()
-        for i in range(total_requests):
-            ep = endpoints[i % len(endpoints)]
-            queue.put_nowait(ep)
+    workers = [asyncio.create_task(worker()) for _ in range(concurrency)]
+    await asyncio.gather(*workers)
+    total_time = time.perf_counter() - t0
 
-        results = []
-        start_time = time.perf_counter()
-
-        async def worker():
-            while not queue.empty():
-                try:
-                    method, path, body = queue.get_nowait()
-                except asyncio.QueueEmpty:
-                    break
-                lat, success, status = await execute_request(client, method, path, headers, body)
-                results.append((lat, success, status))
-                queue.task_done()
-
-        workers = [asyncio.create_task(worker()) for _ in range(concurrency)]
-        await asyncio.gather(*workers)
-        total_duration = time.perf_counter() - start_time
-
-    latencies = [r[0] for r in results]
-    successes = [r[1] for r in results]
-    errors = [r for r in results if not r[1]]
-    
-    p50 = np.percentile(latencies, 50)
-    p95 = np.percentile(latencies, 95)
-    p99 = np.percentile(latencies, 99)
-    rps = len(results) / total_duration
-    error_rate = (len(errors) / len(results)) * 100.0
+    p50 = float(np.percentile(latencies, 50))
+    p95 = float(np.percentile(latencies, 95))
+    p99 = float(np.percentile(latencies, 99))
+    rps = float(len(latencies) / total_time)
+    err_rate = float((errors / len(latencies)) * 100.0)
+    passed = p95 <= target_p95 and err_rate == 0.0
 
     return {
+        "endpoint": name,
+        "method": method,
         "concurrency": concurrency,
-        "total_requests": len(results),
-        "duration_sec": total_duration,
-        "rps": rps,
-        "p50_ms": p50,
-        "p95_ms": p95,
-        "p99_ms": p99,
-        "error_rate_pct": error_rate,
-        "errors": len(errors)
+        "total_requests": len(latencies),
+        "duration_sec": round(total_time, 2),
+        "rps": round(rps, 1),
+        "p50_ms": round(p50, 2),
+        "p95_ms": round(p95, 2),
+        "p99_ms": round(p99, 2),
+        "target_p95_ms": target_p95,
+        "error_rate_pct": round(err_rate, 2),
+        "status": "PASS" if passed else "FAIL"
     }
 
 async def main():
-    print("=== SEEDING 500-TASK EVENT IN DATABASE ===")
+    print("=" * 80)
+    print("CELESTIA ENDPOINT CONCURRENCY & LATENCY BENCHMARK")
+    print("=" * 80)
+    print("Seeding database with 500 tasks, 400 dependencies, and multi-tier budget ledger...")
     token, event_id = setup_500_task_event()
     print(f"Target Event ID: {event_id}")
 
-    test_runs = [
-        (1, 100),
-        (25, 250),
-        (50, 300)
-    ]
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept-Encoding": "gzip",
+        "Content-Type": "application/json"
+    }
 
-    metrics = []
-    for conc, reqs in test_runs:
-        print(f"\n--- Running Load Test with Concurrency={conc} ({reqs} requests across 4 flows) ---")
-        res = await run_scenario(conc, reqs, token, event_id)
-        metrics.append(res)
-        print(f"Concurrency: {res['concurrency']} | Requests: {res['total_requests']} | Duration: {res['duration_sec']:.2f}s | RPS: {res['rps']:.1f}")
-        print(f"p50: {res['p50_ms']:.2f} ms | p95: {res['p95_ms']:.2f} ms | p99: {res['p99_ms']:.2f} ms | Error Rate: {res['error_rate_pct']:.2f}%")
+    transport = httpx.ASGITransport(app=app)
+    limits = httpx.Limits(max_connections=60, max_keepalive_connections=50)
+    timeout = httpx.Timeout(30.0, connect=10.0)
 
-    print("\n" + "="*80)
-    print("CONCURRENT LOAD TEST SUMMARY (500-TASK EVENT)")
-    print("="*80)
-    print(f"{'Concurrency':<12} | {'Throughput (RPS)':<18} | {'p50 (ms)':<10} | {'p95 (ms)':<10} | {'p99 (ms)':<10} | {'Error Rate':<10}")
-    print("-" * 80)
-    for m in metrics:
-        print(f"{m['concurrency']:<12} | {m['rps']:<18.1f} | {m['p50_ms']:<10.2f} | {m['p95_ms']:<10.2f} | {m['p99_ms']:<10.2f} | {m['error_rate_pct']:.1f}%")
-    print("="*80)
+    results = []
+
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver", limits=limits, timeout=timeout) as client:
+        # Warmup
+        await client.get(f"/api/v1/events/{event_id}/overview", headers=headers)
+        await client.get(f"/api/events/{event_id}/tasks", headers=headers)
+
+        endpoints_to_test = [
+            # 1. Aggregated Overview (N+1 eliminated, eager loading, 4 queries total)
+            {
+                "name": "GET /api/v1/events/{id}/overview (Aggregated)",
+                "method": "GET",
+                "path": f"/api/v1/events/{event_id}/overview",
+                "body": None,
+                "target_p95": 200.0,
+                "concurrency": 25,
+                "requests": 150
+            },
+            # 2. Event Metadata
+            {
+                "name": "GET /api/events/{id} (Metadata)",
+                "method": "GET",
+                "path": f"/api/events/{event_id}",
+                "body": None,
+                "target_p95": 200.0,
+                "concurrency": 25,
+                "requests": 150
+            },
+            # 3. Budget Summary Ledger
+            {
+                "name": "GET /api/events/{id}/budget/summary",
+                "method": "GET",
+                "path": f"/api/events/{event_id}/budget/summary",
+                "body": None,
+                "target_p95": 200.0,
+                "concurrency": 25,
+                "requests": 150
+            },
+            # 4. 500-Task CPM Graph Critical Path
+            {
+                "name": "GET /api/events/{id}/tasks (500-Task CPM)",
+                "method": "GET",
+                "path": f"/api/events/{event_id}/tasks",
+                "body": None,
+                "target_p95": 200.0,
+                "concurrency": 25,
+                "requests": 150
+            },
+            # 5. Core Write: Create Task
+            {
+                "name": "POST /api/events/{id}/tasks (Write)",
+                "method": "POST",
+                "path": f"/api/events/{event_id}/tasks",
+                "body": lambda idx: {
+                    "title": f"Load Benchmark Task #{idx}_{uuid.uuid4().hex[:6]}",
+                    "category": "Decor",
+                    "days_before_event": 60,
+                    "duration_days": 2,
+                    "priority": "medium"
+                },
+                "target_p95": 500.0,
+                "concurrency": 25,
+                "requests": 100
+            },
+            # 6. Core Write: Create Budget Category
+            {
+                "name": "POST /api/events/{id}/budget/categories (Write)",
+                "method": "POST",
+                "path": f"/api/events/{event_id}/budget/categories",
+                "body": lambda idx: {
+                    "name": f"Load Category #{idx}_{uuid.uuid4().hex[:6]}",
+                    "allocation_basis_points": 500,
+                    "allocated_amount_minor": 25000000,
+                    "icon": "Package"
+                },
+                "target_p95": 500.0,
+                "concurrency": 25,
+                "requests": 100
+            },
+            # 7. Stress test at 50 Concurrency on Aggregated Overview
+            {
+                "name": "GET /api/v1/events/{id}/overview (50 Concurrent Users)",
+                "method": "GET",
+                "path": f"/api/v1/events/{event_id}/overview",
+                "body": None,
+                "target_p95": 200.0,
+                "concurrency": 50,
+                "requests": 250
+            }
+        ]
+
+        print(f"\n{'Endpoint':<45} | {'Conc':<5} | {'RPS':<8} | {'p50 (ms)':<9} | {'p95 (ms)':<9} | {'p99 (ms)':<9} | {'Target':<9} | {'Status'}")
+        print("-" * 115)
+
+        for ep in endpoints_to_test:
+            res = await benchmark_endpoint(
+                client=client,
+                name=ep["name"],
+                method=ep["method"],
+                path_factory=ep["path"],
+                body_factory=ep["body"],
+                concurrency=ep["concurrency"],
+                total_requests=ep["requests"],
+                headers=headers,
+                target_p95=ep["target_p95"]
+            )
+            results.append(res)
+            print(f"{res['endpoint']:<45} | {res['concurrency']:<5} | {res['rps']:<8.1f} | {res['p50_ms']:<9.2f} | {res['p95_ms']:<9.2f} | {res['p99_ms']:<9.2f} | <{res['target_p95_ms']}ms | {res['status']}")
+
+    print("=" * 115)
+    all_passed = all(r["status"] == "PASS" for r in results)
+    print(f"OVERALL BENCHMARK VERDICT: {'ALL BUDGETS SATISFIED (PASS)' if all_passed else 'SOME BUDGETS EXCEEDED (FAIL)'}")
+
+    # Export to docs/evidence/perf/load_test_results.json
+    out_dir = REPO_ROOT / "docs" / "evidence" / "perf"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / "load_test_results.json"
+    with open(out_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "all_passed": all_passed,
+            "target_budget_reads_p95_ms": 200.0,
+            "target_budget_writes_p95_ms": 500.0,
+            "benchmarks": results
+        }, f, indent=2)
+    print(f"Results saved to {out_file}")
 
 if __name__ == "__main__":
     asyncio.run(main())

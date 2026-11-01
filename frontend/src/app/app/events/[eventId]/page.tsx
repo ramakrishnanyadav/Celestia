@@ -4,12 +4,9 @@ import React, { use } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/shell/AppShell";
 import {
-  useEvent,
+  useEventOverview,
   useEvents,
   useCurrentUser,
-  useBudgetSummary,
-  useTasks,
-  useApprovals,
   useUpdateEvent,
 } from "@/lib/hooks/queries";
 import { OverviewKpiCards } from "@/features/overview/components/OverviewKpiCards";
@@ -29,27 +26,24 @@ export default function EventOverviewPage({
   params: Promise<{ eventId: string }>;
 }) {
   const { eventId } = use(params);
-  const { data: event, isLoading: eventLoading } = useEvent(eventId);
+  const { data: overview, isLoading: overviewLoading } = useEventOverview(eventId);
   const { data: events } = useEvents();
   const { data: user } = useCurrentUser();
-  const { data: budgetSummary } = useBudgetSummary(eventId);
-  const { data: tasks } = useTasks(eventId);
-  const { data: approvals } = useApprovals(eventId);
   const updateEventMutation = useUpdateEvent(eventId);
 
-  const pendingApprovalsCount = approvals
-    ? approvals.filter((a) => a.status === "pending").length
-    : 0;
-  const criticalTasksCount = tasks
-    ? tasks.filter((t) => t.is_critical).length
-    : 0;
+  const event = overview?.event;
+  const budgetSummary = overview?.budget;
+  const pendingApprovalsCount = overview?.pending_approvals?.length ?? 0;
+  const criticalTasksCount =
+    overview?.next_tasks?.filter((t) => t.is_critical).length ?? 0;
+  const totalTasksCount = overview?.next_tasks?.length ?? 0;
 
   const handleToggleAiPause = () => {
     if (!event) return;
     updateEventMutation.mutate({ ai_paused: !event.ai_paused });
   };
 
-  if (eventLoading || !event) {
+  if (overviewLoading || !event) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 text-sm text-[var(--ink-muted)]">
         Synchronizing celebration blueprint...
@@ -102,7 +96,7 @@ export default function EventOverviewPage({
         <OverviewKpiCards
           event={event}
           budgetSummary={budgetSummary}
-          taskCount={tasks ? tasks.length : 0}
+          taskCount={totalTasksCount}
           criticalTaskCount={criticalTasksCount}
         />
 

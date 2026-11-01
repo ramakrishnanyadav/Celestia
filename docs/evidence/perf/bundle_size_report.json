@@ -1,0 +1,108 @@
+{
+  "target_budget_gzip_kb": 180.0,
+  "passed": true,
+  "routes": {
+    "/(auth)/login": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/(auth)/register": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/_global-error": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/_not-found": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]/approvals": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]/blueprint": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]/budget": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]/ideas": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]/planner": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]/settings": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]/timeline": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/[eventId]/vendors": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events/new": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app/events": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/app": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    },
+    "/": {
+      "raw_kb": 543.11,
+      "gzip_kb": 167.62,
+      "chunks_count": 6,
+      "status": "PASS"
+    }
+  }
+}

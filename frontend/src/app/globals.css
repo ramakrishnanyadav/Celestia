@@ -109,6 +109,36 @@
   background: var(--brand-teal);
 }
 
+/* GPU/CPU Performance & Rendering Optimizations */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 72px;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Reduced Motion & Battery/Low-Power Media Queries */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .glass-panel,
+  .glass-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--canvas-card) !important;
+  }
+}
+
 /* Print styling for PDF event blueprint export */
 @media print {
   body {

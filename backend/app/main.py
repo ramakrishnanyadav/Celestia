@@ -169,9 +169,10 @@ async def add_security_headers_middleware(request: Request, call_next):
         del response.headers["X-XSS-Protection"]
     return response
 
-# Include Routers
+# Include Routers (/api and /api/v1 prefix)
 app.include_router(auth_routes.router, prefix="/api")
 app.include_router(event_routes.router, prefix="/api")
+app.include_router(event_routes.router, prefix="/api/v1")
 app.include_router(budget_routes.router, prefix="/api")
 app.include_router(task_routes.router, prefix="/api")
 app.include_router(vendor_routes.router, prefix="/api")

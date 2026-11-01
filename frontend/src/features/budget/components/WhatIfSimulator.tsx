@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
-import { formatMoney, formatMoneyCompact } from "@/lib/money";
+import React, { useState, useEffect, useTransition, useRef } from "react";
+import { formatMoney } from "@/lib/money";
 import { api } from "@/lib/api";
 import type { EventItem, WhatIfResponse } from "@/lib/api/types";
-import { Sliders, Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Sliders, CheckCircle2, AlertTriangle } from "lucide-react";
 
 interface WhatIfSimulatorProps {
   event: EventItem;
@@ -21,10 +21,22 @@ export function WhatIfSimulator({
   );
   const [simulation, setSimulation] = useState<WhatIfResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+
+  // Latest-wins sequence guard to prevent out-of-order race conditions
+  const seqRef = useRef(0);
+
+  // Client-side optimistic calculation for 0ms visual feedback
+  const optimisticTotalRupees = budgetLakhs * 100_000;
+  const optimisticPerGuestRupees = Math.round(
+    optimisticTotalRupees / Math.max(1, guestCount)
+  );
+  const optimisticContingencyRupees = Math.round(optimisticTotalRupees * 0.1);
 
   useEffect(() => {
     const controller = new AbortController();
+    const currentSeq = ++seqRef.current;
+
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -32,13 +44,19 @@ export function WhatIfSimulator({
           simulated_guest_count: guestCount,
           simulated_budget_minor: budgetLakhs * 10_000_000,
         });
-        startTransition(() => {
-          setSimulation(res);
-        });
+
+        // Sequence guard: only apply if this is still the latest initiated request
+        if (currentSeq === seqRef.current) {
+          startTransition(() => {
+            setSimulation(res);
+          });
+        }
       } catch {
         // Silently caught on abort or transient network debounce
       } finally {
-        setLoading(false);
+        if (currentSeq === seqRef.current) {
+          setLoading(false);
+        }
       }
     }, 250);
 
@@ -62,11 +80,11 @@ export function WhatIfSimulator({
               What-If Budget Simulator
             </h3>
             <p className="text-xs text-[var(--ink-muted)]">
-              Live deterministic recalculation with 250ms debounce
+              Live deterministic calculation with 250ms debounce & latest-wins guard
             </p>
           </div>
         </div>
-        {simulation && (
+        {simulation ? (
           <span
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
               isFeasible
@@ -80,6 +98,10 @@ export function WhatIfSimulator({
               <AlertTriangle className="w-3.5 h-3.5" />
             )}
             {isFeasible ? "Feasible Allocation" : "Tight / Over-Budget"}
+          </span>
+        ) : (
+          <span className="text-xs text-[var(--ink-muted)] italic">
+            Computing preview...
           </span>
         )}
       </div>
@@ -131,30 +153,37 @@ export function WhatIfSimulator({
         </div>
       </div>
 
-      {/* Simulation Result Preview */}
-      {simulation && (
-        <div className="p-4 rounded-xl bg-[var(--canvas-sunken)] text-xs text-[var(--ink-secondary)] space-y-2">
-          <p className="font-medium text-[var(--ink-primary)] leading-relaxed">
-            {simulation.recommendation}
-          </p>
-          <div className="flex items-center gap-4 pt-2 border-t border-[var(--border-subtle)]">
-            <span>
-              Per Guest: ₹
-              {Math.round(
-                simulation.simulated_budget_rupees /
-                  (simulation.simulated_guests || 1)
-              ).toLocaleString("en-IN")}
+      {/* Immediate Optimistic Preview + Server Breakdown */}
+      <div className="p-4 rounded-xl bg-[var(--canvas-sunken)] text-xs text-[var(--ink-secondary)] space-y-2">
+        <p className="font-medium text-[var(--ink-primary)] leading-relaxed">
+          {simulation ? simulation.recommendation : `Simulating ${guestCount} guests with ₹${budgetLakhs} Lakh budget...`}
+        </p>
+        <div className="flex items-center gap-4 pt-2 border-t border-[var(--border-subtle)]">
+          <span>
+            Per Guest: ₹
+            {(simulation
+              ? Math.round(
+                  simulation.simulated_budget_rupees /
+                    (simulation.simulated_guests || 1)
+                )
+              : optimisticPerGuestRupees
+            ).toLocaleString("en-IN")}
+          </span>
+          <span>•</span>
+          <span>
+            Contingency: ₹
+            {(simulation
+              ? Math.round(simulation.new_contingency_rupees)
+              : optimisticContingencyRupees
+            ).toLocaleString("en-IN")}
+          </span>
+          {loading && (
+            <span className="ml-auto text-[var(--brand-teal)] animate-pulse">
+              Syncing...
             </span>
-            <span>•</span>
-            <span>
-              Contingency: ₹
-              {Math.round(simulation.new_contingency_rupees).toLocaleString(
-                "en-IN"
-              )}
-            </span>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

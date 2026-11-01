@@ -4,6 +4,7 @@ export type User = components["schemas"]["UserResponse"];
 export type TokenResponse = components["schemas"]["Token"];
 
 export type EventItem = components["schemas"]["EventResponse"];
+export type EventOverview = components["schemas"]["EventOverviewResponse"];
 export type EventCreateInput = components["schemas"]["EventCreate"];
 export type EventUpdateInput = components["schemas"]["EventUpdate"];
 export type EventPreference = components["schemas"]["EventPreferenceResponse"];
