@@ -8,9 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
-# Install python dependencies
-RUN pip install --no-cache-dir fastapi uvicorn[standard] sqlalchemy pydantic pydantic-settings python-jose[cryptography] passlib[bcrypt] bcrypt redis httpx python-multipart alembic
+COPY requirements.txt .
+# Install python dependencies from pinned requirements (argon2-cffi, no legacy passlib/bcrypt)
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
 

@@ -11,7 +11,6 @@ from ..auth import (
     create_ephemeral_demo_user,
     create_refresh_token,
     get_current_user,
-    get_or_create_demo_user,
     get_user_active_sessions,
     hash_password,
     revoke_all_user_tokens,
