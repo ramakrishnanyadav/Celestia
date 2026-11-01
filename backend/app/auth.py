@@ -54,7 +54,8 @@ def check_pwned_password(password: str) -> bool:
     if os.environ.get("TESTING") == "1":
         return password == "PwnedPassword123!"
 
-    sha1_pwd = hashlib.sha1(password.encode("utf-8")).hexdigest().upper()
+    # HaveIBeenPwned API uses SHA-1 k-anonymity prefix matching (non-cryptographic use case)
+    sha1_pwd = hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper()  # nosec B324
     prefix = sha1_pwd[:5]
     suffix = sha1_pwd[5:]
 
@@ -67,7 +68,7 @@ def check_pwned_password(password: str) -> bool:
             url,
             headers={"User-Agent": "CELESTIA-Security-Validator/2.0"}
         )
-        with urllib.request.urlopen(req, timeout=2.0) as resp:
+        with urllib.request.urlopen(req, timeout=2.0) as resp:  # nosec B310
             body = resp.read().decode("utf-8")
             for line in body.splitlines():
                 parts = line.split(":")

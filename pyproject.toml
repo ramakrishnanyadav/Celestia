@@ -59,3 +59,8 @@ exclude = [
 [[tool.mypy.overrides]]
 module = "app.models"
 ignore_errors = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]

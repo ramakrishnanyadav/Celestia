@@ -8,6 +8,7 @@ from ..auth import (
     DUMMY_ARGON2_HASH,
     clear_auth_cookies,
     create_access_token,
+    create_ephemeral_demo_user,
     create_refresh_token,
     get_current_user,
     get_or_create_demo_user,
@@ -269,7 +270,7 @@ def demo_login(
             detail="Demo showcase is disabled in production environments."
         )
 
-    demo_user = get_or_create_demo_user(db)
+    demo_user = create_ephemeral_demo_user(db)
 
     # Ensure wedding scenario exists for demo user if not already present
     wedding_event = db.query(Event).filter(Event.user_id == demo_user.id, Event.event_type == "wedding").first()
