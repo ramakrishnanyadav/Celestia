@@ -1,0 +1,41 @@
+services:
+  # 1. CELESTIA FastAPI Backend Web Service
+  - type: web
+    name: celestia-backend
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PYTHONPATH
+        value: .
+      - key: ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEMO_ACCOUNT_ENABLED
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "https://celestia-frontend.onrender.com,http://localhost:3000"
+
+  # 2. CELESTIA Next.js Frontend Web Service
+  - type: web
+    name: celestia-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: frontend
+    buildCommand: npm ci --legacy-peer-deps && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: NEXT_PUBLIC_API_URL
+        value: https://celestia-backend.onrender.com/api
