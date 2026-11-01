@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 
 # --- AUTH SCHEMAS ---
 class UserCreate(BaseModel):
@@ -45,34 +46,42 @@ class EventPreferenceResponse(EventPreferenceBase):
     created_at: datetime
     updated_at: datetime
 
+    @field_serializer("created_at", "updated_at", mode="plain", check_fields=False)
+    def serialize_datetime(self, dt: Optional[datetime]) -> Optional[str]:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+        return dt.isoformat()
+
     model_config = ConfigDict(from_attributes=True)
 
 # --- EVENT SCHEMAS ---
 class EventCreate(BaseModel):
-    title: str = "Anjali & Rahul's Royal Mumbai Wedding"
+    title: str = Field("Anjali & Rahul's Royal Mumbai Wedding", min_length=2, max_length=255)
     event_type: str = "wedding" # wedding, birthday, community
-    city: str = "Mumbai"
-    venue_type: str = "Banquet Hall"
-    guest_count: int = Field(300, ge=1, le=50000)
-    budget_minor: int = Field(150000000, ge=10000, le=100000000000) # 15,00,000 INR in paise
-    budget_rupees: Optional[float] = Field(None, ge=100.0, le=1000000000.0)
+    city: str = Field("Mumbai", min_length=2, max_length=100)
+    venue_type: str = Field("Banquet Hall", max_length=100)
+    guest_count: int = Field(300, ge=10, le=5000)
+    budget_minor: int = Field(150000000, ge=1000000, le=10000000000) # ₹10,000 to ₹10,00,00,000 in paise
+    budget_rupees: Optional[float] = Field(None, ge=10000.0, le=100000000.0)
     currency: str = "INR"
     timezone: str = "Asia/Kolkata"
-    preparation_months: int = Field(6, ge=1, le=60)
+    preparation_months: int = Field(6, ge=1, le=36)
     target_date: Optional[datetime] = None
     autonomy_mode: str = "Draft" # Suggest, Draft, Approve
     preferences: Optional[EventPreferenceBase] = None
 
 class EventUpdate(BaseModel):
-    title: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=2, max_length=255)
     event_type: Optional[str] = None
-    city: Optional[str] = None
-    venue_type: Optional[str] = None
-    guest_count: Optional[int] = Field(None, ge=1, le=50000)
-    budget_minor: Optional[int] = Field(None, ge=10000, le=100000000000)
-    budget_rupees: Optional[float] = Field(None, ge=100.0, le=1000000000.0)
+    city: Optional[str] = Field(None, min_length=2, max_length=100)
+    venue_type: Optional[str] = Field(None, max_length=100)
+    guest_count: Optional[int] = Field(None, ge=10, le=5000)
+    budget_minor: Optional[int] = Field(None, ge=1000000, le=10000000000)
+    budget_rupees: Optional[float] = Field(None, ge=10000.0, le=100000000.0)
     target_date: Optional[datetime] = None
-    preparation_months: Optional[int] = Field(None, ge=1, le=60)
+    preparation_months: Optional[int] = Field(None, ge=1, le=36)
     status: Optional[str] = None
     autonomy_mode: Optional[str] = None
     ai_paused: Optional[bool] = None
@@ -96,26 +105,34 @@ class EventResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    @field_serializer("created_at", "updated_at", mode="plain", check_fields=False)
+    def serialize_datetime(self, dt: Optional[datetime]) -> Optional[str]:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+        return dt.isoformat()
+
     model_config = ConfigDict(from_attributes=True)
 
 # --- EXPENSE & BUDGET SCHEMAS ---
 class ExpenseCreate(BaseModel):
-    name: str
-    planned_amount_minor: int = Field(0, ge=0, le=100000000000)
-    planned_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
-    actual_amount_minor: int = Field(0, ge=0, le=100000000000)
-    actual_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
+    name: str = Field(..., min_length=1, max_length=255)
+    planned_amount_minor: int = Field(..., gt=0, le=10000000000)
+    planned_rupees: Optional[float] = Field(None, gt=0.0, le=100000000.0)
+    actual_amount_minor: int = Field(0, ge=0, le=10000000000)
+    actual_rupees: Optional[float] = Field(None, ge=0.0, le=100000000.0)
     provenance: str = "estimated"
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=1000)
 
 class ExpenseUpdate(BaseModel):
-    name: Optional[str] = None
-    planned_amount_minor: Optional[int] = Field(None, ge=0, le=100000000000)
-    planned_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
-    actual_amount_minor: Optional[int] = Field(None, ge=0, le=100000000000)
-    actual_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    planned_amount_minor: Optional[int] = Field(None, gt=0, le=10000000000)
+    planned_rupees: Optional[float] = Field(None, gt=0.0, le=100000000.0)
+    actual_amount_minor: Optional[int] = Field(None, ge=0, le=10000000000)
+    actual_rupees: Optional[float] = Field(None, ge=0.0, le=100000000.0)
     provenance: Optional[str] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=1000)
     expected_version: Optional[int] = None
 
 class ExpenseResponse(BaseModel):
@@ -173,6 +190,9 @@ class BudgetSummaryResponse(BaseModel):
     total_budget_rupees: float
     allocated_minor: int
     allocated_rupees: float
+    unallocated_minor: Optional[int] = 0
+    unallocated_rupees: Optional[float] = 0.0
+    is_reconciled: Optional[bool] = True
     planned_total_minor: int
     planned_total_rupees: float
     actual_total_minor: int
@@ -222,26 +242,26 @@ class TaskDependencyCreate(BaseModel):
     depends_on_task_id: str
 
 class TaskCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    category: str = "General"
-    milestone_name: str = "6 Months Out"
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = Field(None, max_length=1000)
+    category: str = Field("General", max_length=100)
+    milestone_name: str = Field("6 Months Out", max_length=100)
     days_before_event: int = Field(180, ge=0, le=1825)
-    duration_days: int = Field(7, ge=0, le=365)
-    priority: str = "medium"
-    assigned_to: str = "Host"
+    duration_days: int = Field(7, ge=1, le=365)
+    priority: str = Field("medium", max_length=20)
+    assigned_to: str = Field("Host", max_length=100)
     depends_on_ids: List[str] = Field(default_factory=list)
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    category: Optional[str] = None
-    milestone_name: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = Field(None, max_length=1000)
+    category: Optional[str] = Field(None, max_length=100)
+    milestone_name: Optional[str] = Field(None, max_length=100)
     days_before_event: Optional[int] = Field(None, ge=0, le=1825)
-    duration_days: Optional[int] = Field(None, ge=0, le=365)
-    priority: Optional[str] = None
-    status: Optional[str] = None
-    assigned_to: Optional[str] = None
+    duration_days: Optional[int] = Field(None, ge=1, le=365)
+    priority: Optional[str] = Field(None, max_length=20)
+    status: Optional[str] = Field(None, max_length=50)
+    assigned_to: Optional[str] = Field(None, max_length=100)
     is_critical: Optional[bool] = None
     expected_version: Optional[int] = None
 

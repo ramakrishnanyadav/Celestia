@@ -50,9 +50,9 @@ class Event(Base):
     user = relationship("User", back_populates="events")
 
     __table_args__ = (
-        CheckConstraint("guest_count > 0 AND guest_count <= 50000", name="check_event_guest_count"),
-        CheckConstraint("budget_minor > 0", name="check_event_budget_minor"),
-        CheckConstraint("preparation_months >= 1 AND preparation_months <= 60", name="check_event_prep_months"),
+        CheckConstraint("guest_count >= 10 AND guest_count <= 5000", name="check_event_guest_count"),
+        CheckConstraint("budget_minor >= 1000000 AND budget_minor <= 10000000000", name="check_event_budget_minor"),
+        CheckConstraint("preparation_months >= 1 AND preparation_months <= 36", name="check_event_prep_months"),
     )
     preference = relationship("EventPreference", back_populates="event", uselist=False, cascade="all, delete-orphan")
     plans = relationship("EventPlan", back_populates="event", cascade="all, delete-orphan")
@@ -133,7 +133,7 @@ class Expense(Base):
     category = relationship("BudgetCategory", back_populates="expenses")
 
     __table_args__ = (
-        CheckConstraint("planned_amount_minor >= 0", name="check_exp_planned_amount"),
+        CheckConstraint("planned_amount_minor > 0", name="check_exp_planned_amount"),
         CheckConstraint("actual_amount_minor >= 0", name="check_exp_actual_amount"),
     )
 
@@ -176,7 +176,7 @@ class Task(Base):
     )
 
     __table_args__ = (
-        CheckConstraint("duration_days >= 0 AND duration_days <= 365", name="check_task_duration_days"),
+        CheckConstraint("duration_days >= 1 AND duration_days <= 365", name="check_task_duration_days"),
         CheckConstraint("days_before_event >= 0 AND days_before_event <= 1825", name="check_task_days_before_event"),
     )
 
@@ -260,6 +260,10 @@ class Approval(Base):
     reviewed_at = Column(DateTime(timezone=True), nullable=True)
 
     event = relationship("Event", back_populates="approvals")
+
+    __table_args__ = (
+        CheckConstraint("status IN ('pending', 'approved', 'rejected')", name="check_approval_status"),
+    )
 
 class ActivityLog(Base):
     __tablename__ = "activity_logs"

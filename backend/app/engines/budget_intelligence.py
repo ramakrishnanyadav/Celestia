@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Dict, List, Any, Tuple
 from sqlalchemy.orm import Session
 from ..models import Event, BudgetCategory, Expense
@@ -7,6 +8,49 @@ def paise_to_rupees(paise: int) -> float:
 
 def rupees_to_paise(rupees: float) -> int:
     return int(round(rupees * 100))
+
+@dataclass
+class BudgetReconciliation:
+    total_budget_minor: int
+    allocated_minor: int
+    contingency_reserve_minor: int
+    unallocated_minor: int
+    is_reconciled: bool
+    reconciliation_equation: str
+
+def reconcile_budget_minor(total_budget_minor: int, event_type: str = "wedding") -> BudgetReconciliation:
+    """
+    Performs pure integer budget reconciliation down to 1 paisa with zero float drift.
+    Guarantees:
+        total_budget_minor == allocated_minor + contingency_reserve_minor + unallocated_minor
+    """
+    allocations = BENCHMARK_ALLOCATIONS.get(event_type.lower(), BENCHMARK_ALLOCATIONS["wedding"])
+    contingency_reserve_minor = (total_budget_minor * 10) // 100
+    allocatable_budget = total_budget_minor - contingency_reserve_minor
+
+    total_percent_basis = sum(int(round(item["percent"] * 100)) for item in allocations)
+    allocated_sum = 0
+    for item in allocations:
+        item_basis = int(round(item["percent"] * 100))
+        allocated_minor = (item_basis * allocatable_budget) // total_percent_basis
+        allocated_sum += allocated_minor
+
+    unallocated_minor = allocatable_budget - allocated_sum
+    is_reconciled = (total_budget_minor == (allocated_sum + contingency_reserve_minor + unallocated_minor))
+
+    equation = (
+        f"total ({total_budget_minor}) = allocated ({allocated_sum}) + "
+        f"contingency ({contingency_reserve_minor}) + unallocated ({unallocated_minor})"
+    )
+
+    return BudgetReconciliation(
+        total_budget_minor=total_budget_minor,
+        allocated_minor=allocated_sum,
+        contingency_reserve_minor=contingency_reserve_minor,
+        unallocated_minor=unallocated_minor,
+        is_reconciled=is_reconciled,
+        reconciliation_equation=equation
+    )
 
 # Standard research-backed benchmark allocations for event categories
 BENCHMARK_ALLOCATIONS = {
@@ -175,6 +219,10 @@ def calculate_budget_summary(event: Event, categories: List[BudgetCategory]) -> 
     contingency_reserve_minor = (total_budget_minor * 10) // 100
     contingency_reserve_rupees = paise_to_rupees(contingency_reserve_minor)
     
+    unallocated_minor = max(0, total_budget_minor - allocated_minor - contingency_reserve_minor)
+    unallocated_rupees = paise_to_rupees(unallocated_minor)
+    is_reconciled = (total_budget_minor == (allocated_minor + contingency_reserve_minor + unallocated_minor))
+
     remaining_balance_minor = total_budget_minor - planned_total_minor
     remaining_balance_rupees = paise_to_rupees(remaining_balance_minor)
     
@@ -191,6 +239,9 @@ def calculate_budget_summary(event: Event, categories: List[BudgetCategory]) -> 
         "total_budget_rupees": total_budget_rupees,
         "allocated_minor": allocated_minor,
         "allocated_rupees": allocated_rupees,
+        "unallocated_minor": unallocated_minor,
+        "unallocated_rupees": unallocated_rupees,
+        "is_reconciled": is_reconciled,
         "planned_total_minor": planned_total_minor,
         "planned_total_rupees": planned_total_rupees,
         "actual_total_minor": actual_total_minor,

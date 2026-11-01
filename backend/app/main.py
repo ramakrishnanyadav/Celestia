@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
@@ -13,60 +14,6 @@ from .engines.ai_service import AIService
 # Initialize tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.VERSION,
-    description="CELESTIA AI Event Planning Assistant — Deterministic Budgeting, CPM Timeline, Cultural Intelligence & Autonomy"
-)
-
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from fastapi import Request
-import uuid
-import logging
-
-logger = logging.getLogger("celestia")
-
-@app.exception_handler(Exception)
-async def global_unhandled_exception_handler(request: Request, exc: Exception):
-    err_id = str(uuid.uuid4())
-    logger.error(f"[Unhandled Error {err_id}] Path: {request.url.path} | Exception: {str(exc)}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "InternalServerError",
-            "message": "An unexpected server error occurred. Please try again.",
-            "request_id": err_id
-        }
-    )
-
-# Enable CORS for Next.js frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Enable Gzip compression for responses > 1000 bytes
-app.add_middleware(GZipMiddleware, minimum_size=1000)
-
-# Include Routers
-app.include_router(auth_routes.router, prefix="/api")
-app.include_router(event_routes.router, prefix="/api")
-app.include_router(budget_routes.router, prefix="/api")
-app.include_router(task_routes.router, prefix="/api")
-app.include_router(vendor_routes.router, prefix="/api")
-app.include_router(approval_routes.router, prefix="/api")
-app.include_router(ai_routes.router, prefix="/api")
-
-@app.get("/api/test-fault/unhandled-error")
-def trigger_unhandled_error_for_audit():
-    """Diagnostic fault injection endpoint to verify sanitization of 500 errors."""
-    return 1 / 0
-
-@app.on_event("startup")
 def bootstrap_primary_demonstration_scenario():
     """
     Seeds the primary demonstration scenario if the database is fresh:
@@ -115,8 +62,71 @@ def bootstrap_primary_demonstration_scenario():
             
             # Generate complete plan, budget, tasks with CPM, and quotations
             AIService.generate_full_event_plan(db, wedding_event)
+    except Exception as e:
+        db.rollback()
+        import logging
+        logging.getLogger("celestia").error(f"Error bootstrapping scenario: {e}")
     finally:
         db.close()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    bootstrap_primary_demonstration_scenario()
+    yield
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.VERSION,
+    description="CELESTIA AI Event Planning Assistant — Deterministic Budgeting, CPM Timeline, Cultural Intelligence & Autonomy",
+    lifespan=lifespan
+)
+
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+from fastapi import Request
+import uuid
+import logging
+
+logger = logging.getLogger("celestia")
+
+@app.exception_handler(Exception)
+async def global_unhandled_exception_handler(request: Request, exc: Exception):
+    err_id = str(uuid.uuid4())
+    logger.error(f"[Unhandled Error {err_id}] Path: {request.url.path} | Exception: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "InternalServerError",
+            "message": "An unexpected server error occurred. Please try again.",
+            "request_id": err_id
+        }
+    )
+
+# Enable CORS for Next.js frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Enable Gzip compression for responses > 1000 bytes
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Include Routers
+app.include_router(auth_routes.router, prefix="/api")
+app.include_router(event_routes.router, prefix="/api")
+app.include_router(budget_routes.router, prefix="/api")
+app.include_router(task_routes.router, prefix="/api")
+app.include_router(vendor_routes.router, prefix="/api")
+app.include_router(approval_routes.router, prefix="/api")
+app.include_router(ai_routes.router, prefix="/api")
+
+@app.get("/api/test-fault/unhandled-error")
+def trigger_unhandled_error_for_audit():
+    """Diagnostic fault injection endpoint to verify sanitization of 500 errors."""
+    return 1 / 0
 
 @app.get("/")
 def root():
