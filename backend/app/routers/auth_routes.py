@@ -8,9 +8,9 @@ from ..auth import (
     DUMMY_ARGON2_HASH,
     clear_auth_cookies,
     create_access_token,
-    create_ephemeral_demo_user,
     create_refresh_token,
     get_current_user,
+    get_or_create_demo_user,
     get_user_active_sessions,
     hash_password,
     revoke_all_user_tokens,
@@ -269,41 +269,43 @@ def demo_login(
             detail="Demo showcase is disabled in production environments."
         )
 
-    demo_user = create_ephemeral_demo_user(db)
+    demo_user = get_or_create_demo_user(db)
 
-    # Seed authentic Mumbai Indian Wedding showcase
-    wedding_event = Event(
-        user_id=demo_user.id,
-        title="Anjali & Rahul's Royal Mumbai Wedding",
-        event_type="wedding",
-        city="Mumbai",
-        venue_type="Grand Banquet Hall",
-        guest_count=300,
-        budget_minor=150000000, # ₹15 Lakhs in paise
-        currency="INR",
-        timezone="Asia/Kolkata",
-        preparation_months=6,
-        status="planning",
-        autonomy_mode="Draft"
-    )
-    db.add(wedding_event)
-    db.commit()
-    db.refresh(wedding_event)
+    # Ensure wedding scenario exists for demo user if not already present
+    wedding_event = db.query(Event).filter(Event.user_id == demo_user.id, Event.event_type == "wedding").first()
+    if not wedding_event:
+        wedding_event = Event(
+            user_id=demo_user.id,
+            title="Anjali & Rahul's Royal Mumbai Wedding",
+            event_type="wedding",
+            city="Mumbai",
+            venue_type="Grand Banquet Hall",
+            guest_count=300,
+            budget_minor=150000000, # ₹15 Lakhs in paise
+            currency="INR",
+            timezone="Asia/Kolkata",
+            preparation_months=6,
+            status="planning",
+            autonomy_mode="Draft"
+        )
+        db.add(wedding_event)
+        db.commit()
+        db.refresh(wedding_event)
 
-    pref = EventPreference(
-        event_id=wedding_event.id,
-        dietary="Pure Vegetarian",
-        theme="Royal Marigold & Polished Brass",
-        regional_culture="Maharashtrian Traditional",
-        cultural_traditions=["Sakhar Puda", "Muhurtham", "Haldi", "Sangeet", "Satyanarayan Puja"],
-        music_entertainment="Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ",
-        color_palette=["#D97706", "#B45309", "#0B132B", "#FAF7F2", "#0D9488"],
-        special_requirements="Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
-    )
-    db.add(pref)
-    db.commit()
+        pref = EventPreference(
+            event_id=wedding_event.id,
+            dietary="Pure Vegetarian",
+            theme="Royal Marigold & Polished Brass",
+            regional_culture="Maharashtrian Traditional",
+            cultural_traditions=["Sakhar Puda", "Muhurtham", "Haldi", "Sangeet", "Satyanarayan Puja"],
+            music_entertainment="Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ",
+            color_palette=["#D97706", "#B45309", "#0B132B", "#FAF7F2", "#0D9488"],
+            special_requirements="Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
+        )
+        db.add(pref)
+        db.commit()
 
-    AIService.generate_full_event_plan(db, wedding_event)
+        AIService.generate_full_event_plan(db, wedding_event)
 
     access_token = create_access_token({"sub": demo_user.id, "email": demo_user.email})
     refresh_token = create_refresh_token(db, demo_user.id)
