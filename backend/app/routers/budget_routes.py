@@ -1,11 +1,11 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from ..database import get_db
 from ..models import User, Event, BudgetCategory, Expense
 from ..schemas import (
     BudgetSummaryResponse, BudgetCategoryResponse, ExpenseResponse,
-    BudgetCategoryCreate, ExpenseCreate, ExpenseUpdate,
+    BudgetCategoryCreate, BudgetCategoryUpdate, ExpenseCreate, ExpenseUpdate,
     WhatIfSimulationRequest, WhatIfSimulationResponse
 )
 from ..auth import get_current_user
@@ -35,7 +35,9 @@ def get_budget_summary(
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
         
-    categories = db.query(BudgetCategory).filter(
+    categories = db.query(BudgetCategory).options(
+        selectinload(BudgetCategory.expenses)
+    ).filter(
         BudgetCategory.event_id == event_id
     ).order_by(BudgetCategory.sort_order.asc()).all()
     
@@ -65,6 +67,42 @@ def create_category(
         sort_order=cat_in.sort_order
     )
     db.add(cat)
+    db.commit()
+    db.refresh(cat)
+    return enrich_category_response(cat)
+
+@router.patch("/categories/{category_id}", response_model=BudgetCategoryResponse)
+def update_category(
+    event_id: str,
+    category_id: str,
+    cat_in: BudgetCategoryUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+        
+    cat = db.query(BudgetCategory).filter(
+        BudgetCategory.id == category_id,
+        BudgetCategory.event_id == event_id
+    ).first()
+    if not cat:
+        raise HTTPException(status_code=404, detail="Category not found")
+        
+    data = cat_in.model_dump(exclude_unset=True)
+    if "expected_version" in data:
+        data.pop("expected_version")
+        if cat.version != cat_in.expected_version:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Conflict: Category was modified by another user (expected version {cat_in.expected_version}, current version {cat.version}). Please refresh and retry."
+            )
+        cat.version += 1
+        
+    for k, v in data.items():
+        setattr(cat, k, v)
+        
     db.commit()
     db.refresh(cat)
     return enrich_category_response(cat)
@@ -121,7 +159,17 @@ def update_expense(
     if not exp:
         raise HTTPException(status_code=404, detail="Expense not found")
         
-    for k, v in exp_in.model_dump(exclude_unset=True).items():
+    data = exp_in.model_dump(exclude_unset=True)
+    if "expected_version" in data:
+        data.pop("expected_version")
+        if exp.version != exp_in.expected_version:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Conflict: Expense was modified by another user (expected version {exp_in.expected_version}, current version {exp.version}). Please refresh and retry."
+            )
+        exp.version += 1
+        
+    for k, v in data.items():
         setattr(exp, k, v)
         
     db.commit()

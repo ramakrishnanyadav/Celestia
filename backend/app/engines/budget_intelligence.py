@@ -36,7 +36,7 @@ BENCHMARK_ALLOCATIONS = {
     ]
 }
 
-def seed_event_budget(db: Session, event: Event):
+def seed_event_budget(db: Session, event: Event, auto_commit: bool = False):
     """Deterministically allocates budget across standard categories based on event type and total budget"""
     event_type = event.event_type.lower()
     allocations = BENCHMARK_ALLOCATIONS.get(event_type, BENCHMARK_ALLOCATIONS["wedding"])
@@ -71,17 +71,19 @@ def seed_event_budget(db: Session, event: Event):
             per_guest_minor=per_guest_minor,
             sort_order=i
         )
-        db.add(cat)
         categories.append(cat)
         
-    db.commit()
+    db.add_all(categories)
+    db.flush()
     
     # Seed baseline planned expenses for each category
     for cat in categories:
-        db.refresh(cat)
-        create_baseline_expenses(db, cat, event)
+        create_baseline_expenses(db, cat, event, auto_commit=False)
+        
+    if auto_commit:
+        db.commit()
 
-def create_baseline_expenses(db: Session, category: BudgetCategory, event: Event):
+def create_baseline_expenses(db: Session, category: BudgetCategory, event: Event, auto_commit: bool = False):
     """Populates realistic baseline planned items with provenance labels"""
     cat_name = category.name.lower()
     items = []
@@ -132,6 +134,7 @@ def create_baseline_expenses(db: Session, category: BudgetCategory, event: Event
             ("Miscellaneous Logistics", int(category.allocated_amount_minor * 0.30), "estimated"),
         ]
         
+    expenses = []
     for name, planned_minor, provenance in items:
         exp = Expense(
             category_id=category.id,
@@ -141,9 +144,13 @@ def create_baseline_expenses(db: Session, category: BudgetCategory, event: Event
             provenance=provenance,
             notes=f"Auto-allocated according to {event.city} market benchmarks."
         )
-        db.add(exp)
+        expenses.append(exp)
         
-    db.commit()
+    db.add_all(expenses)
+    if auto_commit:
+        db.commit()
+    else:
+        db.flush()
 
 def calculate_budget_summary(event: Event, categories: List[BudgetCategory]) -> Dict[str, Any]:
     """Calculates deterministic ledger totals, contingency reserves, and variance"""

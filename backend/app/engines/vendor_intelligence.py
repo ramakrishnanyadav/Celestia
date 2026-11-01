@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from ..models import Event, Vendor, Quotation
 from .budget_intelligence import paise_to_rupees, rupees_to_paise
 
-def seed_sample_vendors_and_quotations(db: Session, event: Event):
+def seed_sample_vendors_and_quotations(db: Session, event: Event, auto_commit: bool = False):
     """
     Populates realistic vendor requirements and competing quotations
     for Catering, Venue, Decor, and Photography so the user can immediately
@@ -11,7 +11,6 @@ def seed_sample_vendors_and_quotations(db: Session, event: Event):
     """
     # Clear existing vendors for clean seed
     db.query(Vendor).filter(Vendor.event_id == event.id).delete()
-    db.commit()
     
     # 1. CATERING VENDORS (2 competing quotes)
     v_cater1 = Vendor(
@@ -33,9 +32,7 @@ def seed_sample_vendors_and_quotations(db: Session, event: Event):
         notes="Modern fusion catering with live interactive counters."
     )
     db.add_all([v_cater1, v_cater2])
-    db.commit()
-    db.refresh(v_cater1)
-    db.refresh(v_cater2)
+    db.flush()
     
     # Quotations for Caterer 1
     q1 = Quotation(
@@ -184,7 +181,10 @@ def seed_sample_vendors_and_quotations(db: Session, event: Event):
     )
     
     db.add_all([q1, q2, q_dec1, q_dec2])
-    db.commit()
+    if auto_commit:
+        db.commit()
+    else:
+        db.flush()
 
 def analyze_quotation_risks(terms: Dict[str, Any], inclusions: List[str], exclusions: List[str]) -> List[str]:
     """Automated heuristic risk detection on vendor contractual clauses"""

@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Header, status
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import User, Event, EventPreference, EventPlan, ActivityLog
@@ -8,8 +8,9 @@ from ..schemas import (
     EventPreferenceCreate, EventPreferenceResponse
 )
 from ..auth import get_current_user
-from ..engines.budget_intelligence import paise_to_rupees
+from ..engines.budget_intelligence import paise_to_rupees, rupees_to_paise
 from ..engines.ai_service import AIService
+from ..idempotency import check_idempotency, record_idempotency
 
 router = APIRouter(prefix="/events", tags=["Events"])
 
@@ -30,8 +31,12 @@ def list_user_events(
 def create_event(
     event_in: EventCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
 ):
+    cached = check_idempotency(db, idempotency_key, current_user.id, "create_event", event_in.model_dump())
+    if cached:
+        return cached[1]
     budget_minor = event_in.budget_minor
     if event_in.budget_rupees is not None:
         budget_minor = rupees_to_paise(event_in.budget_rupees)
@@ -73,7 +78,9 @@ def create_event(
     
     db.commit()
     db.refresh(event)
-    return enrich_event_response(event)
+    res = enrich_event_response(event)
+    record_idempotency(db, idempotency_key, current_user.id, "create_event", event_in.model_dump(), 200, res.model_dump(mode="json"))
+    return res
 
 @router.get("/{event_id}", response_model=EventResponse)
 def get_event(

@@ -39,11 +39,10 @@ WEDDING_TASK_TEMPLATES = [
     {"title": "Supervise Pure Vegetarian Feast Service", "category": "Catering", "milestone": "Wedding Day", "days": 0, "duration": 1, "priority": "critical", "assigned": "Catering Manager", "dep_indices": [13, 16]}
 ]
 
-def seed_event_tasks(db: Session, event: Event):
+def seed_event_tasks(db: Session, event: Event, auto_commit: bool = False):
     """Generates the full timeline checklist and dependencies for the event"""
     # Clear existing tasks
     db.query(Task).filter(Task.event_id == event.id).delete()
-    db.commit()
     
     created_tasks = []
     for item in WEDDING_TASK_TEMPLATES:
@@ -60,28 +59,28 @@ def seed_event_tasks(db: Session, event: Event):
             assigned_to=item["assigned"],
             is_critical=False
         )
-        db.add(t)
         created_tasks.append(t)
         
-    db.commit()
-    for t in created_tasks:
-        db.refresh(t)
+    db.add_all(created_tasks)
+    db.flush()
         
     # Wire dependencies based on index mapping
+    deps = []
     for i, item in enumerate(WEDDING_TASK_TEMPLATES):
         current_task = created_tasks[i]
         for dep_idx in item["dep_indices"]:
             if dep_idx < len(created_tasks):
-                dep = TaskDependency(
+                deps.append(TaskDependency(
                     task_id=current_task.id,
                     depends_on_task_id=created_tasks[dep_idx].id
-                )
-                db.add(dep)
-                
-    db.commit()
+                ))
+    db.add_all(deps)
+    db.flush()
     
     # Run Critical Path Method calculation
-    run_cpm_calculation(db, event.id)
+    run_cpm_calculation(db, event.id, auto_commit=auto_commit)
+    if auto_commit:
+        db.commit()
 
 def check_dependency_cycle(db: Session, event_id: str, task_id: str, depends_on_id: str) -> bool:
     """
@@ -113,7 +112,7 @@ def check_dependency_cycle(db: Session, event_id: str, task_id: str, depends_on_
                     queue.append(neighbor)
     return False
 
-def run_cpm_calculation(db: Session, event_id: str) -> Dict[str, Any]:
+def run_cpm_calculation(db: Session, event_id: str, auto_commit: bool = True) -> Dict[str, Any]:
     """
     Computes Early Start (ES), Early Finish (EF), Late Start (LS), Late Finish (LF),
     Total Slack (Float), and flags the Critical Path for all tasks using standard CPM algorithms.
@@ -199,7 +198,10 @@ def run_cpm_calculation(db: Session, event_id: str) -> Dict[str, Any]:
         if is_crit:
             critical_path_ids.append(t_id)
             
-    db.commit()
+    if auto_commit:
+        db.commit()
+    else:
+        db.flush()
     
     return {
         "total_duration_days": project_duration,

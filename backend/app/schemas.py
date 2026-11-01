@@ -116,6 +116,7 @@ class ExpenseUpdate(BaseModel):
     actual_rupees: Optional[float] = Field(None, ge=0.0, le=1000000000.0)
     provenance: Optional[str] = None
     notes: Optional[str] = None
+    expected_version: Optional[int] = None
 
 class ExpenseResponse(BaseModel):
     id: str
@@ -127,6 +128,7 @@ class ExpenseResponse(BaseModel):
     actual_rupees: Optional[float] = None
     provenance: str
     notes: Optional[str] = None
+    version: int = 1
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -138,6 +140,16 @@ class BudgetCategoryCreate(BaseModel):
     is_per_guest: bool = False
     per_guest_minor: int = 0
     sort_order: int = 0
+
+class BudgetCategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    allocation_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
+    allocated_amount_minor: Optional[int] = Field(None, ge=0, le=100000000000)
+    icon: Optional[str] = None
+    is_per_guest: Optional[bool] = None
+    per_guest_minor: Optional[int] = Field(None, ge=0, le=100000000000)
+    sort_order: Optional[int] = None
+    expected_version: Optional[int] = None
 
 class BudgetCategoryResponse(BaseModel):
     id: str
@@ -151,6 +163,7 @@ class BudgetCategoryResponse(BaseModel):
     per_guest_minor: int
     per_guest_rupees: Optional[float] = None
     sort_order: int
+    version: int = 1
     expenses: List[ExpenseResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
@@ -230,6 +243,7 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = None
     assigned_to: Optional[str] = None
     is_critical: Optional[bool] = None
+    expected_version: Optional[int] = None
 
 class TaskResponse(BaseModel):
     id: str
@@ -249,6 +263,7 @@ class TaskResponse(BaseModel):
     late_start_day: int
     late_finish_day: int
     total_slack: int
+    version: int = 1
     created_at: datetime
     completed_at: Optional[datetime] = None
     depends_on_ids: List[str] = Field(default_factory=list)

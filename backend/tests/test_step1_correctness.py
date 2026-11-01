@@ -256,3 +256,162 @@ def test_db_check_constraints_enforced():
         db.rollback()
     finally:
         db.close()
+
+def test_optimistic_concurrency_rejects_stale_update():
+    """Updating a task or expense with a stale expected_version must fail with 409 Conflict."""
+    db = SessionLocal()
+    try:
+        user, event, token = create_test_event(db)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # 1. Create a task
+        res = client.post(f"/api/events/{event.id}/tasks", json={
+            "title": "Versioned Task",
+            "category": "Venue",
+            "milestone_name": "Stage 1",
+            "days_before_event": 60,
+            "duration_days": 5
+        }, headers=headers)
+        assert res.status_code == 200
+        task_data = res.json()
+        task_id = task_data["id"]
+        assert task_data["version"] == 1
+
+        # 2. First update with expected_version=1 succeeds and bumps version to 2
+        res_update1 = client.patch(f"/api/events/{event.id}/tasks/{task_id}", json={
+            "title": "Versioned Task Updated",
+            "expected_version": 1
+        }, headers=headers)
+        assert res_update1.status_code == 200
+        assert res_update1.json()["version"] == 2
+
+        # 3. Second concurrent update with stale expected_version=1 must be rejected with 409 Conflict
+        res_update2 = client.patch(f"/api/events/{event.id}/tasks/{task_id}", json={
+            "title": "Concurrent Overwrite Attempt",
+            "expected_version": 1
+        }, headers=headers)
+        assert res_update2.status_code == 409
+        assert "conflict" in res_update2.text.lower() or "modified" in res_update2.text.lower()
+    finally:
+        db.close()
+
+def test_optimistic_concurrency_categories_and_expenses():
+    """Optimistic concurrency must prevent stale overwrites on categories and expenses."""
+    db = SessionLocal()
+    try:
+        user, event, token = create_test_event(db)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # Create Category
+        res_cat = client.post(f"/api/events/{event.id}/budget/categories", json={
+            "name": "Catering",
+            "allocation_percent": 30.0,
+            "allocated_amount_minor": 30000000,
+            "icon": "Utensils",
+            "is_per_guest": True,
+            "per_guest_minor": 150000,
+            "sort_order": 1
+        }, headers=headers)
+        assert res_cat.status_code == 200
+        cat_id = res_cat.json()["id"]
+        assert res_cat.json()["version"] == 1
+
+        # Successful update bumps version to 2
+        res_up1 = client.patch(f"/api/events/{event.id}/budget/categories/{cat_id}", json={
+            "name": "Royal Catering",
+            "expected_version": 1
+        }, headers=headers)
+        assert res_up1.status_code == 200
+        assert res_up1.json()["version"] == 2
+
+        # Stale update with version 1 fails with 409 Conflict
+        res_stale = client.patch(f"/api/events/{event.id}/budget/categories/{cat_id}", json={
+            "name": "Stale Catering",
+            "expected_version": 1
+        }, headers=headers)
+        assert res_stale.status_code == 409
+
+        # Create Expense
+        res_exp = client.post(f"/api/events/{event.id}/budget/categories/{cat_id}/expenses", json={
+            "name": "Dinner Buffet",
+            "planned_amount_minor": 10000000,
+            "actual_amount_minor": 0,
+            "provenance": "estimated"
+        }, headers=headers)
+        assert res_exp.status_code == 200
+        exp_id = res_exp.json()["id"]
+        assert res_exp.json()["version"] == 1
+
+        # Expense stale update fails
+        res_exp_stale = client.patch(f"/api/events/{event.id}/budget/expenses/{exp_id}", json={
+            "name": "Overwritten Buffet",
+            "expected_version": 99
+        }, headers=headers)
+        assert res_exp_stale.status_code == 409
+    finally:
+        db.close()
+
+def test_idempotency_create_endpoints_and_generate_plan():
+    """Duplicate requests with same Idempotency-Key must return identical cached responses, and payload mismatches must return 422."""
+    db = SessionLocal()
+    try:
+        user, event, token = create_test_event(db)
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        # Test Task Creation Idempotency
+        idem_key = f"idem-task-{uuid.uuid4().hex[:8]}"
+        task_payload = {
+            "title": "Idempotent Task",
+            "category": "Decor",
+            "milestone_name": "Stage 1",
+            "days_before_event": 40,
+            "duration_days": 3
+        }
+
+        # First request
+        res1 = client.post(
+            f"/api/events/{event.id}/tasks",
+            json=task_payload,
+            headers={**headers, "Idempotency-Key": idem_key}
+        )
+        assert res1.status_code == 200
+        created_id = res1.json()["id"]
+
+        # Duplicate request with same key and payload returns identical cached response
+        res2 = client.post(
+            f"/api/events/{event.id}/tasks",
+            json=task_payload,
+            headers={**headers, "Idempotency-Key": idem_key}
+        )
+        assert res2.status_code == 200
+        assert res2.json()["id"] == created_id
+        assert res2.json()["title"] == "Idempotent Task"
+
+        # Reusing key with different payload returns 422 Unprocessable Entity
+        res_mismatch = client.post(
+            f"/api/events/{event.id}/tasks",
+            json={**task_payload, "title": "Tampered Payload"},
+            headers={**headers, "Idempotency-Key": idem_key}
+        )
+        assert res_mismatch.status_code == 422
+        assert "previously used with a different request payload" in res_mismatch.text
+
+        # Test Generate Plan Idempotency
+        plan_key = f"idem-plan-{uuid.uuid4().hex[:8]}"
+        res_plan1 = client.post(
+            f"/api/events/{event.id}/ai/generate-plan",
+            headers={**headers, "Idempotency-Key": plan_key}
+        )
+        assert res_plan1.status_code == 200
+        plan_title = res_plan1.json()["plan_title"]
+
+        res_plan2 = client.post(
+            f"/api/events/{event.id}/ai/generate-plan",
+            headers={**headers, "Idempotency-Key": plan_key}
+        )
+        assert res_plan2.status_code == 200
+        assert res_plan2.json()["plan_title"] == plan_title
+    finally:
+        db.close()
+
+

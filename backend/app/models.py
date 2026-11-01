@@ -106,6 +106,7 @@ class BudgetCategory(Base):
     is_per_guest = Column(Boolean, default=False)
     per_guest_minor = Column(BigInteger, default=0) # Unit price per guest
     sort_order = Column(Integer, default=0)
+    version = Column(Integer, default=1, nullable=False)
 
     event = relationship("Event", back_populates="budget_categories")
     expenses = relationship("Expense", back_populates="category", cascade="all, delete-orphan")
@@ -125,6 +126,7 @@ class Expense(Base):
     actual_amount_minor = Column(BigInteger, default=0)
     provenance = Column(String(50), default="estimated") # user_provided, verified, calculated, estimated, ai_suggested, unknown
     notes = Column(Text, nullable=True)
+    version = Column(Integer, default=1, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
@@ -155,6 +157,7 @@ class Task(Base):
     late_start_day = Column(Integer, default=0)
     late_finish_day = Column(Integer, default=0)
     total_slack = Column(Integer, default=0)
+    version = Column(Integer, default=1, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now)
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
@@ -270,3 +273,15 @@ class ActivityLog(Base):
     timestamp = Column(DateTime(timezone=True), default=utc_now)
 
     event = relationship("Event", back_populates="activity_logs")
+
+class IdempotencyRecord(Base):
+    __tablename__ = "idempotency_records"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    key = Column(String(255), nullable=False, index=True)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    endpoint = Column(String(255), nullable=False)
+    request_hash = Column(String(64), nullable=False)
+    response_code = Column(Integer, nullable=False, default=200)
+    response_body = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now)

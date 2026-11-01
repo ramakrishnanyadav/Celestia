@@ -19,6 +19,27 @@ app = FastAPI(
     description="CELESTIA AI Event Planning Assistant — Deterministic Budgeting, CPM Timeline, Cultural Intelligence & Autonomy"
 )
 
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+from fastapi import Request
+import uuid
+import logging
+
+logger = logging.getLogger("celestia")
+
+@app.exception_handler(Exception)
+async def global_unhandled_exception_handler(request: Request, exc: Exception):
+    err_id = str(uuid.uuid4())
+    logger.error(f"[Unhandled Error {err_id}] Path: {request.url.path} | Exception: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "InternalServerError",
+            "message": "An unexpected server error occurred. Please try again.",
+            "request_id": err_id
+        }
+    )
+
 # Enable CORS for Next.js frontend
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +49,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Enable Gzip compression for responses > 1000 bytes
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 # Include Routers
 app.include_router(auth_routes.router, prefix="/api")
 app.include_router(event_routes.router, prefix="/api")
@@ -36,6 +60,11 @@ app.include_router(task_routes.router, prefix="/api")
 app.include_router(vendor_routes.router, prefix="/api")
 app.include_router(approval_routes.router, prefix="/api")
 app.include_router(ai_routes.router, prefix="/api")
+
+@app.get("/api/test-fault/unhandled-error")
+def trigger_unhandled_error_for_audit():
+    """Diagnostic fault injection endpoint to verify sanitization of 500 errors."""
+    return 1 / 0
 
 @app.on_event("startup")
 def bootstrap_primary_demonstration_scenario():

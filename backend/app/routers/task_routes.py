@@ -1,12 +1,13 @@
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Header, status
 from sqlalchemy.orm import Session, selectinload
 from ..database import get_db
 from ..models import User, Event, Task, TaskDependency
 from ..schemas import TaskCreate, TaskUpdate, TaskResponse, CPMResultResponse, TaskDependencyCreate
 from ..auth import get_current_user
 from ..engines.planning_intelligence import run_cpm_calculation, check_dependency_cycle
+from ..idempotency import check_idempotency, record_idempotency
 
 router = APIRouter(prefix="/events/{event_id}/tasks", tags=["Planning & Tasks"])
 
@@ -35,8 +36,13 @@ def create_task(
     event_id: str,
     task_in: TaskCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
 ):
+    cached = check_idempotency(db, idempotency_key, current_user.id, f"create_task_{event_id}", task_in.model_dump())
+    if cached:
+        return cached[1]
+
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -70,7 +76,9 @@ def create_task(
     # Recalculate CPM
     run_cpm_calculation(db, event.id)
     db.refresh(task)
-    return enrich_task_response(task)
+    res = enrich_task_response(task)
+    record_idempotency(db, idempotency_key, current_user.id, f"create_task_{event_id}", task_in.model_dump(), 200, res.model_dump(mode="json"))
+    return res
 
 @router.post("/{task_id}/dependencies", response_model=TaskResponse)
 def add_task_dependency(
@@ -125,6 +133,15 @@ def update_task(
         raise HTTPException(status_code=404, detail="Task not found")
         
     data = task_in.model_dump(exclude_unset=True)
+    if "expected_version" in data:
+        data.pop("expected_version")
+        if task.version != task_in.expected_version:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Conflict: Task was modified by another user (expected version {task_in.expected_version}, current version {task.version}). Please refresh and retry."
+            )
+        task.version += 1
+
     if data.get("status") == "completed" and task.status != "completed":
         task.completed_at = datetime.now(timezone.utc)
     elif data.get("status") == "pending":
