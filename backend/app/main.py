@@ -249,14 +249,14 @@ async def add_security_headers_middleware(request: Request, call_next):
     return response
 
 # Include Routers (/api and /api/v1 prefix)
-app.include_router(auth_routes.router, prefix="/api")
-app.include_router(event_routes.router, prefix="/api")
-app.include_router(event_routes.router, prefix="/api/v1")
-app.include_router(budget_routes.router, prefix="/api")
-app.include_router(task_routes.router, prefix="/api")
-app.include_router(vendor_routes.router, prefix="/api")
-app.include_router(approval_routes.router, prefix="/api")
-app.include_router(ai_routes.router, prefix="/api")
+for prefix in ("/api", "/api/v1"):
+    app.include_router(auth_routes.router, prefix=prefix)
+    app.include_router(event_routes.router, prefix=prefix)
+    app.include_router(budget_routes.router, prefix=prefix)
+    app.include_router(task_routes.router, prefix=prefix)
+    app.include_router(vendor_routes.router, prefix=prefix)
+    app.include_router(approval_routes.router, prefix=prefix)
+    app.include_router(ai_routes.router, prefix=prefix)
 
 # Mount fault-injection diagnostic endpoint strictly in non-production
 if settings.ENV != "production":
