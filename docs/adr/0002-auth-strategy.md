@@ -22,3 +22,4 @@ Storing access and refresh tokens in browser `localStorage` or `sessionStorage` 
 ## Consequences
 - **Positive**: Immune to JavaScript token theft via XSS, robust defense against CSRF, instantaneous revocation on logout.
 - **Negative**: API testing and curl scripts require handling cookie jars and CSRF headers.
+

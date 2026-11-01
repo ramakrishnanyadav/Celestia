@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, Header
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -13,6 +12,7 @@ from ..idempotency import check_idempotency, record_idempotency
 from ..models import Event
 from ..rate_limiter import rate_limit_ai
 from ..schemas import (
+    ChatCommandRequest,
     ExtractedRequirement,
     PersonalizedIdeasResponse,
     PlanGenerationResponse,
@@ -20,9 +20,6 @@ from ..schemas import (
 )
 
 router = APIRouter(prefix="", tags=["AI Intelligence"])
-
-class ChatCommandRequest(BaseModel):
-    command: str
 
 @router.post("/ai/extract-requirements", response_model=ExtractedRequirement, dependencies=[Depends(rate_limit_ai)])
 def extract_requirements(req: RequirementExtractionRequest):

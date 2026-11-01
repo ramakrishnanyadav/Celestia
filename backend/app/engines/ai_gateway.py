@@ -21,11 +21,12 @@ from ..config import settings
 
 # Disallowed prompt injection patterns commonly embedded in vendor quotations or user notes
 PROMPT_INJECTION_PATTERNS = [
-    re.compile(r"ignore\s+(all\s+)?(previous|above|prior)\s+instructions?", re.IGNORECASE),
-    re.compile(r"system\s+override", re.IGNORECASE),
-    re.compile(r"you\s+are\s+now\s+(in\s+)?(developer|dan|unrestricted)\s+mode", re.IGNORECASE),
-    re.compile(r"disregard\s+safety", re.IGNORECASE),
+    re.compile(r"(ignore|disregard|bypass|forget|override)\s+(all\s+)?(previous|above|prior|initial)\s+instructions?", re.IGNORECASE),
+    re.compile(r"system\s+(override|prompt|directive)", re.IGNORECASE),
+    re.compile(r"you\s+are\s+now\s+(in\s+)?(developer|dan|unrestricted|god)\s+mode", re.IGNORECASE),
+    re.compile(r"disregard\s+(safety|rules|instructions|guidelines)", re.IGNORECASE),
     re.compile(r"mark\s+all\s+(items|tasks|quotes)?\s*approved\s+without\s+review", re.IGNORECASE),
+    re.compile(r"(reveal|output|leak|dump|show)\s+(all\s+)?(system|prompt|api\s*keys?|passwords|instructions)", re.IGNORECASE),
     re.compile(r"<script>.*?</script>", re.IGNORECASE | re.DOTALL),
 ]
 

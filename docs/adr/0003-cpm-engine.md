@@ -25,3 +25,4 @@ Event planning involves complex task dependency networks (e.g. Venue Booking -> 
 ## Consequences
 - **Positive**: Exact mathematical schedule calculation, immediate visual highlighting of true bottleneck milestones, zero AI hallucination in execution timelines.
 - **Negative**: Dynamic additions to task graphs require topological recalculation and persist-safe dependency IDs.
+

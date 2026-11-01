@@ -5,15 +5,19 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from ..auth import (
+    DUMMY_ARGON2_HASH,
     clear_auth_cookies,
     create_access_token,
     create_ephemeral_demo_user,
     create_refresh_token,
     get_current_user,
+    get_user_active_sessions,
     hash_password,
+    revoke_all_user_tokens,
     revoke_refresh_token,
     rotate_refresh_token,
     set_auth_cookies,
+    validate_password_strength,
     verify_password_and_needs_rehash,
 )
 from ..config import settings
@@ -21,7 +25,14 @@ from ..database import get_db
 from ..engines.ai_service import AIService
 from ..models import Event, EventPreference, User
 from ..rate_limiter import get_client_ip, limiter, rate_limit_auth
-from ..schemas import Token, UserCreate, UserLogin, UserResponse
+from ..schemas import (
+    PasswordChangeRequest,
+    SessionResponse,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -34,6 +45,7 @@ def register(
     _rl = Depends(rate_limit_auth)
 ):
     get_client_ip(request)
+    validate_password_strength(user_in.password)
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
         raise HTTPException(
@@ -77,6 +89,8 @@ def login(
 
     user = db.query(User).filter(User.email == login_in.email).first()
     if not user:
+        # Constant-time timing defense against account enumeration: run full dummy Argon2 hash check
+        verify_password_and_needs_rehash(login_in.password, DUMMY_ARGON2_HASH)
         limiter.record_failed_login(lockout_key, max_failures=5, lockout_duration_seconds=900)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -116,7 +130,8 @@ def login(
 def refresh(
     request: Request,
     response: Response,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _rl = Depends(rate_limit_auth)
 ):
     """Rotates refresh token and issues a new access token."""
     raw_token = request.cookies.get("refresh_token")
@@ -157,6 +172,84 @@ def logout(
         revoke_refresh_token(db, raw_token)
     clear_auth_cookies(response)
     return {"status": "success", "message": "Logged out successfully"}
+
+@router.post("/logout-all")
+def logout_all_sessions(
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Revokes all active refresh tokens for the current user and clears auth cookies."""
+    count = revoke_all_user_tokens(db, current_user.id)
+    clear_auth_cookies(response)
+    return {
+        "status": "success",
+        "message": f"Successfully revoked all {count} active sessions and logged out across all devices."
+    }
+
+@router.get("/sessions", response_model=list[SessionResponse])
+def get_user_sessions(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Lists all active non-expired sessions for the user with an is_current indicator."""
+    current_raw = request.cookies.get("refresh_token")
+    return get_user_active_sessions(db, current_user.id, current_raw)
+
+@router.post("/change-password")
+def change_password(
+    pwd_in: PasswordChangeRequest,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    _rl = Depends(rate_limit_auth)
+):
+    """
+    Changes user password:
+    1. Verifies existing old password.
+    2. Validates new password strength & breach check (NIST/HIBP).
+    3. Re-hashes password with Argon2id.
+    4. Invalidates ALL existing refresh tokens to prevent session hijacking.
+    5. Issues a new token pair and sets fresh cookies.
+    """
+    if current_user.is_demo:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Password modification is disabled on demonstration accounts."
+        )
+
+    valid, _ = verify_password_and_needs_rehash(pwd_in.old_password, current_user.password_hash)
+    if not valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password verification failed."
+        )
+
+    validate_password_strength(pwd_in.new_password)
+
+    # Invalidate all prior sessions immediately
+    revoke_all_user_tokens(db, current_user.id)
+
+    # Set new password
+    current_user.password_hash = hash_password(pwd_in.new_password)
+    db.commit()
+    db.refresh(current_user)
+
+    # Issue fresh session
+    access_token = create_access_token({"sub": current_user.id, "email": current_user.email})
+    refresh_token = create_refresh_token(db, current_user.id)
+    csrf_token = secrets.token_hex(24)
+
+    set_auth_cookies(response, access_token, refresh_token, csrf_token)
+    return {
+        "status": "success",
+        "message": "Password changed successfully. All previous sessions have been invalidated.",
+        "access_token": access_token,
+        "token_type": "bearer",
+        "refresh_token": refresh_token,
+        "csrf_token": csrf_token
+    }
 
 @router.post("/demo-login", response_model=Token)
 def demo_login(
@@ -299,6 +392,12 @@ def delete_user_account(
     Permanently deletes user account and all associated events via cascading deletion.
     Revokes tokens and clears cookies.
     """
+    if current_user.is_demo:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Demonstration celebration accounts are read-only and cannot be deleted."
+        )
+
     db.delete(current_user)
     db.commit()
     clear_auth_cookies(response)

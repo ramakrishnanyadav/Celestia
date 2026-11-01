@@ -206,3 +206,120 @@ def test_full_authorization_matrix():
         else:
             owner_res = client.post(path, headers=owner_hdr)
         assert owner_res.status_code == 200, f"Failed owner access check for {path}"
+
+def test_password_policy_and_pwned_check():
+    """Verify password strength validation rejects short, weak, or breached passwords."""
+    limiter.reset_all()
+    # 1. Too short (< 10 chars)
+    res_short = client.post("/api/auth/register", json={
+        "email": "short@celestia.ai", "name": "Short", "password": "Short1!"
+    })
+    assert res_short.status_code == 422
+    assert "at least 10 characters" in str(res_short.json()["detail"]).lower()
+
+    # 2. Missing uppercase
+    res_no_upper = client.post("/api/auth/register", json={
+        "email": "noupper@celestia.ai", "name": "NoUpper", "password": "password123!"
+    })
+    assert res_no_upper.status_code == 422
+    assert "uppercase" in str(res_no_upper.json()["detail"]).lower()
+
+    # 3. Missing digit
+    res_no_digit = client.post("/api/auth/register", json={
+        "email": "nodigit@celestia.ai", "name": "NoDigit", "password": "PasswordTest!"
+    })
+    assert res_no_digit.status_code == 422
+    assert "digit" in str(res_no_digit.json()["detail"]).lower()
+
+    # 4. Missing special character
+    res_no_special = client.post("/api/auth/register", json={
+        "email": "nospecial@celestia.ai", "name": "NoSpecial", "password": "Password12345"
+    })
+    assert res_no_special.status_code == 422
+    assert "special character" in str(res_no_special.json()["detail"]).lower()
+
+    # 5. Breached password (simulated PwnedPassword)
+    res_pwned = client.post("/api/auth/register", json={
+        "email": "pwned@celestia.ai", "name": "Pwned", "password": "PwnedPassword123!"
+    })
+    assert res_pwned.status_code == 422
+    assert "data breaches" in str(res_pwned.json()["detail"]).lower()
+
+def test_logout_all_and_sessions_management():
+    """Verify listing active sessions and revoking all sessions on logout-all."""
+    limiter.reset_all()
+    _, token1, hdr1 = create_test_user_and_token("sessions_u")
+
+    # Get active sessions
+    sess_res = client.get("/api/auth/sessions", headers=hdr1)
+    assert sess_res.status_code == 200
+    sessions = sess_res.json()
+    assert len(sessions) >= 1
+
+    # Logout all sessions
+    logout_all = client.post("/api/auth/logout-all", headers=hdr1)
+    assert logout_all.status_code == 200
+    assert "Successfully revoked all" in logout_all.json()["message"]
+
+    # Subsequent refresh attempt with any old token must fail with 401
+    refresh_fail = client.post("/api/auth/refresh", headers=hdr1)
+    assert refresh_fail.status_code == 401
+
+def test_password_change_invalidates_old_sessions():
+    """Verify changing password invalidates all prior sessions and verifies old password."""
+    limiter.reset_all()
+    user_client = TestClient(app, raise_server_exceptions=False)
+    reg = user_client.post("/api/auth/register", json={
+        "email": f"pwd_change_{int(time.time()*1000)}@celestia.ai",
+        "name": "Pwd User",
+        "password": "StrongPassword123!"
+    })
+    assert reg.status_code == 200
+    token = reg.json()["access_token"]
+    old_refresh_token = reg.json()["refresh_token"]
+    hdr = {"Authorization": f"Bearer {token}"}
+
+    # Wrong old password -> 400
+    bad_old = user_client.post("/api/auth/change-password", headers=hdr, json={
+        "old_password": "IncorrectPassword123!",
+        "new_password": "BrandNewSecurePassword456@"
+    })
+    assert bad_old.status_code == 400
+
+    # Successful password change
+    good_change = user_client.post("/api/auth/change-password", headers=hdr, json={
+        "old_password": "StrongPassword123!",
+        "new_password": "BrandNewSecurePassword456@"
+    })
+    assert good_change.status_code == 200
+    new_token = good_change.json()["access_token"]
+    assert new_token != token
+
+    # Old refresh token is revoked -> 401
+    old_client = TestClient(app, raise_server_exceptions=False)
+    old_client.cookies.set("refresh_token", old_refresh_token)
+    old_refresh = old_client.post("/api/auth/refresh")
+    assert old_refresh.status_code == 401
+
+def test_demo_user_destruction_guards():
+    """Verify demonstration account cannot be deleted or have its celebration removed."""
+    limiter.reset_all()
+    demo_res = client.post("/api/auth/demo-login")
+    assert demo_res.status_code == 200
+    demo_token = demo_res.json()["access_token"]
+    demo_hdr = {"Authorization": f"Bearer {demo_token}"}
+
+    # Attempting to delete account -> 403 Forbidden
+    del_acc = client.delete("/api/auth/account", headers=demo_hdr)
+    assert del_acc.status_code == 403
+    assert "read-only" in del_acc.json()["detail"].lower()
+
+    # Get demo event
+    events_res = client.get("/api/events", headers=demo_hdr)
+    assert events_res.status_code == 200
+    ev_id = events_res.json()[0]["id"]
+
+    # Attempting to delete demo event -> 403 Forbidden
+    del_ev = client.delete(f"/api/events/{ev_id}", headers=demo_hdr)
+    assert del_ev.status_code == 403
+    assert "read-only" in del_ev.json()["detail"].lower()

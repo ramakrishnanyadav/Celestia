@@ -8,8 +8,6 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  CheckCircle2,
-  Sliders,
   CalendarDays,
   IndianRupee,
 } from "lucide-react";
@@ -21,9 +19,12 @@ export default function MarketingLandingPage() {
   );
   const [loading, setLoading] = useState(false);
 
-  const handleLaunch = async (e: React.FormEvent) => {
+  const handleLaunch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim() || loading) return;
+    router.push("/register");
+  };
+
+  const handleDemoClick = async () => {
     setLoading(true);
     try {
       await api.demoLogin();
@@ -82,7 +83,7 @@ export default function MarketingLandingPage() {
         </p>
 
         {/* Command Bar */}
-        <form onSubmit={handleLaunch} className="max-w-3xl mx-auto pt-4">
+        <form onSubmit={handleLaunch} className="max-w-3xl mx-auto pt-4 space-y-3">
           <div className="flex flex-col sm:flex-row items-center gap-2 p-2 rounded-2xl glass-card border border-[var(--border-subtle)] shadow-xl">
             <input
               type="text"
@@ -93,11 +94,20 @@ export default function MarketingLandingPage() {
             />
             <button
               type="submit"
-              disabled={loading}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[var(--brand-teal)] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[var(--brand-teal)] text-white text-sm font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm cursor-pointer"
             >
-              <span>{loading ? "Synthesizing..." : "Generate Plan"}</span>
+              <span>Get Started Free</span>
               <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handleDemoClick}
+              disabled={loading}
+              className="text-xs font-semibold text-[var(--brand-teal)] hover:underline cursor-pointer"
+            >
+              {loading ? "Loading Demo..." : "Explore Read-Only Demo Workspace (Anjali & Rahul Wedding)"}
             </button>
           </div>
         </form>
@@ -130,7 +140,7 @@ export default function MarketingLandingPage() {
           </p>
         </div>
         <div className="p-6 rounded-2xl glass-card space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--brand-indigo-subtle)] text-[var(--brand-indigo)] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <h3 className="text-base font-bold text-[var(--ink-primary)]">
@@ -138,15 +148,10 @@ export default function MarketingLandingPage() {
           </h3>
           <p className="text-xs text-[var(--ink-secondary)] leading-relaxed">
             AI is strictly advisory. All proposals require human sign-off with
-            audit logging and rollback capabilities.
+            complete audit trails and instant rollback.
           </p>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="mt-auto border-t border-[var(--border-subtle)] py-6 text-center text-xs text-[var(--ink-muted)]">
-        CELESTIA Production Edition • Integer Ledgers & Cultural Intelligence
-      </footer>
     </div>
   );
 }

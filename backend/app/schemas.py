@@ -17,13 +17,28 @@ def sanitize_free_text(v: Any) -> Any:
 
 # --- AUTH SCHEMAS ---
 class UserCreate(BaseModel):
-    email: str
-    name: str
-    password: str
+    email: str = Field(..., max_length=255)
+    name: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=10, max_length=128)
+
+    @field_validator("name", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class UserLogin(BaseModel):
-    email: str
-    password: str
+    email: str = Field(..., max_length=255)
+    password: str = Field(..., min_length=1, max_length=128)
+
+class PasswordChangeRequest(BaseModel):
+    old_password: str = Field(..., min_length=1, max_length=128)
+    new_password: str = Field(..., min_length=10, max_length=128)
+
+class SessionResponse(BaseModel):
+    id: str
+    created_at: str | None = None
+    expires_at: str | None = None
+    is_current: bool = False
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -44,13 +59,18 @@ class Token(BaseModel):
 
 # --- PREFERENCE SCHEMAS ---
 class EventPreferenceBase(BaseModel):
-    dietary: str = "Pure Vegetarian"
-    theme: str = "Royal Marigold & Polished Brass"
-    regional_culture: str = "Maharashtrian Traditional"
+    dietary: str = Field("Pure Vegetarian", max_length=200)
+    theme: str = Field("Royal Marigold & Polished Brass", max_length=200)
+    regional_culture: str = Field("Maharashtrian Traditional", max_length=200)
     cultural_traditions: list[str] = Field(default_factory=lambda: ["Sakhar Puda", "Muhurtham", "Haldi", "Sangeet", "Satyanarayan Puja"])
-    music_entertainment: str = "Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ"
+    music_entertainment: str = Field("Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ", max_length=500)
     color_palette: list[str] = Field(default_factory=lambda: ["#D97706", "#B45309", "#0B132B", "#FAF7F2", "#0D9488"])
-    special_requirements: str | None = "Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
+    special_requirements: str | None = Field("Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts.", max_length=2000)
+
+    @field_validator("dietary", "theme", "regional_culture", "music_entertainment", "special_requirements", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class EventPreferenceCreate(EventPreferenceBase):
     pass
@@ -386,11 +406,16 @@ class QuotationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class VendorCreate(BaseModel):
-    category: str
-    name: str
-    contact: str | None = None
-    rating: float = 4.5
-    notes: str | None = None
+    category: str = Field(..., min_length=1, max_length=100)
+    name: str = Field(..., min_length=1, max_length=255)
+    contact: str | None = Field(None, max_length=255)
+    rating: float = Field(4.5, ge=1.0, le=5.0)
+    notes: str | None = Field(None, max_length=1000)
+
+    @field_validator("category", "name", "contact", "notes", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class VendorResponse(BaseModel):
     id: str
@@ -435,8 +460,13 @@ class ApprovalCreate(BaseModel):
     proposed_changes_json: dict[str, Any]
 
 class ApprovalAction(BaseModel):
-    action: str # "approve" or "reject"
-    comment: str | None = None
+    action: str = Field(..., max_length=20) # "approve" or "reject"
+    comment: str | None = Field(None, max_length=1000)
+
+    @field_validator("action", "comment", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class ApprovalResponse(BaseModel):
     id: str
@@ -465,7 +495,20 @@ class ActivityLogResponse(BaseModel):
 
 # --- AI & CELEBRATION INTELLIGENCE SCHEMAS ---
 class RequirementExtractionRequest(BaseModel):
-    natural_language_prompt: str
+    natural_language_prompt: str = Field(..., min_length=1, max_length=5000)
+
+    @field_validator("natural_language_prompt", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
+
+class ChatCommandRequest(BaseModel):
+    command: str = Field(..., min_length=1, max_length=1000)
+
+    @field_validator("command", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class ExtractedRequirement(BaseModel):
     event_type: str = "wedding"

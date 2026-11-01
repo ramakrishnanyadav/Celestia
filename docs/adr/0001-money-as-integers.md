@@ -21,3 +21,4 @@ In financial ledgers and event planning budgets, floating-point arithmetic intro
 ## Consequences
 - **Positive**: 100% deterministic accounting, exact zero-drift reconciliation, audited financial integrity, no penny loss across what-if simulations.
 - **Negative**: API consumers and UI forms must convert entered rupee values to paise via standard conversion utilities (`rupeesToPaise` / `paiseToRupees`).
+

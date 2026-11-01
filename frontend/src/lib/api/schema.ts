@@ -4,3286 +4,3445 @@
  */
 
 export interface paths {
-  "/api/auth/register": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register */
+        post: operations["register_api_auth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Register */
-    post: operations["register_api_auth_register_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/auth/login": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login */
+        post: operations["login_api_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Login */
-    post: operations["login_api_auth_login_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/auth/refresh": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh
+         * @description Rotates refresh token and issues a new access token.
+         */
+        post: operations["refresh_api_auth_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Refresh
-     * @description Rotates refresh token and issues a new access token.
-     */
-    post: operations["refresh_api_auth_refresh_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/auth/logout": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout
+         * @description Revokes refresh token and clears all auth cookies.
+         */
+        post: operations["logout_api_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Logout
-     * @description Revokes refresh token and clears all auth cookies.
-     */
-    post: operations["logout_api_auth_logout_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/auth/demo-login": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/logout-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout All Sessions
+         * @description Revokes all active refresh tokens for the current user and clears auth cookies.
+         */
+        post: operations["logout_all_sessions_api_auth_logout_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Demo Login
-     * @description Creates a fresh temporary demonstration session.
-     *     Controlled by DEMO_ACCOUNT_ENABLED (strictly off by default in production).
-     *     Seeds the authentic Mumbai wedding showcase with full budget and timeline.
-     */
-    post: operations["demo_login_api_auth_demo_login_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/auth/me": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get User Sessions
+         * @description Lists all active non-expired sessions for the user with an is_current indicator.
+         */
+        get: operations["get_user_sessions_api_auth_sessions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Me */
-    get: operations["get_me_api_auth_me_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/auth/export": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Changes user password:
+         *     1. Verifies existing old password.
+         *     2. Validates new password strength & breach check (NIST/HIBP).
+         *     3. Re-hashes password with Argon2id.
+         *     4. Invalidates ALL existing refresh tokens to prevent session hijacking.
+         *     5. Issues a new token pair and sets fresh cookies.
+         */
+        post: operations["change_password_api_auth_change_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Export User Data
-     * @description Data portability endpoint (GDPR/DPDP compliance).
-     *     Exports complete user account history, celebrations, budgets, tasks, and vendors.
-     */
-    get: operations["export_user_data_api_auth_export_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/auth/account": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/demo-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Demo Login
+         * @description Creates a fresh temporary demonstration session.
+         *     Controlled by DEMO_ACCOUNT_ENABLED (strictly off by default in production).
+         *     Seeds the authentic Mumbai wedding showcase with full budget and timeline.
+         */
+        post: operations["demo_login_api_auth_demo_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     * Delete User Account
-     * @description Permanently deletes user account and all associated events via cascading deletion.
-     *     Revokes tokens and clears cookies.
-     */
-    delete: operations["delete_user_account_api_auth_account_delete"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Me */
+        get: operations["get_me_api_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List User Events */
-    get: operations["list_user_events_api_events_get"];
-    put?: never;
-    /** Create Event */
-    post: operations["create_event_api_events_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export User Data
+         * @description Data portability endpoint (GDPR/DPDP compliance).
+         *     Exports complete user account history, celebrations, budgets, tasks, and vendors.
+         */
+        get: operations["export_user_data_api_auth_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Event */
-    get: operations["get_event_api_events__event_id__get"];
-    put?: never;
-    post?: never;
-    /** Delete Event */
-    delete: operations["delete_event_api_events__event_id__delete"];
-    options?: never;
-    head?: never;
-    /** Update Event */
-    patch: operations["update_event_api_events__event_id__patch"];
-    trace?: never;
-  };
-  "/api/events/{event_id}/preferences": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete User Account
+         * @description Permanently deletes user account and all associated events via cascading deletion.
+         *     Revokes tokens and clears cookies.
+         */
+        delete: operations["delete_user_account_api_auth_account_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Preferences */
-    get: operations["get_preferences_api_events__event_id__preferences_get"];
-    /** Update Preferences */
-    put: operations["update_preferences_api_events__event_id__preferences_put"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/plans": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List User Events */
+        get: operations["list_user_events_api_events_get"];
+        put?: never;
+        /** Create Event */
+        post: operations["create_event_api_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Active Plan */
-    get: operations["get_active_plan_api_events__event_id__plans_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/budget/summary": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Event */
+        get: operations["get_event_api_events__event_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Event */
+        delete: operations["delete_event_api_events__event_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Event */
+        patch: operations["update_event_api_events__event_id__patch"];
+        trace?: never;
     };
-    /** Get Budget Summary */
-    get: operations["get_budget_summary_api_events__event_id__budget_summary_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/budget/what-if": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preferences */
+        get: operations["get_preferences_api_events__event_id__preferences_get"];
+        /** Update Preferences */
+        put: operations["update_preferences_api_events__event_id__preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Simulate What If */
-    post: operations["simulate_what_if_api_events__event_id__budget_what_if_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/budget/categories": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Active Plan */
+        get: operations["get_active_plan_api_events__event_id__plans_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Create Category */
-    post: operations["create_category_api_events__event_id__budget_categories_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/budget/categories/{category_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/budget/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Budget Summary */
+        get: operations["get_budget_summary_api_events__event_id__budget_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /** Update Category */
-    patch: operations["update_category_api_events__event_id__budget_categories__category_id__patch"];
-    trace?: never;
-  };
-  "/api/events/{event_id}/budget/categories/{category_id}/expenses": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/budget/what-if": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Simulate What If */
+        post: operations["simulate_what_if_api_events__event_id__budget_what_if_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Add Expense */
-    post: operations["add_expense_api_events__event_id__budget_categories__category_id__expenses_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/budget/expenses/{expense_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/budget/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Category */
+        post: operations["create_category_api_events__event_id__budget_categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    /** Delete Expense */
-    delete: operations["delete_expense_api_events__event_id__budget_expenses__expense_id__delete"];
-    options?: never;
-    head?: never;
-    /** Update Expense */
-    patch: operations["update_expense_api_events__event_id__budget_expenses__expense_id__patch"];
-    trace?: never;
-  };
-  "/api/events/{event_id}/budget/export-csv": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/budget/categories/{category_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Category */
+        patch: operations["update_category_api_events__event_id__budget_categories__category_id__patch"];
+        trace?: never;
     };
-    /**
-     * Export Budget Csv
-     * @description Exports event budget ledger to CSV with formula injection neutralization.
-     */
-    get: operations["export_budget_csv_api_events__event_id__budget_export_csv_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/tasks": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/budget/categories/{category_id}/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Expense */
+        post: operations["add_expense_api_events__event_id__budget_categories__category_id__expenses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Tasks */
-    get: operations["list_tasks_api_events__event_id__tasks_get"];
-    put?: never;
-    /** Create Task */
-    post: operations["create_task_api_events__event_id__tasks_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/tasks/{task_id}/dependencies": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/budget/expenses/{expense_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Expense */
+        delete: operations["delete_expense_api_events__event_id__budget_expenses__expense_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Expense */
+        patch: operations["update_expense_api_events__event_id__budget_expenses__expense_id__patch"];
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Add Task Dependency */
-    post: operations["add_task_dependency_api_events__event_id__tasks__task_id__dependencies_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/tasks/{task_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/budget/export-csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Budget Csv
+         * @description Exports event budget ledger to CSV with formula injection neutralization.
+         */
+        get: operations["export_budget_csv_api_events__event_id__budget_export_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    /** Delete Task */
-    delete: operations["delete_task_api_events__event_id__tasks__task_id__delete"];
-    options?: never;
-    head?: never;
-    /** Update Task */
-    patch: operations["update_task_api_events__event_id__tasks__task_id__patch"];
-    trace?: never;
-  };
-  "/api/events/{event_id}/tasks/cpm": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Tasks */
+        get: operations["list_tasks_api_events__event_id__tasks_get"];
+        put?: never;
+        /** Create Task */
+        post: operations["create_task_api_events__event_id__tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Recalculate Cpm */
-    post: operations["recalculate_cpm_api_events__event_id__tasks_cpm_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/vendors": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/tasks/{task_id}/dependencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Task Dependency */
+        post: operations["add_task_dependency_api_events__event_id__tasks__task_id__dependencies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Vendors */
-    get: operations["list_vendors_api_events__event_id__vendors_get"];
-    put?: never;
-    /** Create Vendor */
-    post: operations["create_vendor_api_events__event_id__vendors_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/vendors/{vendor_id}/quotations": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Task */
+        delete: operations["delete_task_api_events__event_id__tasks__task_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Task */
+        patch: operations["update_task_api_events__event_id__tasks__task_id__patch"];
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Add Quotation */
-    post: operations["add_quotation_api_events__event_id__vendors__vendor_id__quotations_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/vendors/compare": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/tasks/cpm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recalculate Cpm */
+        post: operations["recalculate_cpm_api_events__event_id__tasks_cpm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Compare Quotations */
-    get: operations["compare_quotations_api_events__event_id__vendors_compare_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/vendors/documents/upload": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/vendors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Vendors */
+        get: operations["list_vendors_api_events__event_id__vendors_get"];
+        put?: never;
+        /** Create Vendor */
+        post: operations["create_vendor_api_events__event_id__vendors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Upload Vendor Document
-     * @description Secure document upload endpoint with rate limiting, file type and size validation.
-     */
-    post: operations["upload_vendor_document_api_events__event_id__vendors_documents_upload_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/approvals": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/vendors/{vendor_id}/quotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Quotation */
+        post: operations["add_quotation_api_events__event_id__vendors__vendor_id__quotations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Approvals */
-    get: operations["list_approvals_api_events__event_id__approvals_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/approvals/{proposal_id}/action": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/vendors/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare Quotations */
+        get: operations["compare_quotations_api_events__event_id__vendors_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Execute Proposal Action */
-    post: operations["execute_proposal_action_api_events__event_id__approvals__proposal_id__action_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/activity-logs": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/vendors/documents/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Vendor Document
+         * @description Secure document upload endpoint with rate limiting, file type and size validation.
+         */
+        post: operations["upload_vendor_document_api_events__event_id__vendors_documents_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Activity Logs */
-    get: operations["get_activity_logs_api_events__event_id__activity_logs_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ai/extract-requirements": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Approvals */
+        get: operations["list_approvals_api_events__event_id__approvals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Extract Requirements */
-    post: operations["extract_requirements_api_ai_extract_requirements_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/ai/ideas": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/approvals/{proposal_id}/action": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute Proposal Action */
+        post: operations["execute_proposal_action_api_events__event_id__approvals__proposal_id__action_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Ideas */
-    get: operations["get_ideas_api_events__event_id__ai_ideas_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/ai/generate-plan": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/activity-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Activity Logs */
+        get: operations["get_activity_logs_api_events__event_id__activity_logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Generate Event Plan */
-    post: operations["generate_event_plan_api_events__event_id__ai_generate_plan_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/ai/command": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/ai/extract-requirements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract Requirements */
+        post: operations["extract_requirements_api_ai_extract_requirements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Execute Ai Command */
-    post: operations["execute_ai_command_api_events__event_id__ai_command_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/ai/stream-plan": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/ai/ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Ideas */
+        get: operations["get_ideas_api_events__event_id__ai_ideas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Stream Event Plan */
-    get: operations["stream_event_plan_api_events__event_id__ai_stream_plan_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/events/{event_id}/ai/generate-plan-parallel": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/ai/generate-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Event Plan */
+        post: operations["generate_event_plan_api_events__event_id__ai_generate_plan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Generate Plan Parallel Endpoint */
-    post: operations["generate_plan_parallel_endpoint_api_events__event_id__ai_generate_plan_parallel_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/test-fault/unhandled-error": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/ai/command": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute Ai Command */
+        post: operations["execute_ai_command_api_events__event_id__ai_command_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Trigger Unhandled Error For Audit
-     * @description Diagnostic fault injection endpoint to verify sanitization of 500 errors.
-     */
-    get: operations["trigger_unhandled_error_for_audit_api_test_fault_unhandled_error_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/ai/stream-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream Event Plan */
+        get: operations["stream_event_plan_api_events__event_id__ai_stream_plan_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Root */
-    get: operations["root__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/healthz": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/events/{event_id}/ai/generate-plan-parallel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Plan Parallel Endpoint */
+        post: operations["generate_plan_parallel_endpoint_api_events__event_id__ai_generate_plan_parallel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Liveness */
-    get: operations["liveness_healthz_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/readyz": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/test-fault/unhandled-error": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trigger Unhandled Error For Audit
+         * @description Diagnostic fault injection endpoint to verify sanitization of 500 errors.
+         */
+        get: operations["trigger_unhandled_error_for_audit_api_test_fault_unhandled_error_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Readiness */
-    get: operations["readiness_readyz_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/health": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Root */
+        get: operations["root__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Health Check
-     * @description Active health check verifying application and database connectivity.
-     *     Returns HTTP 200 if database responds, HTTP 503 if database is unreachable.
-     */
-    get: operations["health_check_health_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/healthz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Liveness */
+        get: operations["liveness_healthz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readyz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Readiness */
+        get: operations["readiness_readyz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health Check
+         * @description Active health check verifying application and database connectivity.
+         *     Returns HTTP 200 if database responds, HTTP 503 if database is unreachable.
+         */
+        get: operations["health_check_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /** ActivityLogResponse */
-    ActivityLogResponse: {
-      /** Id */
-      id: string;
-      /** Event Id */
-      event_id: string;
-      /** Actor */
-      actor: string;
-      /** Action */
-      action: string;
-      /** Details */
-      details: string;
-      /**
-       * Timestamp
-       * Format: date-time
-       */
-      timestamp: string;
+    schemas: {
+        /** ActivityLogResponse */
+        ActivityLogResponse: {
+            /** Id */
+            id: string;
+            /** Event Id */
+            event_id: string;
+            /** Actor */
+            actor: string;
+            /** Action */
+            action: string;
+            /** Details */
+            details: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             */
+            timestamp: string;
+        };
+        /** ApprovalAction */
+        ApprovalAction: {
+            /** Action */
+            action: string;
+            /** Comment */
+            comment?: string | null;
+        };
+        /** ApprovalResponse */
+        ApprovalResponse: {
+            /** Id */
+            id: string;
+            /** Event Id */
+            event_id: string;
+            /** Proposal Type */
+            proposal_type: string;
+            /** Title */
+            title: string;
+            /** Summary */
+            summary: string;
+            /** Diff Summary */
+            diff_summary: {
+                [key: string]: unknown;
+            };
+            /** Proposed Changes Json */
+            proposed_changes_json: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Reviewed At */
+            reviewed_at?: string | null;
+        };
+        /** Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post */
+        Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+            /**
+             * Doc Type
+             * @default contract
+             */
+            doc_type: string;
+        };
+        /** BudgetCategoryCreate */
+        BudgetCategoryCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Allocation Percent
+             * @default 0
+             */
+            allocation_percent: number;
+            /** Allocation Basis Points */
+            allocation_basis_points?: number | null;
+            /** Allocated Amount Minor */
+            allocated_amount_minor: number;
+            /**
+             * Icon
+             * @default IndianRupee
+             */
+            icon: string;
+            /**
+             * Is Per Guest
+             * @default false
+             */
+            is_per_guest: boolean;
+            /**
+             * Per Guest Minor
+             * @default 0
+             */
+            per_guest_minor: number;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+        };
+        /** BudgetCategoryResponse */
+        BudgetCategoryResponse: {
+            /** Id */
+            id: string;
+            /** Event Id */
+            event_id: string;
+            /** Name */
+            name: string;
+            /** Allocation Percent */
+            allocation_percent: number;
+            /**
+             * Allocation Basis Points
+             * @default 0
+             */
+            allocation_basis_points: number;
+            /** Allocated Amount Minor */
+            allocated_amount_minor: number;
+            /** Allocated Rupees */
+            allocated_rupees?: number | null;
+            /** Icon */
+            icon: string;
+            /** Is Per Guest */
+            is_per_guest: boolean;
+            /** Per Guest Minor */
+            per_guest_minor: number;
+            /** Per Guest Rupees */
+            per_guest_rupees?: number | null;
+            /** Sort Order */
+            sort_order: number;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /** Expenses */
+            expenses?: components["schemas"]["ExpenseResponse"][];
+        };
+        /** BudgetCategoryUpdate */
+        BudgetCategoryUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Allocation Percent */
+            allocation_percent?: number | null;
+            /** Allocated Amount Minor */
+            allocated_amount_minor?: number | null;
+            /** Icon */
+            icon?: string | null;
+            /** Is Per Guest */
+            is_per_guest?: boolean | null;
+            /** Per Guest Minor */
+            per_guest_minor?: number | null;
+            /** Sort Order */
+            sort_order?: number | null;
+            /** Expected Version */
+            expected_version?: number | null;
+        };
+        /** BudgetSummaryResponse */
+        BudgetSummaryResponse: {
+            /** Total Budget Minor */
+            total_budget_minor: number;
+            /** Total Budget Rupees */
+            total_budget_rupees: number;
+            /** Allocated Minor */
+            allocated_minor: number;
+            /** Allocated Rupees */
+            allocated_rupees: number;
+            /**
+             * Allocatable Minor
+             * @default 0
+             */
+            allocatable_minor: number | null;
+            /**
+             * Allocatable Rupees
+             * @default 0
+             */
+            allocatable_rupees: number | null;
+            /**
+             * Safety Buffer Minor
+             * @default 0
+             */
+            safety_buffer_minor: number | null;
+            /**
+             * Safety Buffer Rupees
+             * @default 0
+             */
+            safety_buffer_rupees: number | null;
+            /**
+             * Unallocated Minor
+             * @default 0
+             */
+            unallocated_minor: number | null;
+            /**
+             * Unallocated Rupees
+             * @default 0
+             */
+            unallocated_rupees: number | null;
+            /**
+             * Is Reconciled
+             * @default true
+             */
+            is_reconciled: boolean | null;
+            /** Planned Total Minor */
+            planned_total_minor: number;
+            /** Planned Total Rupees */
+            planned_total_rupees: number;
+            /** Actual Total Minor */
+            actual_total_minor: number;
+            /** Actual Total Rupees */
+            actual_total_rupees: number;
+            /** Remaining Balance Minor */
+            remaining_balance_minor: number;
+            /** Remaining Balance Rupees */
+            remaining_balance_rupees: number;
+            /** Contingency Reserve Minor */
+            contingency_reserve_minor: number;
+            /** Contingency Reserve Rupees */
+            contingency_reserve_rupees: number;
+            /** Contingency Percent */
+            contingency_percent: number;
+            /** Deviation Minor */
+            deviation_minor: number;
+            /** Deviation Rupees */
+            deviation_rupees: number;
+            /** Is Over Budget */
+            is_over_budget: boolean;
+            /** Per Guest Avg Rupees */
+            per_guest_avg_rupees: number;
+            /** Categories */
+            categories: components["schemas"]["BudgetCategoryResponse"][];
+        };
+        /** CPMResultResponse */
+        CPMResultResponse: {
+            /** Total Duration Days */
+            total_duration_days: number;
+            /** Critical Path Task Ids */
+            critical_path_task_ids: string[];
+            /** Tasks */
+            tasks: components["schemas"]["TaskResponse"][];
+        };
+        /** ChatCommandRequest */
+        ChatCommandRequest: {
+            /** Command */
+            command: string;
+        };
+        /** EventCreate */
+        EventCreate: {
+            /**
+             * Title
+             * @default Anjali & Rahul's Royal Mumbai Wedding
+             */
+            title: string;
+            /**
+             * Event Type
+             * @default wedding
+             */
+            event_type: string;
+            /**
+             * City
+             * @default Mumbai
+             */
+            city: string;
+            /**
+             * Venue Type
+             * @default Banquet Hall
+             */
+            venue_type: string;
+            /**
+             * Guest Count
+             * @default 300
+             */
+            guest_count: number;
+            /**
+             * Budget Minor
+             * @default 150000000
+             */
+            budget_minor: number;
+            /** Budget Rupees */
+            budget_rupees?: number | null;
+            /**
+             * Currency
+             * @default INR
+             */
+            currency: string;
+            /**
+             * Timezone
+             * @default Asia/Kolkata
+             */
+            timezone: string;
+            /**
+             * Preparation Months
+             * @default 6
+             */
+            preparation_months: number;
+            /** Target Date */
+            target_date?: string | null;
+            /**
+             * Autonomy Mode
+             * @default Draft
+             */
+            autonomy_mode: string;
+            preferences?: components["schemas"]["EventPreferenceBase"] | null;
+        };
+        /** EventPreferenceBase */
+        EventPreferenceBase: {
+            /**
+             * Dietary
+             * @default Pure Vegetarian
+             */
+            dietary: string;
+            /**
+             * Theme
+             * @default Royal Marigold & Polished Brass
+             */
+            theme: string;
+            /**
+             * Regional Culture
+             * @default Maharashtrian Traditional
+             */
+            regional_culture: string;
+            /** Cultural Traditions */
+            cultural_traditions?: string[];
+            /**
+             * Music Entertainment
+             * @default Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ
+             */
+            music_entertainment: string;
+            /** Color Palette */
+            color_palette?: string[];
+            /**
+             * Special Requirements
+             * @default Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts.
+             */
+            special_requirements: string | null;
+        };
+        /** EventPreferenceCreate */
+        EventPreferenceCreate: {
+            /**
+             * Dietary
+             * @default Pure Vegetarian
+             */
+            dietary: string;
+            /**
+             * Theme
+             * @default Royal Marigold & Polished Brass
+             */
+            theme: string;
+            /**
+             * Regional Culture
+             * @default Maharashtrian Traditional
+             */
+            regional_culture: string;
+            /** Cultural Traditions */
+            cultural_traditions?: string[];
+            /**
+             * Music Entertainment
+             * @default Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ
+             */
+            music_entertainment: string;
+            /** Color Palette */
+            color_palette?: string[];
+            /**
+             * Special Requirements
+             * @default Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts.
+             */
+            special_requirements: string | null;
+        };
+        /** EventPreferenceResponse */
+        EventPreferenceResponse: {
+            /**
+             * Dietary
+             * @default Pure Vegetarian
+             */
+            dietary: string;
+            /**
+             * Theme
+             * @default Royal Marigold & Polished Brass
+             */
+            theme: string;
+            /**
+             * Regional Culture
+             * @default Maharashtrian Traditional
+             */
+            regional_culture: string;
+            /** Cultural Traditions */
+            cultural_traditions?: string[];
+            /**
+             * Music Entertainment
+             * @default Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ
+             */
+            music_entertainment: string;
+            /** Color Palette */
+            color_palette?: string[];
+            /**
+             * Special Requirements
+             * @default Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts.
+             */
+            special_requirements: string | null;
+            /** Id */
+            id: string;
+            /** Event Id */
+            event_id: string;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** EventResponse */
+        EventResponse: {
+            /** Id */
+            id: string;
+            /** User Id */
+            user_id: string;
+            /** Title */
+            title: string;
+            /** Event Type */
+            event_type: string;
+            /** City */
+            city: string;
+            /** Venue Type */
+            venue_type: string;
+            /** Guest Count */
+            guest_count: number;
+            /** Budget Minor */
+            budget_minor: number;
+            /** Budget Rupees */
+            budget_rupees?: number | null;
+            /** Currency */
+            currency: string;
+            /** Timezone */
+            timezone: string;
+            /** Preparation Months */
+            preparation_months: number;
+            /** Status */
+            status: string;
+            /** Autonomy Mode */
+            autonomy_mode: string;
+            /** Ai Paused */
+            ai_paused: boolean;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** EventUpdate */
+        EventUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Event Type */
+            event_type?: string | null;
+            /** City */
+            city?: string | null;
+            /** Venue Type */
+            venue_type?: string | null;
+            /** Guest Count */
+            guest_count?: number | null;
+            /** Budget Minor */
+            budget_minor?: number | null;
+            /** Budget Rupees */
+            budget_rupees?: number | null;
+            /** Target Date */
+            target_date?: string | null;
+            /** Preparation Months */
+            preparation_months?: number | null;
+            /** Status */
+            status?: string | null;
+            /** Autonomy Mode */
+            autonomy_mode?: string | null;
+            /** Ai Paused */
+            ai_paused?: boolean | null;
+        };
+        /** ExpenseCreate */
+        ExpenseCreate: {
+            /** Name */
+            name: string;
+            /** Planned Amount Minor */
+            planned_amount_minor: number;
+            /** Planned Rupees */
+            planned_rupees?: number | null;
+            /**
+             * Actual Amount Minor
+             * @default 0
+             */
+            actual_amount_minor: number;
+            /** Actual Rupees */
+            actual_rupees?: number | null;
+            /**
+             * Provenance
+             * @default estimated
+             */
+            provenance: string;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** ExpenseResponse */
+        ExpenseResponse: {
+            /** Id */
+            id: string;
+            /** Category Id */
+            category_id: string;
+            /** Name */
+            name: string;
+            /** Planned Amount Minor */
+            planned_amount_minor: number;
+            /** Planned Rupees */
+            planned_rupees?: number | null;
+            /** Actual Amount Minor */
+            actual_amount_minor: number;
+            /** Actual Rupees */
+            actual_rupees?: number | null;
+            /** Provenance */
+            provenance: string;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+        };
+        /** ExpenseUpdate */
+        ExpenseUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Planned Amount Minor */
+            planned_amount_minor?: number | null;
+            /** Planned Rupees */
+            planned_rupees?: number | null;
+            /** Actual Amount Minor */
+            actual_amount_minor?: number | null;
+            /** Actual Rupees */
+            actual_rupees?: number | null;
+            /** Provenance */
+            provenance?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Expected Version */
+            expected_version?: number | null;
+        };
+        /** ExtractedRequirement */
+        ExtractedRequirement: {
+            /**
+             * Event Type
+             * @default wedding
+             */
+            event_type: string;
+            /** Title */
+            title: string;
+            /**
+             * City
+             * @default Mumbai
+             */
+            city: string;
+            /**
+             * Venue Type
+             * @default Banquet Hall
+             */
+            venue_type: string;
+            /**
+             * Guest Count
+             * @default 300
+             */
+            guest_count: number;
+            /**
+             * Budget Rupees
+             * @default 1500000
+             */
+            budget_rupees: number;
+            /**
+             * Dietary
+             * @default Pure Vegetarian
+             */
+            dietary: string;
+            /**
+             * Theme
+             * @default Royal Marigold & Polished Brass
+             */
+            theme: string;
+            /**
+             * Regional Culture
+             * @default Maharashtrian Traditional
+             */
+            regional_culture: string;
+            /** Cultural Traditions */
+            cultural_traditions?: string[];
+            /**
+             * Preparation Months
+             * @default 6
+             */
+            preparation_months: number;
+            /**
+             * Special Requirements
+             * @default
+             */
+            special_requirements: string;
+            /**
+             * Provenance
+             * @default ai_suggested
+             */
+            provenance: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** PasswordChangeRequest */
+        PasswordChangeRequest: {
+            /** Old Password */
+            old_password: string;
+            /** New Password */
+            new_password: string;
+        };
+        /** PersonalizedIdeasResponse */
+        PersonalizedIdeasResponse: {
+            /** Themes */
+            themes: {
+                [key: string]: unknown;
+            }[];
+            /** Decor Concepts */
+            decor_concepts: {
+                [key: string]: unknown;
+            }[];
+            /** Food And Menu */
+            food_and_menu: {
+                [key: string]: unknown;
+            }[];
+            /** Entertainment */
+            entertainment: {
+                [key: string]: unknown;
+            }[];
+            /** Return Gifts */
+            return_gifts: {
+                [key: string]: unknown;
+            }[];
+            /** Cultural Traditions */
+            cultural_traditions: {
+                [key: string]: unknown;
+            }[];
+            /** Budget Conscious Alternatives */
+            budget_conscious_alternatives: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** PlanGenerationResponse */
+        PlanGenerationResponse: {
+            /** Event Id */
+            event_id: string;
+            /** Plan Title */
+            plan_title: string;
+            /** Summary */
+            summary: string;
+            /** Blueprint Json */
+            blueprint_json: {
+                [key: string]: unknown;
+            };
+            /** Budget Allocation Summary */
+            budget_allocation_summary: {
+                [key: string]: unknown;
+            };
+            /** Task Count */
+            task_count: number;
+            /** Milestone Count */
+            milestone_count: number;
+        };
+        /** QuotationComparisonItem */
+        QuotationComparisonItem: {
+            /** Quotation Id */
+            quotation_id: string;
+            /** Vendor Id */
+            vendor_id: string;
+            /** Vendor Name */
+            vendor_name: string;
+            /** Category */
+            category: string;
+            /** Quoted Rupees */
+            quoted_rupees: number;
+            /** Advance Payment Percent */
+            advance_payment_percent: number;
+            /** Cancellation Terms */
+            cancellation_terms: string;
+            /** Included Services Count */
+            included_services_count: number;
+            /** Inclusions */
+            inclusions: string[];
+            /** Exclusions */
+            exclusions: string[];
+            /** Detected Risks */
+            detected_risks: string[];
+            /** Risk Score */
+            risk_score: string;
+            /** Is Recommended */
+            is_recommended: boolean;
+        };
+        /** QuotationCreate */
+        QuotationCreate: {
+            /** Vendor Id */
+            vendor_id: string;
+            /** Quoted Amount Minor */
+            quoted_amount_minor: number;
+            /**
+             * Status
+             * @default received
+             */
+            status: string;
+            /** File Url */
+            file_url?: string | null;
+            /** Inclusions */
+            inclusions?: string[];
+            /** Exclusions */
+            exclusions?: string[];
+            /** Terms */
+            terms?: {
+                [key: string]: unknown;
+            };
+            /** Detected Risks */
+            detected_risks?: string[];
+            /**
+             * Is Sample
+             * @default false
+             */
+            is_sample: boolean;
+        };
+        /** QuotationResponse */
+        QuotationResponse: {
+            /** Id */
+            id: string;
+            /** Vendor Id */
+            vendor_id: string;
+            /** Vendor Name Cached */
+            vendor_name_cached?: string | null;
+            /** Quoted Amount Minor */
+            quoted_amount_minor: number;
+            /** Quoted Rupees */
+            quoted_rupees?: number | null;
+            /** Status */
+            status: string;
+            /** File Url */
+            file_url?: string | null;
+            /** Inclusions */
+            inclusions: string[];
+            /** Exclusions */
+            exclusions: string[];
+            /** Terms */
+            terms: {
+                [key: string]: unknown;
+            };
+            /** Detected Risks */
+            detected_risks: string[];
+            /** Is Sample */
+            is_sample: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** RequirementExtractionRequest */
+        RequirementExtractionRequest: {
+            /** Natural Language Prompt */
+            natural_language_prompt: string;
+        };
+        /** SessionResponse */
+        SessionResponse: {
+            /** Id */
+            id: string;
+            /** Created At */
+            created_at?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Is Current
+             * @default false
+             */
+            is_current: boolean;
+        };
+        /** TaskCreate */
+        TaskCreate: {
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Category
+             * @default General
+             */
+            category: string;
+            /**
+             * Milestone Name
+             * @default 6 Months Out
+             */
+            milestone_name: string;
+            /**
+             * Days Before Event
+             * @default 180
+             */
+            days_before_event: number;
+            /**
+             * Duration Days
+             * @default 7
+             */
+            duration_days: number;
+            /**
+             * Priority
+             * @default medium
+             */
+            priority: string;
+            /**
+             * Assigned To
+             * @default Host
+             */
+            assigned_to: string;
+            /** Depends On Ids */
+            depends_on_ids?: string[];
+        };
+        /** TaskDependencyCreate */
+        TaskDependencyCreate: {
+            /** Depends On Task Id */
+            depends_on_task_id: string;
+        };
+        /** TaskResponse */
+        TaskResponse: {
+            /** Id */
+            id: string;
+            /** Event Id */
+            event_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            /** Category */
+            category: string;
+            /** Milestone Name */
+            milestone_name: string;
+            /** Days Before Event */
+            days_before_event: number;
+            /** Duration Days */
+            duration_days: number;
+            /** Priority */
+            priority: string;
+            /** Status */
+            status: string;
+            /** Assigned To */
+            assigned_to: string;
+            /** Is Critical */
+            is_critical: boolean;
+            /** Early Start Day */
+            early_start_day: number;
+            /** Early Finish Day */
+            early_finish_day: number;
+            /** Late Start Day */
+            late_start_day: number;
+            /** Late Finish Day */
+            late_finish_day: number;
+            /** Total Slack */
+            total_slack: number;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Completed At */
+            completed_at?: string | null;
+            /** Depends On Ids */
+            depends_on_ids?: string[];
+        };
+        /** TaskUpdate */
+        TaskUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Milestone Name */
+            milestone_name?: string | null;
+            /** Days Before Event */
+            days_before_event?: number | null;
+            /** Duration Days */
+            duration_days?: number | null;
+            /** Priority */
+            priority?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Assigned To */
+            assigned_to?: string | null;
+            /** Is Critical */
+            is_critical?: boolean | null;
+            /** Expected Version */
+            expected_version?: number | null;
+        };
+        /** Token */
+        Token: {
+            /** Access Token */
+            access_token: string;
+            /** Token Type */
+            token_type: string;
+            user: components["schemas"]["UserResponse"];
+            /** Refresh Token */
+            refresh_token?: string | null;
+            /** Csrf Token */
+            csrf_token?: string | null;
+        };
+        /** UserCreate */
+        UserCreate: {
+            /** Email */
+            email: string;
+            /** Name */
+            name: string;
+            /** Password */
+            password: string;
+        };
+        /** UserLogin */
+        UserLogin: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+        };
+        /** UserResponse */
+        UserResponse: {
+            /** Id */
+            id: string;
+            /** Email */
+            email: string;
+            /** Name */
+            name: string;
+            /** Role */
+            role: string;
+            /**
+             * Is Demo
+             * @default false
+             */
+            is_demo: boolean | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+        /** VendorComparisonResponse */
+        VendorComparisonResponse: {
+            /** Category */
+            category: string;
+            /** Recommended Quotation Id */
+            recommended_quotation_id?: string | null;
+            /** Missing Inclusions Warning */
+            missing_inclusions_warning?: string[];
+            /** Comparison Items */
+            comparison_items?: components["schemas"]["QuotationComparisonItem"][];
+        };
+        /** VendorCreate */
+        VendorCreate: {
+            /** Category */
+            category: string;
+            /** Name */
+            name: string;
+            /** Contact */
+            contact?: string | null;
+            /**
+             * Rating
+             * @default 4.5
+             */
+            rating: number;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** VendorResponse */
+        VendorResponse: {
+            /** Id */
+            id: string;
+            /** Event Id */
+            event_id: string;
+            /** Category */
+            category: string;
+            /** Name */
+            name: string;
+            /** Contact */
+            contact?: string | null;
+            /** Status */
+            status: string;
+            /** Rating */
+            rating: number;
+            /** Notes */
+            notes?: string | null;
+            /** Quotations */
+            quotations?: components["schemas"]["QuotationResponse"][];
+        };
+        /** WhatIfCategoryChange */
+        WhatIfCategoryChange: {
+            /** Category Name */
+            category_name: string;
+            /** Original Allocation Rupees */
+            original_allocation_rupees: number;
+            /** Simulated Allocation Rupees */
+            simulated_allocation_rupees: number;
+            /** Difference Rupees */
+            difference_rupees: number;
+            /** Is Per Guest */
+            is_per_guest: boolean;
+            /** Per Guest Rate Rupees */
+            per_guest_rate_rupees: number;
+        };
+        /** WhatIfSimulationRequest */
+        WhatIfSimulationRequest: {
+            /** Simulated Guest Count */
+            simulated_guest_count: number;
+            /** Simulated Budget Minor */
+            simulated_budget_minor?: number | null;
+        };
+        /** WhatIfSimulationResponse */
+        WhatIfSimulationResponse: {
+            /** Original Guests */
+            original_guests: number;
+            /** Simulated Guests */
+            simulated_guests: number;
+            /** Guest Count Change */
+            guest_count_change: number;
+            /** Original Budget Rupees */
+            original_budget_rupees: number;
+            /** Simulated Budget Rupees */
+            simulated_budget_rupees: number;
+            /** Variable Cost Impact Rupees */
+            variable_cost_impact_rupees: number;
+            /** Fixed Cost Total Rupees */
+            fixed_cost_total_rupees: number;
+            /** New Contingency Rupees */
+            new_contingency_rupees: number;
+            /** Feasibility Status */
+            feasibility_status: string;
+            /** Recommendation */
+            recommendation: string;
+            /** Category Breakdowns */
+            category_breakdowns: components["schemas"]["WhatIfCategoryChange"][];
+        };
     };
-    /** ApprovalAction */
-    ApprovalAction: {
-      /** Action */
-      action: string;
-      /** Comment */
-      comment?: string | null;
-    };
-    /** ApprovalResponse */
-    ApprovalResponse: {
-      /** Id */
-      id: string;
-      /** Event Id */
-      event_id: string;
-      /** Proposal Type */
-      proposal_type: string;
-      /** Title */
-      title: string;
-      /** Summary */
-      summary: string;
-      /** Diff Summary */
-      diff_summary: {
-        [key: string]: unknown;
-      };
-      /** Proposed Changes Json */
-      proposed_changes_json: {
-        [key: string]: unknown;
-      };
-      /** Status */
-      status: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Reviewed At */
-      reviewed_at?: string | null;
-    };
-    /** Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post */
-    Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post: {
-      /**
-       * File
-       * Format: binary
-       */
-      file: string;
-      /**
-       * Doc Type
-       * @default contract
-       */
-      doc_type: string;
-    };
-    /** BudgetCategoryCreate */
-    BudgetCategoryCreate: {
-      /** Name */
-      name: string;
-      /**
-       * Allocation Percent
-       * @default 0
-       */
-      allocation_percent: number;
-      /** Allocation Basis Points */
-      allocation_basis_points?: number | null;
-      /** Allocated Amount Minor */
-      allocated_amount_minor: number;
-      /**
-       * Icon
-       * @default IndianRupee
-       */
-      icon: string;
-      /**
-       * Is Per Guest
-       * @default false
-       */
-      is_per_guest: boolean;
-      /**
-       * Per Guest Minor
-       * @default 0
-       */
-      per_guest_minor: number;
-      /**
-       * Sort Order
-       * @default 0
-       */
-      sort_order: number;
-    };
-    /** BudgetCategoryResponse */
-    BudgetCategoryResponse: {
-      /** Id */
-      id: string;
-      /** Event Id */
-      event_id: string;
-      /** Name */
-      name: string;
-      /** Allocation Percent */
-      allocation_percent: number;
-      /**
-       * Allocation Basis Points
-       * @default 0
-       */
-      allocation_basis_points: number;
-      /** Allocated Amount Minor */
-      allocated_amount_minor: number;
-      /** Allocated Rupees */
-      allocated_rupees?: number | null;
-      /** Icon */
-      icon: string;
-      /** Is Per Guest */
-      is_per_guest: boolean;
-      /** Per Guest Minor */
-      per_guest_minor: number;
-      /** Per Guest Rupees */
-      per_guest_rupees?: number | null;
-      /** Sort Order */
-      sort_order: number;
-      /**
-       * Version
-       * @default 1
-       */
-      version: number;
-      /** Expenses */
-      expenses?: components["schemas"]["ExpenseResponse"][];
-    };
-    /** BudgetCategoryUpdate */
-    BudgetCategoryUpdate: {
-      /** Name */
-      name?: string | null;
-      /** Allocation Percent */
-      allocation_percent?: number | null;
-      /** Allocated Amount Minor */
-      allocated_amount_minor?: number | null;
-      /** Icon */
-      icon?: string | null;
-      /** Is Per Guest */
-      is_per_guest?: boolean | null;
-      /** Per Guest Minor */
-      per_guest_minor?: number | null;
-      /** Sort Order */
-      sort_order?: number | null;
-      /** Expected Version */
-      expected_version?: number | null;
-    };
-    /** BudgetSummaryResponse */
-    BudgetSummaryResponse: {
-      /** Total Budget Minor */
-      total_budget_minor: number;
-      /** Total Budget Rupees */
-      total_budget_rupees: number;
-      /** Allocated Minor */
-      allocated_minor: number;
-      /** Allocated Rupees */
-      allocated_rupees: number;
-      /**
-       * Allocatable Minor
-       * @default 0
-       */
-      allocatable_minor: number | null;
-      /**
-       * Allocatable Rupees
-       * @default 0
-       */
-      allocatable_rupees: number | null;
-      /**
-       * Safety Buffer Minor
-       * @default 0
-       */
-      safety_buffer_minor: number | null;
-      /**
-       * Safety Buffer Rupees
-       * @default 0
-       */
-      safety_buffer_rupees: number | null;
-      /**
-       * Unallocated Minor
-       * @default 0
-       */
-      unallocated_minor: number | null;
-      /**
-       * Unallocated Rupees
-       * @default 0
-       */
-      unallocated_rupees: number | null;
-      /**
-       * Is Reconciled
-       * @default true
-       */
-      is_reconciled: boolean | null;
-      /** Planned Total Minor */
-      planned_total_minor: number;
-      /** Planned Total Rupees */
-      planned_total_rupees: number;
-      /** Actual Total Minor */
-      actual_total_minor: number;
-      /** Actual Total Rupees */
-      actual_total_rupees: number;
-      /** Remaining Balance Minor */
-      remaining_balance_minor: number;
-      /** Remaining Balance Rupees */
-      remaining_balance_rupees: number;
-      /** Contingency Reserve Minor */
-      contingency_reserve_minor: number;
-      /** Contingency Reserve Rupees */
-      contingency_reserve_rupees: number;
-      /** Contingency Percent */
-      contingency_percent: number;
-      /** Deviation Minor */
-      deviation_minor: number;
-      /** Deviation Rupees */
-      deviation_rupees: number;
-      /** Is Over Budget */
-      is_over_budget: boolean;
-      /** Per Guest Avg Rupees */
-      per_guest_avg_rupees: number;
-      /** Categories */
-      categories: components["schemas"]["BudgetCategoryResponse"][];
-    };
-    /** CPMResultResponse */
-    CPMResultResponse: {
-      /** Total Duration Days */
-      total_duration_days: number;
-      /** Critical Path Task Ids */
-      critical_path_task_ids: string[];
-      /** Tasks */
-      tasks: components["schemas"]["TaskResponse"][];
-    };
-    /** ChatCommandRequest */
-    ChatCommandRequest: {
-      /** Command */
-      command: string;
-    };
-    /** EventCreate */
-    EventCreate: {
-      /**
-       * Title
-       * @default Anjali & Rahul's Royal Mumbai Wedding
-       */
-      title: string;
-      /**
-       * Event Type
-       * @default wedding
-       */
-      event_type: string;
-      /**
-       * City
-       * @default Mumbai
-       */
-      city: string;
-      /**
-       * Venue Type
-       * @default Banquet Hall
-       */
-      venue_type: string;
-      /**
-       * Guest Count
-       * @default 300
-       */
-      guest_count: number;
-      /**
-       * Budget Minor
-       * @default 150000000
-       */
-      budget_minor: number;
-      /** Budget Rupees */
-      budget_rupees?: number | null;
-      /**
-       * Currency
-       * @default INR
-       */
-      currency: string;
-      /**
-       * Timezone
-       * @default Asia/Kolkata
-       */
-      timezone: string;
-      /**
-       * Preparation Months
-       * @default 6
-       */
-      preparation_months: number;
-      /** Target Date */
-      target_date?: string | null;
-      /**
-       * Autonomy Mode
-       * @default Draft
-       */
-      autonomy_mode: string;
-      preferences?: components["schemas"]["EventPreferenceBase"] | null;
-    };
-    /** EventPreferenceBase */
-    EventPreferenceBase: {
-      /**
-       * Dietary
-       * @default Pure Vegetarian
-       */
-      dietary: string;
-      /**
-       * Theme
-       * @default Royal Marigold & Polished Brass
-       */
-      theme: string;
-      /**
-       * Regional Culture
-       * @default Maharashtrian Traditional
-       */
-      regional_culture: string;
-      /** Cultural Traditions */
-      cultural_traditions?: string[];
-      /**
-       * Music Entertainment
-       * @default Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ
-       */
-      music_entertainment: string;
-      /** Color Palette */
-      color_palette?: string[];
-      /**
-       * Special Requirements
-       * @default Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts.
-       */
-      special_requirements: string | null;
-    };
-    /** EventPreferenceCreate */
-    EventPreferenceCreate: {
-      /**
-       * Dietary
-       * @default Pure Vegetarian
-       */
-      dietary: string;
-      /**
-       * Theme
-       * @default Royal Marigold & Polished Brass
-       */
-      theme: string;
-      /**
-       * Regional Culture
-       * @default Maharashtrian Traditional
-       */
-      regional_culture: string;
-      /** Cultural Traditions */
-      cultural_traditions?: string[];
-      /**
-       * Music Entertainment
-       * @default Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ
-       */
-      music_entertainment: string;
-      /** Color Palette */
-      color_palette?: string[];
-      /**
-       * Special Requirements
-       * @default Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts.
-       */
-      special_requirements: string | null;
-    };
-    /** EventPreferenceResponse */
-    EventPreferenceResponse: {
-      /**
-       * Dietary
-       * @default Pure Vegetarian
-       */
-      dietary: string;
-      /**
-       * Theme
-       * @default Royal Marigold & Polished Brass
-       */
-      theme: string;
-      /**
-       * Regional Culture
-       * @default Maharashtrian Traditional
-       */
-      regional_culture: string;
-      /** Cultural Traditions */
-      cultural_traditions?: string[];
-      /**
-       * Music Entertainment
-       * @default Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ
-       */
-      music_entertainment: string;
-      /** Color Palette */
-      color_palette?: string[];
-      /**
-       * Special Requirements
-       * @default Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts.
-       */
-      special_requirements: string | null;
-      /** Id */
-      id: string;
-      /** Event Id */
-      event_id: string;
-      /** Created At */
-      created_at: string | null;
-      /** Updated At */
-      updated_at: string | null;
-    };
-    /** EventResponse */
-    EventResponse: {
-      /** Id */
-      id: string;
-      /** User Id */
-      user_id: string;
-      /** Title */
-      title: string;
-      /** Event Type */
-      event_type: string;
-      /** City */
-      city: string;
-      /** Venue Type */
-      venue_type: string;
-      /** Guest Count */
-      guest_count: number;
-      /** Budget Minor */
-      budget_minor: number;
-      /** Budget Rupees */
-      budget_rupees?: number | null;
-      /** Currency */
-      currency: string;
-      /** Timezone */
-      timezone: string;
-      /** Preparation Months */
-      preparation_months: number;
-      /** Status */
-      status: string;
-      /** Autonomy Mode */
-      autonomy_mode: string;
-      /** Ai Paused */
-      ai_paused: boolean;
-      /** Created At */
-      created_at: string | null;
-      /** Updated At */
-      updated_at: string | null;
-    };
-    /** EventUpdate */
-    EventUpdate: {
-      /** Title */
-      title?: string | null;
-      /** Event Type */
-      event_type?: string | null;
-      /** City */
-      city?: string | null;
-      /** Venue Type */
-      venue_type?: string | null;
-      /** Guest Count */
-      guest_count?: number | null;
-      /** Budget Minor */
-      budget_minor?: number | null;
-      /** Budget Rupees */
-      budget_rupees?: number | null;
-      /** Target Date */
-      target_date?: string | null;
-      /** Preparation Months */
-      preparation_months?: number | null;
-      /** Status */
-      status?: string | null;
-      /** Autonomy Mode */
-      autonomy_mode?: string | null;
-      /** Ai Paused */
-      ai_paused?: boolean | null;
-    };
-    /** ExpenseCreate */
-    ExpenseCreate: {
-      /** Name */
-      name: string;
-      /** Planned Amount Minor */
-      planned_amount_minor: number;
-      /** Planned Rupees */
-      planned_rupees?: number | null;
-      /**
-       * Actual Amount Minor
-       * @default 0
-       */
-      actual_amount_minor: number;
-      /** Actual Rupees */
-      actual_rupees?: number | null;
-      /**
-       * Provenance
-       * @default estimated
-       */
-      provenance: string;
-      /** Notes */
-      notes?: string | null;
-    };
-    /** ExpenseResponse */
-    ExpenseResponse: {
-      /** Id */
-      id: string;
-      /** Category Id */
-      category_id: string;
-      /** Name */
-      name: string;
-      /** Planned Amount Minor */
-      planned_amount_minor: number;
-      /** Planned Rupees */
-      planned_rupees?: number | null;
-      /** Actual Amount Minor */
-      actual_amount_minor: number;
-      /** Actual Rupees */
-      actual_rupees?: number | null;
-      /** Provenance */
-      provenance: string;
-      /** Notes */
-      notes?: string | null;
-      /**
-       * Version
-       * @default 1
-       */
-      version: number;
-    };
-    /** ExpenseUpdate */
-    ExpenseUpdate: {
-      /** Name */
-      name?: string | null;
-      /** Planned Amount Minor */
-      planned_amount_minor?: number | null;
-      /** Planned Rupees */
-      planned_rupees?: number | null;
-      /** Actual Amount Minor */
-      actual_amount_minor?: number | null;
-      /** Actual Rupees */
-      actual_rupees?: number | null;
-      /** Provenance */
-      provenance?: string | null;
-      /** Notes */
-      notes?: string | null;
-      /** Expected Version */
-      expected_version?: number | null;
-    };
-    /** ExtractedRequirement */
-    ExtractedRequirement: {
-      /**
-       * Event Type
-       * @default wedding
-       */
-      event_type: string;
-      /** Title */
-      title: string;
-      /**
-       * City
-       * @default Mumbai
-       */
-      city: string;
-      /**
-       * Venue Type
-       * @default Banquet Hall
-       */
-      venue_type: string;
-      /**
-       * Guest Count
-       * @default 300
-       */
-      guest_count: number;
-      /**
-       * Budget Rupees
-       * @default 1500000
-       */
-      budget_rupees: number;
-      /**
-       * Dietary
-       * @default Pure Vegetarian
-       */
-      dietary: string;
-      /**
-       * Theme
-       * @default Royal Marigold & Polished Brass
-       */
-      theme: string;
-      /**
-       * Regional Culture
-       * @default Maharashtrian Traditional
-       */
-      regional_culture: string;
-      /** Cultural Traditions */
-      cultural_traditions?: string[];
-      /**
-       * Preparation Months
-       * @default 6
-       */
-      preparation_months: number;
-      /**
-       * Special Requirements
-       * @default
-       */
-      special_requirements: string;
-      /**
-       * Provenance
-       * @default ai_suggested
-       */
-      provenance: string;
-    };
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components["schemas"]["ValidationError"][];
-    };
-    /** PersonalizedIdeasResponse */
-    PersonalizedIdeasResponse: {
-      /** Themes */
-      themes: {
-        [key: string]: unknown;
-      }[];
-      /** Decor Concepts */
-      decor_concepts: {
-        [key: string]: unknown;
-      }[];
-      /** Food And Menu */
-      food_and_menu: {
-        [key: string]: unknown;
-      }[];
-      /** Entertainment */
-      entertainment: {
-        [key: string]: unknown;
-      }[];
-      /** Return Gifts */
-      return_gifts: {
-        [key: string]: unknown;
-      }[];
-      /** Cultural Traditions */
-      cultural_traditions: {
-        [key: string]: unknown;
-      }[];
-      /** Budget Conscious Alternatives */
-      budget_conscious_alternatives: {
-        [key: string]: unknown;
-      }[];
-    };
-    /** PlanGenerationResponse */
-    PlanGenerationResponse: {
-      /** Event Id */
-      event_id: string;
-      /** Plan Title */
-      plan_title: string;
-      /** Summary */
-      summary: string;
-      /** Blueprint Json */
-      blueprint_json: {
-        [key: string]: unknown;
-      };
-      /** Budget Allocation Summary */
-      budget_allocation_summary: {
-        [key: string]: unknown;
-      };
-      /** Task Count */
-      task_count: number;
-      /** Milestone Count */
-      milestone_count: number;
-    };
-    /** QuotationComparisonItem */
-    QuotationComparisonItem: {
-      /** Quotation Id */
-      quotation_id: string;
-      /** Vendor Id */
-      vendor_id: string;
-      /** Vendor Name */
-      vendor_name: string;
-      /** Category */
-      category: string;
-      /** Quoted Rupees */
-      quoted_rupees: number;
-      /** Advance Payment Percent */
-      advance_payment_percent: number;
-      /** Cancellation Terms */
-      cancellation_terms: string;
-      /** Included Services Count */
-      included_services_count: number;
-      /** Inclusions */
-      inclusions: string[];
-      /** Exclusions */
-      exclusions: string[];
-      /** Detected Risks */
-      detected_risks: string[];
-      /** Risk Score */
-      risk_score: string;
-      /** Is Recommended */
-      is_recommended: boolean;
-    };
-    /** QuotationCreate */
-    QuotationCreate: {
-      /** Vendor Id */
-      vendor_id: string;
-      /** Quoted Amount Minor */
-      quoted_amount_minor: number;
-      /**
-       * Status
-       * @default received
-       */
-      status: string;
-      /** File Url */
-      file_url?: string | null;
-      /** Inclusions */
-      inclusions?: string[];
-      /** Exclusions */
-      exclusions?: string[];
-      /** Terms */
-      terms?: {
-        [key: string]: unknown;
-      };
-      /** Detected Risks */
-      detected_risks?: string[];
-      /**
-       * Is Sample
-       * @default false
-       */
-      is_sample: boolean;
-    };
-    /** QuotationResponse */
-    QuotationResponse: {
-      /** Id */
-      id: string;
-      /** Vendor Id */
-      vendor_id: string;
-      /** Vendor Name Cached */
-      vendor_name_cached?: string | null;
-      /** Quoted Amount Minor */
-      quoted_amount_minor: number;
-      /** Quoted Rupees */
-      quoted_rupees?: number | null;
-      /** Status */
-      status: string;
-      /** File Url */
-      file_url?: string | null;
-      /** Inclusions */
-      inclusions: string[];
-      /** Exclusions */
-      exclusions: string[];
-      /** Terms */
-      terms: {
-        [key: string]: unknown;
-      };
-      /** Detected Risks */
-      detected_risks: string[];
-      /** Is Sample */
-      is_sample: boolean;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-    };
-    /** RequirementExtractionRequest */
-    RequirementExtractionRequest: {
-      /** Natural Language Prompt */
-      natural_language_prompt: string;
-    };
-    /** TaskCreate */
-    TaskCreate: {
-      /** Title */
-      title: string;
-      /** Description */
-      description?: string | null;
-      /**
-       * Category
-       * @default General
-       */
-      category: string;
-      /**
-       * Milestone Name
-       * @default 6 Months Out
-       */
-      milestone_name: string;
-      /**
-       * Days Before Event
-       * @default 180
-       */
-      days_before_event: number;
-      /**
-       * Duration Days
-       * @default 7
-       */
-      duration_days: number;
-      /**
-       * Priority
-       * @default medium
-       */
-      priority: string;
-      /**
-       * Assigned To
-       * @default Host
-       */
-      assigned_to: string;
-      /** Depends On Ids */
-      depends_on_ids?: string[];
-    };
-    /** TaskDependencyCreate */
-    TaskDependencyCreate: {
-      /** Depends On Task Id */
-      depends_on_task_id: string;
-    };
-    /** TaskResponse */
-    TaskResponse: {
-      /** Id */
-      id: string;
-      /** Event Id */
-      event_id: string;
-      /** Title */
-      title: string;
-      /** Description */
-      description?: string | null;
-      /** Category */
-      category: string;
-      /** Milestone Name */
-      milestone_name: string;
-      /** Days Before Event */
-      days_before_event: number;
-      /** Duration Days */
-      duration_days: number;
-      /** Priority */
-      priority: string;
-      /** Status */
-      status: string;
-      /** Assigned To */
-      assigned_to: string;
-      /** Is Critical */
-      is_critical: boolean;
-      /** Early Start Day */
-      early_start_day: number;
-      /** Early Finish Day */
-      early_finish_day: number;
-      /** Late Start Day */
-      late_start_day: number;
-      /** Late Finish Day */
-      late_finish_day: number;
-      /** Total Slack */
-      total_slack: number;
-      /**
-       * Version
-       * @default 1
-       */
-      version: number;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Completed At */
-      completed_at?: string | null;
-      /** Depends On Ids */
-      depends_on_ids?: string[];
-    };
-    /** TaskUpdate */
-    TaskUpdate: {
-      /** Title */
-      title?: string | null;
-      /** Description */
-      description?: string | null;
-      /** Category */
-      category?: string | null;
-      /** Milestone Name */
-      milestone_name?: string | null;
-      /** Days Before Event */
-      days_before_event?: number | null;
-      /** Duration Days */
-      duration_days?: number | null;
-      /** Priority */
-      priority?: string | null;
-      /** Status */
-      status?: string | null;
-      /** Assigned To */
-      assigned_to?: string | null;
-      /** Is Critical */
-      is_critical?: boolean | null;
-      /** Expected Version */
-      expected_version?: number | null;
-    };
-    /** Token */
-    Token: {
-      /** Access Token */
-      access_token: string;
-      /** Token Type */
-      token_type: string;
-      user: components["schemas"]["UserResponse"];
-      /** Refresh Token */
-      refresh_token?: string | null;
-      /** Csrf Token */
-      csrf_token?: string | null;
-    };
-    /** UserCreate */
-    UserCreate: {
-      /** Email */
-      email: string;
-      /** Name */
-      name: string;
-      /** Password */
-      password: string;
-    };
-    /** UserLogin */
-    UserLogin: {
-      /** Email */
-      email: string;
-      /** Password */
-      password: string;
-    };
-    /** UserResponse */
-    UserResponse: {
-      /** Id */
-      id: string;
-      /** Email */
-      email: string;
-      /** Name */
-      name: string;
-      /** Role */
-      role: string;
-      /**
-       * Is Demo
-       * @default false
-       */
-      is_demo: boolean | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-    };
-    /** ValidationError */
-    ValidationError: {
-      /** Location */
-      loc: (string | number)[];
-      /** Message */
-      msg: string;
-      /** Error Type */
-      type: string;
-    };
-    /** VendorComparisonResponse */
-    VendorComparisonResponse: {
-      /** Category */
-      category: string;
-      /** Recommended Quotation Id */
-      recommended_quotation_id?: string | null;
-      /** Missing Inclusions Warning */
-      missing_inclusions_warning?: string[];
-      /** Comparison Items */
-      comparison_items?: components["schemas"]["QuotationComparisonItem"][];
-    };
-    /** VendorCreate */
-    VendorCreate: {
-      /** Category */
-      category: string;
-      /** Name */
-      name: string;
-      /** Contact */
-      contact?: string | null;
-      /**
-       * Rating
-       * @default 4.5
-       */
-      rating: number;
-      /** Notes */
-      notes?: string | null;
-    };
-    /** VendorResponse */
-    VendorResponse: {
-      /** Id */
-      id: string;
-      /** Event Id */
-      event_id: string;
-      /** Category */
-      category: string;
-      /** Name */
-      name: string;
-      /** Contact */
-      contact?: string | null;
-      /** Status */
-      status: string;
-      /** Rating */
-      rating: number;
-      /** Notes */
-      notes?: string | null;
-      /** Quotations */
-      quotations?: components["schemas"]["QuotationResponse"][];
-    };
-    /** WhatIfCategoryChange */
-    WhatIfCategoryChange: {
-      /** Category Name */
-      category_name: string;
-      /** Original Allocation Rupees */
-      original_allocation_rupees: number;
-      /** Simulated Allocation Rupees */
-      simulated_allocation_rupees: number;
-      /** Difference Rupees */
-      difference_rupees: number;
-      /** Is Per Guest */
-      is_per_guest: boolean;
-      /** Per Guest Rate Rupees */
-      per_guest_rate_rupees: number;
-    };
-    /** WhatIfSimulationRequest */
-    WhatIfSimulationRequest: {
-      /** Simulated Guest Count */
-      simulated_guest_count: number;
-      /** Simulated Budget Minor */
-      simulated_budget_minor?: number | null;
-    };
-    /** WhatIfSimulationResponse */
-    WhatIfSimulationResponse: {
-      /** Original Guests */
-      original_guests: number;
-      /** Simulated Guests */
-      simulated_guests: number;
-      /** Guest Count Change */
-      guest_count_change: number;
-      /** Original Budget Rupees */
-      original_budget_rupees: number;
-      /** Simulated Budget Rupees */
-      simulated_budget_rupees: number;
-      /** Variable Cost Impact Rupees */
-      variable_cost_impact_rupees: number;
-      /** Fixed Cost Total Rupees */
-      fixed_cost_total_rupees: number;
-      /** New Contingency Rupees */
-      new_contingency_rupees: number;
-      /** Feasibility Status */
-      feasibility_status: string;
-      /** Recommendation */
-      recommendation: string;
-      /** Category Breakdowns */
-      category_breakdowns: components["schemas"]["WhatIfCategoryChange"][];
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  register_api_auth_register_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UserCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["Token"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  login_api_auth_login_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UserLogin"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["Token"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  refresh_api_auth_refresh_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["Token"];
-        };
-      };
-    };
-  };
-  logout_api_auth_logout_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-    };
-  };
-  demo_login_api_auth_demo_login_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["Token"];
-        };
-      };
-    };
-  };
-  get_me_api_auth_me_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UserResponse"];
-        };
-      };
-    };
-  };
-  export_user_data_api_auth_export_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
-        };
-      };
-    };
-  };
-  delete_user_account_api_auth_account_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-    };
-  };
-  list_user_events_api_events_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["EventResponse"][];
-        };
-      };
-    };
-  };
-  create_event_api_events_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        "Idempotency-Key"?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["EventCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["EventResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_event_api_events__event_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["EventResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  delete_event_api_events__event_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  update_event_api_events__event_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["EventUpdate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["EventResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_preferences_api_events__event_id__preferences_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["EventPreferenceResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  update_preferences_api_events__event_id__preferences_put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["EventPreferenceCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["EventPreferenceResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_active_plan_api_events__event_id__plans_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_budget_summary_api_events__event_id__budget_summary_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["BudgetSummaryResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  simulate_what_if_api_events__event_id__budget_what_if_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["WhatIfSimulationRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["WhatIfSimulationResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  create_category_api_events__event_id__budget_categories_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["BudgetCategoryCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["BudgetCategoryResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  update_category_api_events__event_id__budget_categories__category_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        category_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["BudgetCategoryUpdate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["BudgetCategoryResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  add_expense_api_events__event_id__budget_categories__category_id__expenses_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        category_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ExpenseCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ExpenseResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  delete_expense_api_events__event_id__budget_expenses__expense_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        expense_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  update_expense_api_events__event_id__budget_expenses__expense_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        expense_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ExpenseUpdate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ExpenseResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  export_budget_csv_api_events__event_id__budget_export_csv_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  list_tasks_api_events__event_id__tasks_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskResponse"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  create_task_api_events__event_id__tasks_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        "Idempotency-Key"?: string | null;
-      };
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["TaskCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  add_task_dependency_api_events__event_id__tasks__task_id__dependencies_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        task_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["TaskDependencyCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  delete_task_api_events__event_id__tasks__task_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        task_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  update_task_api_events__event_id__tasks__task_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        task_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["TaskUpdate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  recalculate_cpm_api_events__event_id__tasks_cpm_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CPMResultResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  list_vendors_api_events__event_id__vendors_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["VendorResponse"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  create_vendor_api_events__event_id__vendors_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["VendorCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["VendorResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  add_quotation_api_events__event_id__vendors__vendor_id__quotations_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        vendor_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["QuotationCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["QuotationResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  compare_quotations_api_events__event_id__vendors_compare_get: {
-    parameters: {
-      query?: {
-        category?: string;
-      };
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["VendorComparisonResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  upload_vendor_document_api_events__event_id__vendors_documents_upload_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": components["schemas"]["Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  list_approvals_api_events__event_id__approvals_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ApprovalResponse"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  execute_proposal_action_api_events__event_id__approvals__proposal_id__action_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        proposal_id: string;
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ApprovalAction"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ApprovalResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_activity_logs_api_events__event_id__activity_logs_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ActivityLogResponse"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  extract_requirements_api_ai_extract_requirements_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["RequirementExtractionRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ExtractedRequirement"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_ideas_api_events__event_id__ai_ideas_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PersonalizedIdeasResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  generate_event_plan_api_events__event_id__ai_generate_plan_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        "Idempotency-Key"?: string | null;
-      };
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PlanGenerationResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  execute_ai_command_api_events__event_id__ai_command_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ChatCommandRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  stream_event_plan_api_events__event_id__ai_stream_plan_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  generate_plan_parallel_endpoint_api_events__event_id__ai_generate_plan_parallel_post: {
-    parameters: {
-      query?: {
-        timeout_sec?: number;
-      };
-      header?: never;
-      path: {
-        /** @description Unique event identifier */
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  trigger_unhandled_error_for_audit_api_test_fault_unhandled_error_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-    };
-  };
-  root__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-    };
-  };
-  liveness_healthz_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-    };
-  };
-  readiness_readyz_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-    };
-  };
-  health_check_health_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": unknown;
-        };
-      };
-    };
-  };
+    register_api_auth_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Token"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_api_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserLogin"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Token"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_api_auth_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Token"];
+                };
+            };
+        };
+    };
+    logout_api_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    logout_all_sessions_api_auth_logout_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    get_user_sessions_api_auth_sessions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"][];
+                };
+            };
+        };
+    };
+    change_password_api_auth_change_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    demo_login_api_auth_demo_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Token"];
+                };
+            };
+        };
+    };
+    get_me_api_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    export_user_data_api_auth_export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    delete_user_account_api_auth_account_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    list_user_events_api_events_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResponse"][];
+                };
+            };
+        };
+    };
+    create_event_api_events_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_api_events__event_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_event_api_events__event_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_event_api_events__event_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preferences_api_events__event_id__preferences_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventPreferenceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_preferences_api_events__event_id__preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventPreferenceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventPreferenceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_active_plan_api_events__event_id__plans_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_budget_summary_api_events__event_id__budget_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetSummaryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    simulate_what_if_api_events__event_id__budget_what_if_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhatIfSimulationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatIfSimulationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_category_api_events__event_id__budget_categories_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetCategoryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetCategoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_category_api_events__event_id__budget_categories__category_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetCategoryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetCategoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_expense_api_events__event_id__budget_categories__category_id__expenses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExpenseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_expense_api_events__event_id__budget_expenses__expense_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                expense_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_expense_api_events__event_id__budget_expenses__expense_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                expense_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExpenseUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_budget_csv_api_events__event_id__budget_export_csv_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tasks_api_events__event_id__tasks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_task_api_events__event_id__tasks_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_task_dependency_api_events__event_id__tasks__task_id__dependencies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskDependencyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_task_api_events__event_id__tasks__task_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_task_api_events__event_id__tasks__task_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recalculate_cpm_api_events__event_id__tasks_cpm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CPMResultResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_vendors_api_events__event_id__vendors_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_vendor_api_events__event_id__vendors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VendorCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_quotation_api_events__event_id__vendors__vendor_id__quotations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendor_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuotationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_quotations_api_events__event_id__vendors_compare_get: {
+        parameters: {
+            query?: {
+                category?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorComparisonResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_vendor_document_api_events__event_id__vendors_documents_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_approvals_api_events__event_id__approvals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    execute_proposal_action_api_events__event_id__approvals__proposal_id__action_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_activity_logs_api_events__event_id__activity_logs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityLogResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    extract_requirements_api_ai_extract_requirements_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequirementExtractionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractedRequirement"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ideas_api_events__event_id__ai_ideas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalizedIdeasResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_event_plan_api_events__event_id__ai_generate_plan_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanGenerationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    execute_ai_command_api_events__event_id__ai_command_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatCommandRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_event_plan_api_events__event_id__ai_stream_plan_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_plan_parallel_endpoint_api_events__event_id__ai_generate_plan_parallel_post: {
+        parameters: {
+            query?: {
+                timeout_sec?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Unique event identifier */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trigger_unhandled_error_for_audit_api_test_fault_unhandled_error_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    root__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    liveness_healthz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    readiness_readyz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    health_check_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
 }

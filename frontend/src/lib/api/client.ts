@@ -5,9 +5,8 @@
  * - Generates Idempotency-Key for safe mutating calls
  * - Handles 204 No Content and formats RFC 7807 / FastAPI 422 detail arrays
  * - 15-second timeout with AbortController
+ * - Single-flight silent refresh on 401 with retry and login redirect
  */
-
-import type { paths } from "./schema";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
@@ -58,7 +57,10 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   timeoutMs?: number;
   idempotencyKey?: string;
+  _isRetry?: boolean;
 }
+
+let refreshPromise: Promise<unknown> | null = null;
 
 export async function apiClient<T>(
   endpoint: string,
@@ -69,6 +71,7 @@ export async function apiClient<T>(
     timeoutMs = 15000,
     headers: customHeaders = {},
     idempotencyKey,
+    _isRetry = false,
     ...fetchOptions
   } = options;
 
@@ -128,6 +131,43 @@ export async function apiClient<T>(
     // 204 No Content
     if (response.status === 204) {
       return null as T;
+    }
+
+    // 401 Unauthorized: Attempt single-flight silent refresh
+    if (response.status === 401) {
+      const isAuthEndpoint =
+        endpoint.includes("/auth/refresh") ||
+        endpoint.includes("/auth/login") ||
+        endpoint.includes("/auth/demo-login");
+
+      if (!isAuthEndpoint && !_isRetry) {
+        if (!refreshPromise) {
+          refreshPromise = apiClient("/auth/refresh", {
+            method: "POST",
+            _isRetry: true,
+          }).finally(() => {
+            refreshPromise = null;
+          });
+        }
+
+        try {
+          await refreshPromise;
+          return await apiClient<T>(endpoint, {
+            ...options,
+            _isRetry: true,
+          });
+        } catch {
+          if (
+            typeof window !== "undefined" &&
+            !window.location.pathname.startsWith("/login")
+          ) {
+            const returnTo = encodeURIComponent(
+              window.location.pathname + window.location.search
+            );
+            window.location.href = `/login?returnTo=${returnTo}`;
+          }
+        }
+      }
     }
 
     const contentType = response.headers.get("content-type") || "";

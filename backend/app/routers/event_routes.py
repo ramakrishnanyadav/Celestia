@@ -121,6 +121,12 @@ def delete_event(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    if current_user.is_demo:
+        raise HTTPException(
+            status_code=403,
+            detail="Demonstration celebration workspace is read-only and events cannot be deleted."
+        )
+
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")

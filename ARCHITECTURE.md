@@ -128,3 +128,4 @@ The frontend codebase follows a strict feature-folder architecture under `fronte
 | Backend Static Typing | `python -m mypy backend/app` | Strict typing, 0 errors | **PASS** |
 | Test Suite | `python -m pytest backend/tests -q` | 125 passed, 0 failures | **PASS** |
 | Security Probe | `python tools/security_probe.py` | 0 vulnerabilities found | **PASS** |
+

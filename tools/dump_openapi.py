@@ -14,3 +14,4 @@ with open(out_path, "w", encoding="utf-8") as f:
     json.dump(app.openapi(), f, indent=2)
 
 print(f"Dumped OpenAPI specification to {out_path}")
+

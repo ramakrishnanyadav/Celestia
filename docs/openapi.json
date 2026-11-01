@@ -130,6 +130,107 @@
         }
       }
     },
+    "/api/auth/logout-all": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Logout All Sessions",
+        "description": "Revokes all active refresh tokens for the current user and clears auth cookies.",
+        "operationId": "logout_all_sessions_api_auth_logout_all_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/auth/sessions": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get User Sessions",
+        "description": "Lists all active non-expired sessions for the user with an is_current indicator.",
+        "operationId": "get_user_sessions_api_auth_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SessionResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get User Sessions Api Auth Sessions Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Change Password",
+        "description": "Changes user password:\n1. Verifies existing old password.\n2. Validates new password strength & breach check (NIST/HIBP).\n3. Re-hashes password with Argon2id.\n4. Invalidates ALL existing refresh tokens to prevent session hijacking.\n5. Issues a new token pair and sets fresh cookies.",
+        "operationId": "change_password_api_auth_change_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/auth/demo-login": {
       "post": {
         "tags": [
@@ -2367,12 +2468,14 @@
         "properties": {
           "action": {
             "type": "string",
+            "maxLength": 20,
             "title": "Action"
           },
           "comment": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -2938,6 +3041,8 @@
         "properties": {
           "command": {
             "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
             "title": "Command"
           }
         },
@@ -3053,16 +3158,19 @@
         "properties": {
           "dietary": {
             "type": "string",
+            "maxLength": 200,
             "title": "Dietary",
             "default": "Pure Vegetarian"
           },
           "theme": {
             "type": "string",
+            "maxLength": 200,
             "title": "Theme",
             "default": "Royal Marigold & Polished Brass"
           },
           "regional_culture": {
             "type": "string",
+            "maxLength": 200,
             "title": "Regional Culture",
             "default": "Maharashtrian Traditional"
           },
@@ -3075,6 +3183,7 @@
           },
           "music_entertainment": {
             "type": "string",
+            "maxLength": 500,
             "title": "Music Entertainment",
             "default": "Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ"
           },
@@ -3088,7 +3197,8 @@
           "special_requirements": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -3105,16 +3215,19 @@
         "properties": {
           "dietary": {
             "type": "string",
+            "maxLength": 200,
             "title": "Dietary",
             "default": "Pure Vegetarian"
           },
           "theme": {
             "type": "string",
+            "maxLength": 200,
             "title": "Theme",
             "default": "Royal Marigold & Polished Brass"
           },
           "regional_culture": {
             "type": "string",
+            "maxLength": 200,
             "title": "Regional Culture",
             "default": "Maharashtrian Traditional"
           },
@@ -3127,6 +3240,7 @@
           },
           "music_entertainment": {
             "type": "string",
+            "maxLength": 500,
             "title": "Music Entertainment",
             "default": "Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ"
           },
@@ -3140,7 +3254,8 @@
           "special_requirements": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -3157,16 +3272,19 @@
         "properties": {
           "dietary": {
             "type": "string",
+            "maxLength": 200,
             "title": "Dietary",
             "default": "Pure Vegetarian"
           },
           "theme": {
             "type": "string",
+            "maxLength": 200,
             "title": "Theme",
             "default": "Royal Marigold & Polished Brass"
           },
           "regional_culture": {
             "type": "string",
+            "maxLength": 200,
             "title": "Regional Culture",
             "default": "Maharashtrian Traditional"
           },
@@ -3179,6 +3297,7 @@
           },
           "music_entertainment": {
             "type": "string",
+            "maxLength": 500,
             "title": "Music Entertainment",
             "default": "Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ"
           },
@@ -3192,7 +3311,8 @@
           "special_requirements": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -3847,6 +3967,28 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "PasswordChangeRequest": {
+        "properties": {
+          "old_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Old Password"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 10,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "old_password",
+          "new_password"
+        ],
+        "title": "PasswordChangeRequest"
+      },
       "PersonalizedIdeasResponse": {
         "properties": {
           "themes": {
@@ -4216,6 +4358,8 @@
         "properties": {
           "natural_language_prompt": {
             "type": "string",
+            "maxLength": 5000,
+            "minLength": 1,
             "title": "Natural Language Prompt"
           }
         },
@@ -4224,6 +4368,46 @@
           "natural_language_prompt"
         ],
         "title": "RequirementExtractionRequest"
+      },
+      "SessionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "is_current": {
+            "type": "boolean",
+            "title": "Is Current",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "SessionResponse"
       },
       "TaskCreate": {
         "properties": {
@@ -4626,14 +4810,19 @@
         "properties": {
           "email": {
             "type": "string",
+            "maxLength": 255,
             "title": "Email"
           },
           "name": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Name"
           },
           "password": {
             "type": "string",
+            "maxLength": 128,
+            "minLength": 10,
             "title": "Password"
           }
         },
@@ -4649,10 +4838,13 @@
         "properties": {
           "email": {
             "type": "string",
+            "maxLength": 255,
             "title": "Email"
           },
           "password": {
             "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
             "title": "Password"
           }
         },
@@ -4784,16 +4976,21 @@
         "properties": {
           "category": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Category"
           },
           "name": {
             "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Name"
           },
           "contact": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 255
               },
               {
                 "type": "null"
@@ -4803,13 +5000,16 @@
           },
           "rating": {
             "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
             "title": "Rating",
             "default": 4.5
           },
           "notes": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"

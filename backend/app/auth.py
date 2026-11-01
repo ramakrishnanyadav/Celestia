@@ -2,8 +2,11 @@ import base64
 import hashlib
 import hmac
 import os
+import re
 import secrets
 import time
+import urllib.error
+import urllib.request
 from datetime import UTC, datetime, timedelta
 
 import jwt
@@ -34,6 +37,86 @@ LEGACY_PBKDF2_SALT = "celestia_salt_indian_wedding_2026"
 def hash_password(password: str) -> str:
     """Hashes a plaintext password using Argon2id."""
     return get_argon2_hasher().hash(password)
+
+# Pre-computed dummy Argon2id hash for constant-time failed login timing defense
+DUMMY_ARGON2_HASH = hash_password("dummy_password_for_constant_time_timing_defense")
+
+# In-memory cache for HaveIBeenPwned API lookups
+_HIBP_CACHE: dict[str, bool] = {}
+
+def check_pwned_password(password: str) -> bool:
+    """
+    Checks if password has appeared in public breaches via HaveIBeenPwned k-anonymity API.
+    Uses SHA-1 hash prefix (5 hex chars) to protect privacy.
+    Returns True if pwned, False if clean.
+    Gracefully falls back to False on network error, offline mode, or timeout.
+    """
+    if os.environ.get("TESTING") == "1":
+        return password == "PwnedPassword123!"
+
+    sha1_pwd = hashlib.sha1(password.encode("utf-8")).hexdigest().upper()
+    prefix = sha1_pwd[:5]
+    suffix = sha1_pwd[5:]
+
+    if sha1_pwd in _HIBP_CACHE:
+        return _HIBP_CACHE[sha1_pwd]
+
+    url = f"https://api.pwnedpasswords.com/range/{prefix}"
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "CELESTIA-Security-Validator/2.0"}
+        )
+        with urllib.request.urlopen(req, timeout=2.0) as resp:
+            body = resp.read().decode("utf-8")
+            for line in body.splitlines():
+                parts = line.split(":")
+                if len(parts) == 2 and parts[0].strip().upper() == suffix:
+                    _HIBP_CACHE[sha1_pwd] = True
+                    return True
+            _HIBP_CACHE[sha1_pwd] = False
+            return False
+    except Exception:
+        # Graceful fallback: network outage or timeout should not prevent registration
+        return False
+
+def validate_password_strength(password: str) -> None:
+    """
+    Enforces NIST / enterprise password requirements:
+    - Minimum 10 characters
+    - Must contain uppercase, lowercase, digit, and special character
+    - Must not be a known compromised password (HIBP check)
+    """
+    if len(password) < 10:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Password must be at least 10 characters long."
+        )
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Password must contain at least one uppercase letter."
+        )
+    if not re.search(r"[a-z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Password must contain at least one lowercase letter."
+        )
+    if not re.search(r"\d", password):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Password must contain at least one digit."
+        )
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>\-_=+/\\\[\]]", password):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Password must contain at least one special character."
+        )
+    if check_pwned_password(password):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="This password has appeared in public data breaches. Please choose a unique, stronger password."
+        )
 
 def verify_password_and_needs_rehash(plain_password: str, hashed_password: str) -> tuple[bool, bool]:
     """
@@ -71,12 +154,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return valid
 
 def create_access_token(data: dict, expires_delta: int | None = None) -> str:
-    """Creates a signed PyJWT token with HS256 algorithm and mandatory exp claim."""
+    """Creates a signed PyJWT token with HS256 algorithm, mandatory exp claim, and unique jti."""
     payload = data.copy()
     now = int(time.time())
     expire_seconds = expires_delta if expires_delta is not None else (settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
     payload["iat"] = now
     payload["exp"] = now + expire_seconds
+    payload["jti"] = secrets.token_hex(16)
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
 def decode_token(token: str) -> dict | None:
@@ -190,6 +274,35 @@ def revoke_refresh_token(db: Session, raw_token: str) -> bool:
         return True
     return False
 
+def revoke_all_user_tokens(db: Session, user_id: str) -> int:
+    """Revokes all active refresh tokens for the given user (e.g. on logout-all or password change)."""
+    count = db.query(RefreshToken).filter(
+        RefreshToken.user_id == user_id,
+        RefreshToken.revoked.is_(False)
+    ).update({"revoked": True})
+    db.commit()
+    return count
+
+def get_user_active_sessions(db: Session, user_id: str, current_raw_token: str | None = None) -> list[dict]:
+    """Returns active (non-revoked, unexpired) sessions for the user."""
+    now = datetime.now(UTC)
+    tokens = db.query(RefreshToken).filter(
+        RefreshToken.user_id == user_id,
+        RefreshToken.revoked.is_(False),
+        RefreshToken.expires_at > now
+    ).order_by(RefreshToken.created_at.desc()).all()
+
+    current_hash = hash_token(current_raw_token) if current_raw_token else None
+    sessions = []
+    for t in tokens:
+        sessions.append({
+            "id": t.id,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+            "expires_at": t.expires_at.isoformat() if t.expires_at else None,
+            "is_current": (t.token_hash == current_hash)
+        })
+    return sessions
+
 def set_auth_cookies(
     response: Response,
     access_token: str,
@@ -244,7 +357,8 @@ def clear_auth_cookies(response: Response):
 
 def get_or_create_demo_user(db: Session) -> User:
     """
-    Returns or seeds the primary demo user 'demo@celestia.ai'.
+    Returns or seeds the primary shared demo user 'demo@celestia.ai'.
+    Protected with random per-boot unusable password to prevent password login.
     """
     demo_email = "demo@celestia.ai"
     user = db.query(User).filter(User.email == demo_email).first()
@@ -252,7 +366,7 @@ def get_or_create_demo_user(db: Session) -> User:
         user = User(
             email=demo_email,
             name="Anjali & Rahul",
-            password_hash=hash_password("celestia2026"),
+            password_hash=hash_password(secrets.token_urlsafe(32)),
             role="planner",
             is_demo=True
         )
