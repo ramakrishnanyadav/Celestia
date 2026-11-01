@@ -1,10 +1,29 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
+const TOKEN_KEY = "celestia_auth_token";
+
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setAuthToken(token: string | null) {
+  if (typeof window === "undefined") return;
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+}
+
 export async function fetchJson(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE}${endpoint}`;
-  const headers = {
+  const token = getAuthToken();
+
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(options.headers || {}),
+    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    ...(options.headers as Record<string, string> || {}),
   };
 
   const response = await fetch(url, { ...options, headers });
@@ -16,12 +35,48 @@ export async function fetchJson(endpoint: string, options: RequestInit = {}) {
     } catch {
       errorDetail = response.statusText;
     }
+
+    if (response.status === 401 && typeof window !== "undefined") {
+      // Token expired or invalid
+      setAuthToken(null);
+      window.dispatchEvent(new CustomEvent("celestia_auth_required"));
+    }
+
     throw new Error(errorDetail);
   }
   return response.json();
 }
 
 export const api = {
+  // Authentication
+  login: async (email: string, password: string) => {
+    const res = await fetchJson("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password })
+    });
+    if (res.access_token) setAuthToken(res.access_token);
+    return res;
+  },
+  register: async (name: string, email: string, password: string) => {
+    const res = await fetchJson("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password })
+    });
+    if (res.access_token) setAuthToken(res.access_token);
+    return res;
+  },
+  demoLogin: async () => {
+    const res = await fetchJson("/auth/demo-login", {
+      method: "POST"
+    });
+    if (res.access_token) setAuthToken(res.access_token);
+    return res;
+  },
+  getMe: () => fetchJson("/auth/me"),
+  logout: () => {
+    setAuthToken(null);
+  },
+
   // Events
   getEvents: () => fetchJson("/events"),
   getEvent: (id: string) => fetchJson(`/events/${id}`),

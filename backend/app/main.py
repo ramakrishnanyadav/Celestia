@@ -114,6 +114,17 @@ app.add_middleware(
 # Enable Gzip compression for responses > 1000 bytes
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
+
 # Include Routers
 app.include_router(auth_routes.router, prefix="/api")
 app.include_router(event_routes.router, prefix="/api")

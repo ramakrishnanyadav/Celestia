@@ -13,7 +13,8 @@ import { ApprovalsView } from "@/components/ApprovalsView";
 import { SettingsView } from "@/components/SettingsView";
 import { EventCreationWizard } from "@/components/EventCreationWizard";
 import { PrintableEventBlueprint } from "@/components/PrintableEventBlueprint";
-import { api } from "@/lib/api";
+import { AuthModal } from "@/components/AuthModal";
+import { api, getAuthToken } from "@/lib/api";
 
 export default function CelestiaMainPage() {
   const [currentTab, setCurrentTab] = useState<string>("dashboard");
@@ -26,11 +27,38 @@ export default function CelestiaMainPage() {
   const [plan, setPlan] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showCreateWizard, setShowCreateWizard] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
   // Load initial data
   const loadInitialData = async () => {
     setIsLoading(true);
     try {
+      // 1. Verify authentication
+      let user = null;
+      try {
+        user = await api.getMe();
+        setCurrentUser(user);
+      } catch {
+        // If not signed in, auto-login with sample demo account if token not present, or open auth modal
+        if (!getAuthToken()) {
+          try {
+            const demoRes = await api.demoLogin();
+            user = demoRes.user;
+            setCurrentUser(user);
+          } catch {
+            setShowAuthModal(true);
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          setShowAuthModal(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // 2. Load user events
       const events = await api.getEvents();
       setEventsList(events);
       if (events && events.length > 0) {
@@ -66,7 +94,21 @@ export default function CelestiaMainPage() {
 
   useEffect(() => {
     loadInitialData();
+
+    const handleAuthReq = () => {
+      setShowAuthModal(true);
+    };
+    window.addEventListener("celestia_auth_required", handleAuthReq);
+    return () => window.removeEventListener("celestia_auth_required", handleAuthReq);
   }, []);
+
+  const handleLogout = () => {
+    api.logout();
+    setCurrentUser(null);
+    setActiveEvent(null);
+    setEventsList([]);
+    setShowAuthModal(true);
+  };
 
   const handleRefresh = async () => {
     if (activeEvent) {
@@ -212,6 +254,9 @@ export default function CelestiaMainPage() {
         onNewEvent={() => setShowCreateWizard(true)}
         onToggleAiPause={handleToggleAiPause}
         pendingApprovalsCount={approvals.filter(a => a.status === "pending").length}
+        currentUser={currentUser}
+        onOpenAuth={() => setShowAuthModal(true)}
+        onLogout={handleLogout}
       />
 
       {/* Hero Showcase (Always visible on dashboard tab) */}
@@ -335,6 +380,19 @@ export default function CelestiaMainPage() {
           setActiveEvent(newEvent);
           handleRefresh();
           setCurrentTab("dashboard");
+        }}
+      />
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => {
+          if (currentUser) setShowAuthModal(false);
+        }}
+        onAuthenticated={(user) => {
+          setCurrentUser(user);
+          setShowAuthModal(false);
+          loadInitialData();
         }}
       />
 

@@ -28,10 +28,9 @@ def override_get_db():
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
-
 @pytest.fixture(scope="function", autouse=True)
 def setup_database():
+    app.dependency_overrides[get_db] = override_get_db
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
@@ -49,6 +48,7 @@ def setup_database():
     db.close()
     yield
     Base.metadata.drop_all(bind=engine)
+    app.dependency_overrides.pop(get_db, None)
 
 @pytest.fixture
 def auth_headers():

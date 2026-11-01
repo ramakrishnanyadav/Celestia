@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Calendar, Users, DollarSign, ShieldAlert, Pause, Play, Printer, Menu, Plus } from "lucide-react";
+import { Sparkles, Calendar, Users, DollarSign, ShieldAlert, Pause, Play, Printer, Menu, Plus, User as UserIcon, LogOut } from "lucide-react";
 
 interface HeaderProps {
   currentTab: string;
@@ -10,6 +10,9 @@ interface HeaderProps {
   onNewEvent: () => void;
   onToggleAiPause: () => void;
   pendingApprovalsCount: number;
+  currentUser?: any;
+  onOpenAuth?: () => void;
+  onLogout?: () => void;
 }
 
 export function Header({
@@ -18,7 +21,10 @@ export function Header({
   event,
   onNewEvent,
   onToggleAiPause,
-  pendingApprovalsCount
+  pendingApprovalsCount,
+  currentUser,
+  onOpenAuth,
+  onLogout
 }: HeaderProps) {
   const tabs = [
     { id: "dashboard", label: "Dashboard" },
@@ -117,11 +123,36 @@ export function Header({
 
           <button
             onClick={onNewEvent}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-semibold shadow-md shadow-amber-950/30 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-semibold shadow-md shadow-amber-950/30 transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Event</span>
           </button>
+
+          {/* User Profile / Auth Control */}
+          {currentUser ? (
+            <div className="flex items-center gap-1.5 pl-2 border-l border-white/10">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1C2541] border border-white/10 text-xs text-slate-200">
+                <UserIcon className="w-3 h-3 text-teal-400" />
+                <span className="max-w-[100px] truncate hidden xl:inline">{currentUser.name || currentUser.email}</span>
+              </div>
+              <button
+                onClick={onLogout}
+                title="Sign Out"
+                className="p-1.5 rounded-lg bg-[#1C2541] hover:bg-rose-950/60 hover:text-rose-300 text-slate-400 border border-white/10 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 hover:bg-teal-500 text-white shadow-md shadow-teal-950/30 transition-all cursor-pointer"
+            >
+              <UserIcon className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </button>
+          )}
         </div>
 
       </div>
