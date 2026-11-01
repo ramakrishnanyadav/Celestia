@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import type { EventItem, EventPreference } from "@/lib/api/types";
-import { Sliders, Save, Check } from "lucide-react";
+import { Save, Check } from "lucide-react";
 
 interface PreferencesFormProps {
   event: EventItem;
@@ -11,7 +11,6 @@ interface PreferencesFormProps {
 }
 
 export function PreferencesForm({
-  event,
   preferences,
   onSave,
 }: PreferencesFormProps) {
@@ -47,64 +46,98 @@ export function PreferencesForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-6 rounded-2xl glass-card space-y-5"
+      className="p-6 rounded-2xl glass-card space-y-6"
+      aria-label="Cultural & Dietary Preferences Form"
     >
-      <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
+      {/* Live Region for Save Status */}
+      <div aria-live="polite" className="sr-only">
+        {saved ? "Preferences saved successfully" : saving ? "Saving preferences..." : ""}
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
         <div>
-          <h3 className="text-base font-bold text-[var(--ink-primary)]">
+          <h3 className="text-base sm:text-lg font-bold text-[var(--ink-primary)]">
             Cultural & Dietary Preferences
           </h3>
-          <p className="text-xs text-[var(--ink-muted)]">
+          <p id="preferences-help" className="text-xs sm:text-sm text-[var(--ink-muted)]">
             Tailor deterministic suggestions to family traditions
           </p>
         </div>
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--brand-teal)] text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-xs"
+          className="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--brand-teal)] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] focus-visible:ring-offset-2"
         >
-          {saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+          {saved ? (
+            <Check className="w-4 h-4 shrink-0" aria-hidden="true" />
+          ) : (
+            <Save className="w-4 h-4 shrink-0" aria-hidden="true" />
+          )}
           <span>
             {saved ? "Saved" : saving ? "Saving..." : "Save Preferences"}
           </span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-[var(--ink-secondary)]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="space-y-2">
+          <label
+            htmlFor="dietary-input"
+            className="block text-sm font-semibold text-[var(--ink-secondary)]"
+          >
             Dietary Requirement
           </label>
           <input
+            id="dietary-input"
             type="text"
             value={dietary}
             onChange={(e) => setDietary(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--canvas-sunken)] text-sm text-[var(--ink-primary)] focus:outline-none focus:border-[var(--brand-teal)]"
+            aria-describedby="dietary-help"
+            className="w-full px-4 py-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--canvas-sunken)] text-sm text-[var(--ink-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] min-h-[44px]"
           />
+          <p id="dietary-help" className="text-xs text-[var(--ink-muted)]">
+            e.g., Pure Vegetarian, Jain Vegetarian, Halal
+          </p>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-[var(--ink-secondary)]">
+        <div className="space-y-2">
+          <label
+            htmlFor="theme-input"
+            className="block text-sm font-semibold text-[var(--ink-secondary)]"
+          >
             Celebration Theme
           </label>
           <input
+            id="theme-input"
             type="text"
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--canvas-sunken)] text-sm text-[var(--ink-primary)] focus:outline-none focus:border-[var(--brand-teal)]"
+            aria-describedby="theme-help"
+            className="w-full px-4 py-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--canvas-sunken)] text-sm text-[var(--ink-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] min-h-[44px]"
           />
+          <p id="theme-help" className="text-xs text-[var(--ink-muted)]">
+            Visual aesthetic, florals, and color palette
+          </p>
         </div>
 
-        <div className="space-y-1.5 sm:col-span-2">
-          <label className="text-xs font-semibold text-[var(--ink-secondary)]">
+        <div className="space-y-2 sm:col-span-2">
+          <label
+            htmlFor="culture-input"
+            className="block text-sm font-semibold text-[var(--ink-secondary)]"
+          >
             Regional Culture & Traditions
           </label>
           <input
+            id="culture-input"
             type="text"
             value={culture}
             onChange={(e) => setCulture(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--canvas-sunken)] text-sm text-[var(--ink-primary)] focus:outline-none focus:border-[var(--brand-teal)]"
+            aria-describedby="culture-help"
+            className="w-full px-4 py-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--canvas-sunken)] text-sm text-[var(--ink-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] min-h-[44px]"
           />
+          <p id="culture-help" className="text-xs text-[var(--ink-muted)]">
+            Regional customs (e.g., Maharashtrian Traditional, Punjabi, South Indian)
+          </p>
         </div>
       </div>
     </form>

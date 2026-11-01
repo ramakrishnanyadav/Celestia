@@ -100,4 +100,22 @@ describe("WhatIfSimulator Component", () => {
       screen.getByText("Healthy allocation buffer and balanced distribution.")
     ).toBeInTheDocument();
   });
+
+  it("handles Home and End keyboard events to jump to slider boundaries", () => {
+    render(<WhatIfSimulator event={mockEvent} />);
+
+    const guestSlider = screen.getByLabelText("Simulated Guest Count");
+    fireEvent.keyDown(guestSlider, { key: "Home" });
+    expect(screen.getByText(/50\s*Guests/)).toBeInTheDocument();
+
+    fireEvent.keyDown(guestSlider, { key: "End" });
+    expect(screen.getByText(/1500\s*Guests/)).toBeInTheDocument();
+
+    const budgetSlider = screen.getByLabelText("Simulated Budget Lakhs");
+    fireEvent.keyDown(budgetSlider, { key: "Home" });
+    expect(screen.getAllByText(/₹5 Lakh/).length).toBeGreaterThanOrEqual(1);
+
+    fireEvent.keyDown(budgetSlider, { key: "End" });
+    expect(screen.getAllByText(/₹100 Lakh/).length).toBeGreaterThanOrEqual(1);
+  });
 });

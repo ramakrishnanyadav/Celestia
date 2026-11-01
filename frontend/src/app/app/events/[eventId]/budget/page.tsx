@@ -2,6 +2,7 @@
 
 import React, { use } from "react";
 import { AppShell } from "@/components/shell/AppShell";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import {
   useEvent,
   useEvents,
@@ -53,21 +54,37 @@ export default function EventBudgetPage({
       onToggleAiPause={handleToggleAiPause}
     >
       <div className="max-w-5xl mx-auto space-y-6">
+        <Breadcrumbs
+          items={[
+            { label: event.title, href: `/app/events/${eventId}` },
+            { label: "Budget & What-If", current: true },
+          ]}
+        />
+
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[var(--ink-primary)]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--ink-primary)] tracking-tight">
             Budget & Financial Ledger
           </h1>
-          <p className="text-xs text-[var(--ink-muted)] mt-1">
-            Zero-rounding integer paise accounting with real-time what-if
-            simulation
+          <p className="text-sm text-[var(--ink-secondary)] mt-1">
+            Zero-rounding integer paise accounting with real-time what-if simulation and automated contingency allocation.
           </p>
         </div>
 
         {/* What-If Simulator */}
-        <WhatIfSimulator event={event} />
+        <section aria-labelledby="simulator-section">
+          <h2 id="simulator-section" className="sr-only">
+            Scenario Simulator
+          </h2>
+          <WhatIfSimulator event={event} />
+        </section>
 
         {/* Categories Table */}
-        <BudgetTable categories={categories} />
+        <section aria-labelledby="ledger-section">
+          <h2 id="ledger-section" className="sr-only">
+            Itemized Category Allocations
+          </h2>
+          <BudgetTable categories={categories} />
+        </section>
       </div>
     </AppShell>
   );

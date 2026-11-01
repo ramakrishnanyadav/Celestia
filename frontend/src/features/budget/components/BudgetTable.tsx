@@ -17,7 +17,7 @@ export function BudgetTable({
   if (categories.length === 0) {
     return (
       <div className="p-8 text-center glass-card rounded-2xl">
-        <Layers className="w-8 h-8 mx-auto text-[var(--ink-muted)] mb-2" />
+        <Layers className="w-8 h-8 mx-auto text-[var(--ink-muted)] mb-2" aria-hidden="true" />
         <p className="text-sm text-[var(--ink-secondary)]">
           No budget categories allocated yet.
         </p>
@@ -31,6 +31,7 @@ export function BudgetTable({
         className="w-full text-left text-sm"
         aria-label="Budget Categories and Ledger"
       >
+        <caption className="sr-only">Budget Category Allocations and Tracked Expenses</caption>
         <thead className="bg-[var(--canvas-sunken)] text-xs uppercase font-semibold text-[var(--ink-muted)] border-b border-[var(--border-subtle)]">
           <tr>
             <th scope="col" className="px-5 py-3.5">
@@ -66,19 +67,25 @@ export function BudgetTable({
                 key={cat.id}
                 className="hover:bg-[var(--canvas-subtle)] transition-colors"
               >
-                <td className="px-5 py-4 font-semibold flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center shrink-0">
-                    <IndianRupee className="w-3.5 h-3.5" />
+                <th
+                  scope="row"
+                  className="px-5 py-4 font-semibold text-[var(--ink-primary)] flex items-center gap-2.5 font-normal"
+                >
+                  <div
+                    className="w-8 h-8 rounded-lg bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center shrink-0"
+                    aria-hidden="true"
+                  >
+                    <IndianRupee className="w-4 h-4" />
                   </div>
-                  <span>{cat.name}</span>
-                </td>
+                  <span className="font-semibold">{cat.name}</span>
+                </th>
                 <td className="px-5 py-4 text-[var(--ink-secondary)]">
                   {cat.allocation_percent}%
                 </td>
-                <td className="px-5 py-4 font-medium">
+                <td className="px-5 py-4 font-medium" lang="en-IN">
                   {formatMoney(cat.allocated_amount_minor)}
                 </td>
-                <td className="px-5 py-4 text-[var(--ink-secondary)] text-xs">
+                <td className="px-5 py-4 text-[var(--ink-secondary)] text-sm" lang="en-IN">
                   {expenseCount} items ({formatMoney(totalSpent)} spent)
                 </td>
                 <td className="px-5 py-4 text-right">
@@ -86,7 +93,7 @@ export function BudgetTable({
                     <button
                       type="button"
                       onClick={() => onAddExpenseClick(cat.id)}
-                      className="text-xs font-semibold text-[var(--brand-teal)] hover:underline"
+                      className="min-h-[44px] px-3 py-1.5 inline-flex items-center text-sm font-semibold text-[var(--brand-teal)] hover:underline rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)]"
                     >
                       + Add Item
                     </button>

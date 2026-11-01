@@ -2,6 +2,7 @@
 
 import React, { use } from "react";
 import { AppShell } from "@/components/shell/AppShell";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import {
   useEvent,
   useEvents,
@@ -55,30 +56,44 @@ export default function EventTimelinePage({
       onToggleAiPause={handleToggleAiPause}
     >
       <div className="max-w-5xl mx-auto space-y-6">
+        <Breadcrumbs
+          items={[
+            { label: event.title, href: `/app/events/${eventId}` },
+            { label: "Timeline & CPM", current: true },
+          ]}
+        />
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[var(--ink-primary)]">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--ink-primary)] tracking-tight">
               Timeline & Critical Path (CPM)
             </h1>
-            <p className="text-xs text-[var(--ink-muted)] mt-1">
-              Topologically sorted schedule with bottleneck path detection
+            <p className="text-sm text-[var(--ink-secondary)] mt-1">
+              Topologically sorted schedule with automated bottleneck detection and early/late start windows.
             </p>
           </div>
           <button
             type="button"
             disabled={cpmMutation.isPending}
             onClick={() => cpmMutation.mutate()}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[var(--border-subtle)] text-xs font-semibold text-[var(--ink-primary)] hover:bg-[var(--canvas-sunken)] transition-all"
+            className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] text-sm font-semibold text-[var(--ink-primary)] hover:bg-[var(--canvas-sunken)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)]"
+            aria-label="Recalculate critical path method schedule"
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 ${cpmMutation.isPending ? "animate-spin" : ""}`}
+              className={`w-4 h-4 shrink-0 ${cpmMutation.isPending ? "animate-spin" : ""}`}
+              aria-hidden="true"
             />
-            <span>Recalculate CPM</span>
+            <span>{cpmMutation.isPending ? "Calculating DAG..." : "Recalculate CPM"}</span>
           </button>
         </div>
 
         {/* Task List */}
-        <TaskList tasks={tasks} />
+        <section aria-labelledby="tasks-heading">
+          <h2 id="tasks-heading" className="sr-only">
+            Sequenced Milestone Tasks
+          </h2>
+          <TaskList tasks={tasks} />
+        </section>
       </div>
     </AppShell>
   );

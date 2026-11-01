@@ -13,7 +13,6 @@ interface WhatIfSimulatorProps {
 
 export function WhatIfSimulator({
   event,
-  onApplyProposal,
 }: WhatIfSimulatorProps) {
   const [guestCount, setGuestCount] = useState(event.guest_count);
   const [budgetLakhs, setBudgetLakhs] = useState(
@@ -21,6 +20,7 @@ export function WhatIfSimulator({
   );
   const [simulation, setSimulation] = useState<WhatIfResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
   const [, startTransition] = useTransition();
 
   // Latest-wins sequence guard to prevent out-of-order race conditions
@@ -49,6 +49,11 @@ export function WhatIfSimulator({
         if (currentSeq === seqRef.current) {
           startTransition(() => {
             setSimulation(res);
+            setLiveAnnouncement(
+              `Simulation updated: ${guestCount} guests, ₹${budgetLakhs} Lakh. Status is ${
+                res.feasibility_status === "feasible" ? "feasible" : "tight or over budget"
+              }. ${res.recommendation}`
+            );
           });
         }
       } catch {
@@ -68,36 +73,69 @@ export function WhatIfSimulator({
 
   const isFeasible = simulation?.feasibility_status === "feasible";
 
+  const handleGuestKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Home") {
+      setGuestCount(50);
+      e.preventDefault();
+    } else if (e.key === "End") {
+      setGuestCount(1500);
+      e.preventDefault();
+    }
+  };
+
+  const handleBudgetKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Home") {
+      setBudgetLakhs(5);
+      e.preventDefault();
+    } else if (e.key === "End") {
+      setBudgetLakhs(100);
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="p-6 rounded-2xl glass-card space-y-6">
+      {/* Debounced Screen Reader Live Region */}
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        id="what-if-live-region"
+      >
+        {liveAnnouncement}
+      </div>
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center">
-            <Sliders className="w-4 h-4" />
+          <div
+            className="w-9 h-9 rounded-xl bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center shrink-0"
+            aria-hidden="true"
+          >
+            <Sliders className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-[var(--ink-primary)]">
+            <h3 className="text-base sm:text-lg font-bold text-[var(--ink-primary)]">
               What-If Budget Simulator
             </h3>
-            <p className="text-xs text-[var(--ink-muted)]">
+            <p className="text-xs sm:text-sm text-[var(--ink-muted)]">
               Live deterministic calculation with 250ms debounce & latest-wins guard
             </p>
           </div>
         </div>
         {simulation ? (
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold ${
               isFeasible
-                ? "bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)]"
-                : "bg-[var(--brand-marigold-subtle)] text-[var(--brand-marigold)]"
+                ? "bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] border border-[var(--brand-teal)]/30"
+                : "bg-[var(--brand-marigold-subtle)] text-[var(--brand-marigold)] border border-[var(--brand-marigold)]/30"
             }`}
           >
             {isFeasible ? (
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />
             ) : (
-              <AlertTriangle className="w-3.5 h-3.5" />
+              <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
             )}
-            {isFeasible ? "Feasible Allocation" : "Tight / Over-Budget"}
+            <span>{isFeasible ? "Feasible Allocation" : "Tight / Over-Budget"}</span>
           </span>
         ) : (
           <span className="text-xs text-[var(--ink-muted)] italic">
@@ -109,76 +147,90 @@ export function WhatIfSimulator({
       {/* Sliders Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <div className="flex justify-between text-xs font-semibold">
-            <span className="text-[var(--ink-secondary)]">
-              Simulated Guests
-            </span>
+          <div className="flex justify-between text-sm font-semibold">
+            <label htmlFor="simulated-guest-slider" className="text-[var(--ink-secondary)]">
+              Simulated Guest Count
+            </label>
             <span className="text-[var(--ink-primary)]">
               {guestCount} Guests
             </span>
           </div>
           <input
+            id="simulated-guest-slider"
             type="range"
             min={50}
             max={1500}
             step={25}
             value={guestCount}
             onChange={(e) => setGuestCount(Number(e.target.value))}
-            className="w-full accent-[var(--brand-teal)] cursor-pointer"
+            onKeyDown={handleGuestKeyDown}
+            className="w-full accent-[var(--brand-teal)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] rounded-lg min-h-[44px]"
             aria-label="Simulated Guest Count"
+            aria-valuemin={50}
+            aria-valuemax={1500}
+            aria-valuenow={guestCount}
             aria-valuetext={`${guestCount} guests`}
           />
         </div>
 
         <div className="space-y-2">
-          <div className="flex justify-between text-xs font-semibold">
-            <span className="text-[var(--ink-secondary)]">
-              Simulated Budget
-            </span>
+          <div className="flex justify-between text-sm font-semibold">
+            <label htmlFor="simulated-budget-slider" className="text-[var(--ink-secondary)]">
+              Simulated Budget Lakhs
+            </label>
             <span className="text-[var(--ink-primary)]">
               ₹{budgetLakhs} Lakh ({formatMoney(budgetLakhs * 10_000_000)})
             </span>
           </div>
           <input
+            id="simulated-budget-slider"
             type="range"
             min={5}
             max={100}
             step={1}
             value={budgetLakhs}
             onChange={(e) => setBudgetLakhs(Number(e.target.value))}
-            className="w-full accent-[var(--brand-teal)] cursor-pointer"
+            onKeyDown={handleBudgetKeyDown}
+            className="w-full accent-[var(--brand-teal)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] rounded-lg min-h-[44px]"
             aria-label="Simulated Budget Lakhs"
+            aria-valuemin={5}
+            aria-valuemax={100}
+            aria-valuenow={budgetLakhs}
             aria-valuetext={`₹${budgetLakhs} Lakh`}
           />
         </div>
       </div>
 
       {/* Immediate Optimistic Preview + Server Breakdown */}
-      <div className="p-4 rounded-xl bg-[var(--canvas-sunken)] text-xs text-[var(--ink-secondary)] space-y-2">
+      <div className="p-4 rounded-xl bg-[var(--canvas-sunken)] text-sm text-[var(--ink-secondary)] space-y-2">
         <p className="font-medium text-[var(--ink-primary)] leading-relaxed">
           {simulation ? simulation.recommendation : `Simulating ${guestCount} guests with ₹${budgetLakhs} Lakh budget...`}
         </p>
-        <div className="flex items-center gap-4 pt-2 border-t border-[var(--border-subtle)]">
+        <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-[var(--border-subtle)] text-xs sm:text-sm">
           <span>
-            Per Guest: ₹
-            {(simulation
-              ? Math.round(
-                  simulation.simulated_budget_rupees /
-                    (simulation.simulated_guests || 1)
-                )
-              : optimisticPerGuestRupees
-            ).toLocaleString("en-IN")}
+            Per Guest:{" "}
+            <span lang="en-IN" className="font-semibold text-[var(--ink-primary)]">
+              ₹{(simulation
+                ? Math.round(
+                    simulation.simulated_budget_rupees /
+                      (simulation.simulated_guests || 1)
+                  )
+                : optimisticPerGuestRupees
+              ).toLocaleString("en-IN")}
+            </span>
           </span>
-          <span>•</span>
+          <span aria-hidden="true">•</span>
           <span>
-            Contingency: ₹
-            {(simulation
-              ? Math.round(simulation.new_contingency_rupees)
-              : optimisticContingencyRupees
-            ).toLocaleString("en-IN")}
+            Contingency:{" "}
+            <span lang="en-IN" className="font-semibold text-[var(--ink-primary)]">
+              ₹{(simulation
+                ? Math.round(simulation.new_contingency_rupees)
+                : optimisticContingencyRupees
+              ).toLocaleString("en-IN")}
+            </span>
           </span>
           {loading && (
-            <span className="ml-auto text-[var(--brand-teal)] animate-pulse">
+            <span className="ml-auto text-[var(--brand-teal)] font-medium">
               Syncing...
             </span>
           )}

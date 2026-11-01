@@ -19,7 +19,6 @@ export function OverviewKpiCards({
   criticalTaskCount = 0,
 }: OverviewKpiCardsProps) {
   const totalBudget = budgetSummary?.total_budget_minor ?? event.budget_minor;
-  const allocated = budgetSummary?.allocated_minor ?? 0;
   const safetyBuffer = budgetSummary?.safety_buffer_minor ?? 0;
   const contingencyPercent =
     totalBudget > 0 ? Math.round((safetyBuffer / totalBudget) * 100) : 10;
@@ -31,13 +30,15 @@ export function OverviewKpiCards({
       subtext: `${formatMoney(totalBudget)} allocated`,
       icon: IndianRupee,
       color: "var(--brand-teal)",
+      isMoney: true,
     },
     {
       title: "Guest Count",
       value: `${event.guest_count}`,
-      subtext: `₹${Math.round(Number(totalBudget) / 100 / Math.max(1, event.guest_count))} per guest avg`,
+      subtext: `₹${Math.round(Number(totalBudget) / 100 / Math.max(1, event.guest_count)).toLocaleString("en-IN")} per guest avg`,
       icon: Users,
       color: "var(--brand-indigo)",
+      isMoney: false,
     },
     {
       title: "Contingency Buffer",
@@ -45,6 +46,7 @@ export function OverviewKpiCards({
       subtext: `${contingencyPercent}% safety reserve`,
       icon: ShieldCheck,
       color: "var(--brand-marigold)",
+      isMoney: true,
     },
     {
       title: "Timeline Tasks",
@@ -52,15 +54,16 @@ export function OverviewKpiCards({
       subtext: `${criticalTaskCount} on critical path`,
       icon: Clock,
       color: "var(--ink-secondary)",
+      isMoney: false,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 list-none p-0 m-0" aria-label="Event Summary KPIs">
       {kpis.map((kpi) => {
         const Icon = kpi.icon;
         return (
-          <div
+          <li
             key={kpi.title}
             className="p-5 rounded-2xl glass-card flex flex-col justify-between"
           >
@@ -69,23 +72,30 @@ export function OverviewKpiCards({
                 {kpi.title}
               </span>
               <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-[var(--canvas-sunken)]"
+                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[var(--canvas-sunken)]"
                 style={{ color: kpi.color }}
+                aria-hidden="true"
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-5 h-5" />
               </div>
             </div>
             <div>
-              <div className="text-2xl font-extrabold text-[var(--ink-primary)] tracking-tight">
+              <div
+                className="text-2xl font-extrabold text-[var(--ink-primary)] tracking-tight"
+                lang={kpi.isMoney ? "en-IN" : undefined}
+              >
                 {kpi.value}
               </div>
-              <p className="text-xs text-[var(--ink-muted)] mt-1 truncate">
+              <p
+                className="text-xs sm:text-sm text-[var(--ink-muted)] mt-1 truncate"
+                lang={kpi.isMoney ? "en-IN" : undefined}
+              >
                 {kpi.subtext}
               </p>
             </div>
-          </div>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }

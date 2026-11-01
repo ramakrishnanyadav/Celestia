@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import type { EventItem, EventPreference } from "@/lib/api/types";
-import { Bot, Send, Sparkles, CheckCircle2 } from "lucide-react";
+import { Bot, Send, Sparkles } from "lucide-react";
 
 interface AIChatCanvasProps {
   event: EventItem;
@@ -55,21 +55,29 @@ export function AIChatCanvas({
     <div className="flex flex-col h-[520px] rounded-2xl glass-card overflow-hidden">
       <div className="px-5 py-4 border-b border-[var(--border-subtle)] bg-[var(--canvas-sunken)] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center">
-            <Bot className="w-4 h-4" />
+          <div
+            className="w-9 h-9 rounded-xl bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center shrink-0"
+            aria-hidden="true"
+          >
+            <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[var(--ink-primary)]">
+            <h3 className="text-base font-bold text-[var(--ink-primary)]">
               AI Planning Workspace
             </h3>
-            <p className="text-xs text-[var(--ink-muted)]">
+            <p className="text-xs sm:text-sm text-[var(--ink-muted)]">
               3-Tier Autonomy: Suggest • Draft • Approve
             </p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 p-5 overflow-y-auto space-y-4">
+      {/* Accessible Chat Messages with aria-live polite region */}
+      <div
+        className="flex-1 p-5 overflow-y-auto space-y-4"
+        aria-live="polite"
+        aria-label="Chat Conversation History"
+      >
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -82,15 +90,16 @@ export function AIChatCanvas({
                   : "bg-[var(--canvas-sunken)] text-[var(--ink-primary)] rounded-bl-xs border border-[var(--border-subtle)]"
               }`}
             >
+              <span className="sr-only">{msg.sender === "user" ? "You: " : "CELESTIA AI: "}</span>
               {msg.text}
             </div>
           </div>
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="p-3.5 rounded-2xl bg-[var(--canvas-sunken)] text-xs text-[var(--ink-muted)] border border-[var(--border-subtle)] flex items-center gap-2">
-              <Sparkles className="w-4 h-4 animate-spin text-[var(--brand-teal)]" />
-              Synthesizing proposal...
+            <div className="p-3.5 rounded-2xl bg-[var(--canvas-sunken)] text-xs sm:text-sm text-[var(--ink-muted)] border border-[var(--border-subtle)] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 animate-spin text-[var(--brand-teal)]" aria-hidden="true" />
+              <span>Synthesizing proposal...</span>
             </div>
           </div>
         )}
@@ -100,20 +109,24 @@ export function AIChatCanvas({
         onSubmit={handleSubmit}
         className="p-3 border-t border-[var(--border-subtle)] bg-[var(--canvas-sunken)] flex items-center gap-2"
       >
+        <label htmlFor="chat-command-input" className="sr-only">
+          Ask AI Assistant
+        </label>
         <input
+          id="chat-command-input"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask AI (e.g. 'Scale budget for 350 guests', 'Add Haldi checklist')..."
-          className="flex-1 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--canvas)] text-sm text-[var(--ink-primary)] focus:outline-none focus:border-[var(--brand-teal)]"
+          className="flex-1 px-4 py-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--canvas)] text-sm text-[var(--ink-primary)] placeholder-[var(--ink-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] min-h-[44px]"
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="px-4 py-2.5 rounded-xl bg-[var(--brand-teal)] text-white hover:opacity-90 disabled:opacity-50 transition-all"
+          className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-[var(--brand-teal)] text-white hover:opacity-90 disabled:opacity-50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)]"
           aria-label="Send message"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-4 h-4" aria-hidden="true" />
         </button>
       </form>
     </div>

@@ -2,6 +2,7 @@
 
 import React, { use } from "react";
 import { AppShell } from "@/components/shell/AppShell";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import {
   useEvent,
   useEvents,
@@ -55,18 +56,29 @@ export default function EventPlannerPage({
       onToggleAiPause={handleToggleAiPause}
     >
       <div className="max-w-4xl mx-auto space-y-6">
+        <Breadcrumbs
+          items={[
+            { label: event.title, href: `/app/events/${eventId}` },
+            { label: "AI Planner", current: true },
+          ]}
+        />
+
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[var(--ink-primary)]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--ink-primary)] tracking-tight">
             AI Planning Workspace
           </h1>
-          <p className="text-xs text-[var(--ink-muted)] mt-1">
-            Collaborative natural-language planning governed by strict 3-tier
-            autonomy
+          <p className="text-sm text-[var(--ink-secondary)] mt-1">
+            Collaborative natural-language planning governed by strict 3-tier autonomy: Suggest, Draft, and Human Approve.
           </p>
         </div>
 
         {/* AI Chat Canvas */}
-        <AIChatCanvas event={event} onSendCommand={handleSendCommand} />
+        <section aria-labelledby="chat-workspace-heading">
+          <h2 id="chat-workspace-heading" className="sr-only">
+            Interactive Chat Session
+          </h2>
+          <AIChatCanvas event={event} onSendCommand={handleSendCommand} />
+        </section>
       </div>
     </AppShell>
   );

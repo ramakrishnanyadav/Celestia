@@ -2,6 +2,7 @@
 
 import React, { use } from "react";
 import { AppShell } from "@/components/shell/AppShell";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import {
   useEvent,
   useEvents,
@@ -52,19 +53,30 @@ export default function EventVendorsPage({
       onToggleAiPause={handleToggleAiPause}
     >
       <div className="max-w-5xl mx-auto space-y-6">
+        <Breadcrumbs
+          items={[
+            { label: event.title, href: `/app/events/${eventId}` },
+            { label: "Vendors & Quotes", current: true },
+          ]}
+        />
+
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[var(--ink-primary)]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--ink-primary)] tracking-tight">
             Vendors & Quotations
           </h1>
-          <p className="text-xs text-[var(--ink-muted)] mt-1">
-            Supplier comparison, ratings, and deliverable breakdown
+          <p className="text-sm text-[var(--ink-secondary)] mt-1">
+            Compare service providers, analyze quotation inclusions, and evaluate supplier ratings.
           </p>
         </div>
 
         {/* Vendor Grid */}
-        <VendorTable vendors={vendors} />
+        <section aria-labelledby="vendors-list-heading">
+          <h2 id="vendors-list-heading" className="sr-only">
+            Active Vendor Proposals
+          </h2>
+          <VendorTable vendors={vendors} />
+        </section>
       </div>
     </AppShell>
   );
 }
-

@@ -2,6 +2,9 @@
 
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "motion/react";
+import { ToastProvider } from "./ui/Toast";
+import { RouteAnnouncer } from "./ui/RouteAnnouncer";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -33,6 +36,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MotionConfig reducedMotion="user">
+        <ToastProvider>
+          <RouteAnnouncer />
+          {children}
+        </ToastProvider>
+      </MotionConfig>
+    </QueryClientProvider>
   );
 }

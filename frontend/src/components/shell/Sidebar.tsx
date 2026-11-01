@@ -118,9 +118,13 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
       <div className="flex items-center justify-between h-16 px-4 border-b border-[var(--border-subtle)]">
         <Link
           href={`/app/events/${eventId}`}
-          className="flex items-center gap-2.5 overflow-hidden"
+          className="flex items-center gap-2.5 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] rounded-xl p-1"
+          aria-label="CELESTIA Home"
         >
-          <div className="w-9 h-9 rounded-xl bg-[var(--brand-teal)] flex items-center justify-center shrink-0 shadow-sm text-white">
+          <div
+            className="w-9 h-9 rounded-xl bg-[var(--brand-teal)] flex items-center justify-center shrink-0 shadow-sm text-white"
+            aria-hidden="true"
+          >
             <Sparkles className="w-5 h-5" />
           </div>
           {!collapsed && (
@@ -128,7 +132,7 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
               <span className="font-bold tracking-wider text-[var(--ink-primary)] text-base">
                 CELESTIA
               </span>
-              <span className="block text-[10px] tracking-widest text-[var(--ink-muted)] uppercase font-medium">
+              <span className="block text-xs tracking-widest text-[var(--ink-muted)] uppercase font-semibold">
                 AI Celebration
               </span>
             </div>
@@ -137,13 +141,13 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-lg text-[var(--ink-muted)] hover:text-[var(--ink-primary)] hover:bg-[var(--canvas)] transition-colors"
+          className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg text-[var(--ink-muted)] hover:text-[var(--ink-primary)] hover:bg-[var(--canvas)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)]"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" aria-hidden="true" />
           ) : (
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" aria-hidden="true" />
           )}
         </button>
       </div>
@@ -162,13 +166,13 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
               href={item.href}
               onMouseEnter={() => handlePrefetch(item.href)}
               aria-current={isActive ? "page" : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] ${
                 isActive
-                  ? "bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] font-semibold shadow-xs"
+                  ? "bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] font-bold shadow-xs border border-[var(--border-accent)]"
                   : "text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--canvas)]"
               }`}
             >
-              <Icon className="w-5 h-5 shrink-0" />
+              <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
               {!collapsed && <span className="truncate">{item.label}</span>}
               {!collapsed &&
                 typeof item.badge === "number" &&
