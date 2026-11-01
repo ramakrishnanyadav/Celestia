@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build",
     "api:generate": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/lib/api/schema.ts"
   },
   "dependencies": {

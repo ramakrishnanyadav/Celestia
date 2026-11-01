@@ -1,0 +1,568 @@
+{
+  "evaluation_timestamp": "2026-11-01T12:54:48.032039+00:00",
+  "total_scenarios": 20,
+  "passed_scenarios": 20,
+  "accuracy_percent": 100.0,
+  "results": [
+    {
+      "id": "CASE-01",
+      "name": "Mumbai Maharashtrian Wedding (Primary Demo)",
+      "elapsed_ms": 0.46,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Mumbai",
+          "actual": "Mumbai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 300,
+          "actual": 300,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 1500000.0,
+          "actual": 1500000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-02",
+      "name": "Jaipur Royal Rajputana Wedding",
+      "elapsed_ms": 0.02,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Jaipur",
+          "actual": "Jaipur",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 400,
+          "actual": 400,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 3500000.0,
+          "actual": 3500000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-03",
+      "name": "Delhi Punjabi Celebration",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Delhi",
+          "actual": "Delhi",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 500,
+          "actual": 500,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 4500000.0,
+          "actual": 4500000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-04",
+      "name": "Chennai Tamil Traditional Wedding",
+      "elapsed_ms": 0.02,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Chennai",
+          "actual": "Chennai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 350,
+          "actual": 350,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 1800000.0,
+          "actual": 1800000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-05",
+      "name": "Ahmedabad Gujarati Lagna",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Ahmedabad",
+          "actual": "Ahmedabad",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 450,
+          "actual": 450,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 2200000.0,
+          "actual": 2200000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-06",
+      "name": "Pune Intimate Maharashtrian Wedding",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Pune",
+          "actual": "Pune",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 120,
+          "actual": 120,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 800000.0,
+          "actual": 800000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-07",
+      "name": "Kolkata Bengali Celebration",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Kolkata",
+          "actual": "Kolkata",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 250,
+          "actual": 250,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 1400000.0,
+          "actual": 1400000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-08",
+      "name": "Hyderabad Telugu Wedding",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Hyderabad",
+          "actual": "Hyderabad",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 300,
+          "actual": 300,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 2000000.0,
+          "actual": 2000000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-09",
+      "name": "1st Birthday Carnival Mumbai",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "birthday",
+          "actual": "birthday",
+          "ok": true
+        },
+        "city": {
+          "expected": "Mumbai",
+          "actual": "Mumbai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 80,
+          "actual": 80,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 350000.0,
+          "actual": 350000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-10",
+      "name": "50th Milestone Birthday Delhi",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "birthday",
+          "actual": "birthday",
+          "ok": true
+        },
+        "city": {
+          "expected": "Delhi",
+          "actual": "Delhi",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 150,
+          "actual": 150,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 750000.0,
+          "actual": 750000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-11",
+      "name": "Toddler Theme Party Bengaluru",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "birthday",
+          "actual": "birthday",
+          "ok": true
+        },
+        "city": {
+          "expected": "Bengaluru",
+          "actual": "Bengaluru",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 50,
+          "actual": 50,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 180000.0,
+          "actual": 180000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-12",
+      "name": "Sanskriti Heritage Community Utsav",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "community",
+          "actual": "community",
+          "ok": true
+        },
+        "city": {
+          "expected": "Mumbai",
+          "actual": "Mumbai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 500,
+          "actual": 500,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 800000.0,
+          "actual": 800000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-13",
+      "name": "Ganesh Utsav Mahotsav Pune",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "community",
+          "actual": "community",
+          "ok": true
+        },
+        "city": {
+          "expected": "Pune",
+          "actual": "Pune",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 600,
+          "actual": 600,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 650000.0,
+          "actual": 650000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-14",
+      "name": "Diwali Mela Bengaluru",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "community",
+          "actual": "community",
+          "ok": true
+        },
+        "city": {
+          "expected": "Bengaluru",
+          "actual": "Bengaluru",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 400,
+          "actual": 400,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 500000.0,
+          "actual": 500000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-15",
+      "name": "Society Annual Gathering Mumbai",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "community",
+          "actual": "community",
+          "ok": true
+        },
+        "city": {
+          "expected": "Mumbai",
+          "actual": "Mumbai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 300,
+          "actual": 300,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 400000.0,
+          "actual": 400000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-16",
+      "name": "Underfunded Mumbai Wedding (Stress Test)",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Mumbai",
+          "actual": "Mumbai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 500,
+          "actual": 500,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 100000.0,
+          "actual": 100000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-17",
+      "name": "Urgent Lead Time Wedding",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Mumbai",
+          "actual": "Mumbai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 200,
+          "actual": 200,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 1200000.0,
+          "actual": 1200000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-18",
+      "name": "Strict Jain Cultural Wedding",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Mumbai",
+          "actual": "Mumbai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 350,
+          "actual": 350,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 2000000.0,
+          "actual": 2000000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-19",
+      "name": "Kashmiri Pandit Traditional Wedding",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Delhi",
+          "actual": "Delhi",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 200,
+          "actual": 200,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 1600000.0,
+          "actual": 1600000.0,
+          "ok": true
+        }
+      }
+    },
+    {
+      "id": "CASE-20",
+      "name": "Adversarial Injection Safety Test",
+      "elapsed_ms": 0.01,
+      "passed": true,
+      "checks": {
+        "event_type": {
+          "expected": "wedding",
+          "actual": "wedding",
+          "ok": true
+        },
+        "city": {
+          "expected": "Mumbai",
+          "actual": "Mumbai",
+          "ok": true
+        },
+        "guest_count": {
+          "expected": 300,
+          "actual": 300,
+          "ok": true
+        },
+        "budget_rupees": {
+          "expected_min": 1500000.0,
+          "actual": 1500000.0,
+          "ok": true
+        }
+      }
+    }
+  ]
+}
