@@ -37,20 +37,23 @@ if os.environ.get("TESTING") == "1" or settings.ENV == "testing":
 
 def bootstrap_primary_demonstration_scenario():
     """
-    Seeds the primary demonstration scenario if database is fresh:
-    - User: Anjali & Rahul
-    - Event: Traditional Maharashtrian Wedding in Mumbai
-    - 300 Guests, ₹15,00,000 Budget (150,000,000 paise)
-    - Pure Vegetarian Catering
-    - Royal Marigold Theme
+    Seeds the three primary demonstration scenarios for evaluation:
+    1. Wedding: Maharashtrian Traditional in Mumbai (300 guests, ₹15,00,000, pure veg)
+    2. Birthday: Aarav's 1st Birthday Pastel Carnival in Pune (50 guests, ₹1,50,000)
+    3. Community: Shivaji Park Diwali Community Utsav in Mumbai (1000 guests, ₹8,00,000, pure veg)
     """
     if not settings.DEMO_ACCOUNT_ENABLED or settings.ENV == "production":
         return
     db = SessionLocal()
     try:
         demo_user = get_or_create_demo_user(db)
-        existing_event = db.query(Event).filter(Event.user_id == demo_user.id).first()
-        if not existing_event:
+        
+        # 1. Wedding (Maharashtrian, 300 pax, 15L, Pure Veg)
+        existing_wedding = db.query(Event).filter(
+            Event.user_id == demo_user.id,
+            Event.event_type == "wedding"
+        ).first()
+        if not existing_wedding:
             wedding_event = Event(
                 user_id=demo_user.id,
                 title="Anjali & Rahul's Royal Mumbai Wedding",
@@ -58,7 +61,7 @@ def bootstrap_primary_demonstration_scenario():
                 city="Mumbai",
                 venue_type="Grand Banquet Hall",
                 guest_count=300,
-                budget_minor=150000000,
+                budget_minor=150000000,  # ₹15,00,000
                 currency="INR",
                 timezone="Asia/Kolkata",
                 preparation_months=6,
@@ -69,7 +72,7 @@ def bootstrap_primary_demonstration_scenario():
             db.commit()
             db.refresh(wedding_event)
 
-            pref = EventPreference(
+            pref_wedding = EventPreference(
                 event_id=wedding_event.id,
                 dietary="Pure Vegetarian",
                 theme="Royal Marigold & Polished Brass",
@@ -79,13 +82,89 @@ def bootstrap_primary_demonstration_scenario():
                 color_palette=["#D97706", "#B45309", "#0B132B", "#FAF7F2", "#0D9488"],
                 special_requirements="Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
             )
-            db.add(pref)
+            db.add(pref_wedding)
             db.commit()
-
             AIService.generate_full_event_plan(db, wedding_event)
+
+        # 2. Birthday (Aarav's 1st Birthday Carnival, 50 pax, 1.5L)
+        existing_birthday = db.query(Event).filter(
+            Event.user_id == demo_user.id,
+            Event.event_type == "birthday"
+        ).first()
+        if not existing_birthday:
+            birthday_event = Event(
+                user_id=demo_user.id,
+                title="Aarav's 1st Birthday Pastel Carnival",
+                event_type="birthday",
+                city="Pune",
+                venue_type="Garden Lawn & Gazebo",
+                guest_count=50,
+                budget_minor=15000000,  # ₹1,50,000
+                currency="INR",
+                timezone="Asia/Kolkata",
+                preparation_months=2,
+                status="planning",
+                autonomy_mode="Draft"
+            )
+            db.add(birthday_event)
+            db.commit()
+            db.refresh(birthday_event)
+
+            pref_birthday = EventPreference(
+                event_id=birthday_event.id,
+                dietary="Vegetarian & Kids Fun Station",
+                theme="Whimsical Pastel Balloon Carnival",
+                regional_culture="Contemporary Indian",
+                cultural_traditions=["Cake Cutting Ceremony", "Annaprashan Blessing", "Return Gift Distribution"],
+                music_entertainment="Acoustic Folk & Children's Interactive DJ",
+                color_palette=["#38BDF8", "#F472B6", "#FDE047", "#FFFFFF", "#0D9488"],
+                special_requirements="Allergen-free kids cupcakes, stroller parking bay, balloon twisting artist."
+            )
+            db.add(pref_birthday)
+            db.commit()
+            AIService.generate_full_event_plan(db, birthday_event)
+
+        # 3. Community Festival (Diwali Utsav, 1000 pax, 8L)
+        existing_community = db.query(Event).filter(
+            Event.user_id == demo_user.id,
+            Event.event_type == "community"
+        ).first()
+        if not existing_community:
+            community_event = Event(
+                user_id=demo_user.id,
+                title="Shivaji Park Diwali Community Utsav",
+                event_type="community",
+                city="Mumbai",
+                venue_type="Public Community Amphitheatre",
+                guest_count=1000,
+                budget_minor=80000000,  # ₹8,00,000
+                currency="INR",
+                timezone="Asia/Kolkata",
+                preparation_months=3,
+                status="planning",
+                autonomy_mode="Draft"
+            )
+            db.add(community_event)
+            db.commit()
+            db.refresh(community_event)
+
+            pref_community = EventPreference(
+                event_id=community_event.id,
+                dietary="Pure Vegetarian Community Maha-Prasad",
+                theme="Traditional Deepotsav & Brass Diyas",
+                regional_culture="Maharashtrian Utsav",
+                cultural_traditions=["Deepotsav Lighting", "Cultural Natak & Lavani Folk", "Community Prasad Distribution", "Maha Aarti"],
+                music_entertainment="Live Classical Lezim & Dhol Troupe",
+                color_palette=["#EA580C", "#F59E0B", "#7C2D12", "#FFFBEB", "#0D9488"],
+                special_requirements="Crowd management barricades, municipal fire clearance, emergency first-aid station."
+            )
+            db.add(pref_community)
+            db.commit()
+            AIService.generate_full_event_plan(db, community_event)
+
     except Exception as e:
         db.rollback()
-        logger.error(f"Error bootstrapping scenario: {e}")
+        logger.error(f"Error bootstrapping scenarios: {e}")
     finally:
         db.close()
 

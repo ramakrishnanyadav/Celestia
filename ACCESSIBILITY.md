@@ -88,3 +88,4 @@ Manual testing conducted on the 5 core celebration workflows using **NVDA (v2024
 |---|---|---|---|---|
 | `A11Y-ROADMAP-01` | Optional drag-and-drop Gantt bar reordering currently relies on keyboard numeric adjustment and arrow keys; complete WAI-ARIA authoring practice for 2D spatial canvas. | Minor Polish (P3) | UI Team | v1.2 |
 | `A11Y-ROADMAP-02` | Expand multi-language voice synthesizers for vernacular Indian languages (Hindi, Marathi, Gujarati) in addition to current English (`en-IN`). | Enhancement (P3) | AI Team | v1.3 |
+

@@ -3,6 +3,7 @@
 import React from "react";
 import type { ApprovalItem } from "@/lib/api/types";
 import { CheckCheck, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 
 interface ApprovalsListProps {
   approvals: ApprovalItem[];
@@ -68,6 +69,13 @@ export function ApprovalsList({
                   Type: {item.proposal_type} <span aria-hidden="true">•</span> Created{" "}
                   {new Date(item.created_at).toLocaleDateString()}
                 </p>
+                <div className="mt-2">
+                  <ProvenanceBadge
+                    source={item.proposal_type === "budget_adjustment" ? "Formula" : "CPM Solver"}
+                    confidence="High"
+                    assumption="Generated within 3-tier autonomy guardrails; human approval required before DB state commit"
+                  />
+                </div>
               </div>
 
               {isPending && onAction && (

@@ -36,7 +36,7 @@ class AIService:
         guest_count = 300 # Default
         guest_match = re.search(r'(\d+)\s*(?:guests?|people|pax|attendees)', text)
         if guest_match:
-            guest_count = int(guest_match.group(1))
+            guest_count = max(10, min(5000, int(guest_match.group(1))))
 
         # Extract budget
         budget_rupees = 1500000.0 # Default ₹15,00,000

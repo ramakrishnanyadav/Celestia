@@ -4,6 +4,7 @@ import React from "react";
 import { formatMoney } from "@/lib/money";
 import type { BudgetCategory, ExpenseItem } from "@/lib/api/types";
 import { IndianRupee, Layers } from "lucide-react";
+import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 
 interface BudgetTableProps {
   categories: BudgetCategory[];
@@ -69,15 +70,26 @@ export function BudgetTable({
               >
                 <th
                   scope="row"
-                  className="px-5 py-4 font-semibold text-[var(--ink-primary)] flex items-center gap-2.5 font-normal"
+                  className="px-5 py-4 font-semibold text-[var(--ink-primary)] font-normal"
                 >
-                  <div
-                    className="w-8 h-8 rounded-lg bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center shrink-0"
-                    aria-hidden="true"
-                  >
-                    <IndianRupee className="w-4 h-4" />
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-8 h-8 rounded-lg bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center shrink-0"
+                      aria-hidden="true"
+                    >
+                      <IndianRupee className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-semibold block">{cat.name}</span>
+                      <div className="mt-0.5">
+                        <ProvenanceBadge
+                          source="Benchmark"
+                          confidence="High"
+                          assumption="Calibrated against Indian tier-1 celebration dataset"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <span className="font-semibold">{cat.name}</span>
                 </th>
                 <td className="px-5 py-4 text-[var(--ink-secondary)]">
                   {cat.allocation_percent}%

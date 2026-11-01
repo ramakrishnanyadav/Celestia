@@ -11,12 +11,14 @@ import {
   useUpdateEvent,
 } from "@/lib/hooks/queries";
 import { OverviewKpiCards } from "@/features/overview/components/OverviewKpiCards";
+import { DemoTourOverlay } from "@/components/demo/DemoTourOverlay";
 import {
   IndianRupee,
   CalendarDays,
   Store,
   CheckCheck,
   ArrowRight,
+  Compass,
 } from "lucide-react";
 
 export default function EventOverviewPage({
@@ -114,6 +116,9 @@ export default function EventOverviewPage({
             criticalTaskCount={criticalTasksCount}
           />
         </section>
+
+        {/* Guided Tour Modal & Floating Trigger */}
+        <DemoTourOverlay eventId={eventId} />
 
         {/* Quick Nav Bento */}
         <section aria-labelledby="modules-heading">

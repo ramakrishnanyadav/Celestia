@@ -4,6 +4,7 @@ import React from "react";
 import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import type { EventItem, BudgetSummary } from "@/lib/api/types";
 import { IndianRupee, Users, ShieldCheck, Clock } from "lucide-react";
+import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 
 interface OverviewKpiCardsProps {
   event: EventItem;
@@ -31,6 +32,9 @@ export function OverviewKpiCards({
       icon: IndianRupee,
       color: "var(--brand-teal)",
       isMoney: true,
+      source: "User prompt",
+      confidence: "High",
+      assumption: "Strict integer minor units (paise), zero float rounding",
     },
     {
       title: "Guest Count",
@@ -39,6 +43,9 @@ export function OverviewKpiCards({
       icon: Users,
       color: "var(--brand-indigo)",
       isMoney: false,
+      source: "User prompt",
+      confidence: "High",
+      assumption: "Base headcount requirement for venue capacity",
     },
     {
       title: "Contingency Buffer",
@@ -47,6 +54,9 @@ export function OverviewKpiCards({
       icon: ShieldCheck,
       color: "var(--brand-marigold)",
       isMoney: true,
+      source: "Formula",
+      confidence: "High",
+      assumption: "10% unallocated risk capital reserved automatically",
     },
     {
       title: "Timeline Tasks",
@@ -55,6 +65,9 @@ export function OverviewKpiCards({
       icon: Clock,
       color: "var(--ink-secondary)",
       isMoney: false,
+      source: "CPM Solver",
+      confidence: "High",
+      assumption: "Cycle-free directed acyclic graph (DAG) topological sort",
     },
   ];
 
@@ -79,19 +92,26 @@ export function OverviewKpiCards({
                 <Icon className="w-5 h-5" />
               </div>
             </div>
-            <div>
-              <div
-                className="text-2xl font-extrabold text-[var(--ink-primary)] tracking-tight"
-                lang={kpi.isMoney ? "en-IN" : undefined}
-              >
-                {kpi.value}
+            <div className="space-y-2">
+              <div>
+                <div
+                  className="text-2xl font-extrabold text-[var(--ink-primary)] tracking-tight"
+                  lang={kpi.isMoney ? "en-IN" : undefined}
+                >
+                  {kpi.value}
+                </div>
+                <p
+                  className="text-xs sm:text-sm text-[var(--ink-muted)] mt-1 truncate"
+                  lang={kpi.isMoney ? "en-IN" : undefined}
+                >
+                  {kpi.subtext}
+                </p>
               </div>
-              <p
-                className="text-xs sm:text-sm text-[var(--ink-muted)] mt-1 truncate"
-                lang={kpi.isMoney ? "en-IN" : undefined}
-              >
-                {kpi.subtext}
-              </p>
+              <ProvenanceBadge
+                source={kpi.source}
+                confidence={kpi.confidence}
+                assumption={kpi.assumption}
+              />
             </div>
           </li>
         );

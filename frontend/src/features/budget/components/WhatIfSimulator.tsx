@@ -5,6 +5,7 @@ import { formatMoney } from "@/lib/money";
 import { api } from "@/lib/api";
 import type { EventItem, WhatIfResponse } from "@/lib/api/types";
 import { Sliders, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 
 interface WhatIfSimulatorProps {
   event: EventItem;
@@ -234,6 +235,13 @@ export function WhatIfSimulator({
               Syncing...
             </span>
           )}
+        </div>
+        <div className="pt-2">
+          <ProvenanceBadge
+            source="What-If Engine"
+            confidence="High"
+            assumption="100% deterministic arithmetic simulation without database state mutation"
+          />
         </div>
       </div>
     </div>
