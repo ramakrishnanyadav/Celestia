@@ -6,6 +6,7 @@ import httpx
 from app.database import SessionLocal
 from app.models import User, Event, Task, TaskDependency, BudgetCategory, Expense
 from app.auth import hash_password, create_access_token
+from app.main import app
 
 BASE_URL = "http://127.0.0.1:8000"
 
@@ -132,7 +133,8 @@ async def run_scenario(concurrency: int, total_requests: int, token: str, event_
     limits = httpx.Limits(max_connections=concurrency + 10, max_keepalive_connections=concurrency + 5)
     timeout = httpx.Timeout(30.0, connect=10.0)
 
-    async with httpx.AsyncClient(base_url=BASE_URL, limits=limits, timeout=timeout) as client:
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver", limits=limits, timeout=timeout) as client:
         # Warmup
         await client.get(f"/api/events/{event_id}", headers=headers)
         await client.get(f"/api/events/{event_id}/tasks", headers=headers)

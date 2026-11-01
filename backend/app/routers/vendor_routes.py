@@ -2,12 +2,12 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import User, Event, Vendor, Quotation
+from ..models import Event, Vendor, Quotation
 from ..schemas import (
     VendorCreate, VendorResponse, QuotationCreate, QuotationResponse,
     VendorComparisonResponse
 )
-from ..auth import get_current_user
+from ..dependencies import get_event_for_user
 from ..engines.budget_intelligence import paise_to_rupees
 from ..engines.vendor_intelligence import compare_quotations_for_category, analyze_quotation_risks
 
@@ -21,28 +21,18 @@ def enrich_vendor_response(v: Vendor) -> VendorResponse:
 
 @router.get("", response_model=List[VendorResponse])
 def list_vendors(
-    event_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
-    vendors = db.query(Vendor).filter(Vendor.event_id == event_id).all()
+    vendors = db.query(Vendor).filter(Vendor.event_id == event.id).all()
     return [enrich_vendor_response(v) for v in vendors]
 
 @router.post("", response_model=VendorResponse)
 def create_vendor(
-    event_id: str,
     vendor_in: VendorCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
     vendor = Vendor(
         event_id=event.id,
         category=vendor_in.category,
@@ -59,24 +49,19 @@ def create_vendor(
 
 @router.post("/{vendor_id}/quotations", response_model=QuotationResponse)
 def add_quotation(
-    event_id: str,
     vendor_id: str,
     quote_in: QuotationCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
-    vendor = db.query(Vendor).filter(Vendor.id == vendor_id, Vendor.event_id == event_id).first()
+    vendor = db.query(Vendor).filter(Vendor.id == vendor_id, Vendor.event_id == event.id).first()
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
-        
+
     # Analyze risks
     detected_risks = analyze_quotation_risks(quote_in.terms, quote_in.inclusions, quote_in.exclusions)
     all_risks = list(set(detected_risks + quote_in.detected_risks))
-    
+
     quote = Quotation(
         vendor_id=vendor.id,
         vendor_name_cached=vendor.name,
@@ -92,20 +77,15 @@ def add_quotation(
     db.add(quote)
     db.commit()
     db.refresh(quote)
-    
+
     res = QuotationResponse.model_validate(quote)
     res.quoted_rupees = paise_to_rupees(quote.quoted_amount_minor)
     return res
 
 @router.get("/compare", response_model=VendorComparisonResponse)
 def compare_quotations(
-    event_id: str,
     category: str = "Catering",
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
-    return compare_quotations_for_category(db, event_id, category)
+    return compare_quotations_for_category(db, event.id, category)

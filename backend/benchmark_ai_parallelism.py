@@ -8,6 +8,10 @@ from app.auth import hash_password
 async def run_ai_benchmark():
     db = SessionLocal()
     user = db.query(User).filter(User.email == "loadtest_500@celestia.ai").first()
+    if not user:
+        from run_load_test import setup_500_task_event
+        setup_500_task_event()
+        user = db.query(User).filter(User.email == "loadtest_500@celestia.ai").first()
     event = db.query(Event).filter(Event.user_id == user.id).first()
     pref = event.preference
     

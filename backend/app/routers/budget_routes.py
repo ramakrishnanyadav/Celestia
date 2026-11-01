@@ -2,16 +2,16 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 from ..database import get_db
-from ..models import User, Event, BudgetCategory, Expense
+from ..models import Event, BudgetCategory, Expense
 from ..schemas import (
     BudgetSummaryResponse, BudgetCategoryResponse, ExpenseResponse,
     BudgetCategoryCreate, BudgetCategoryUpdate, ExpenseCreate, ExpenseUpdate,
     WhatIfSimulationRequest, WhatIfSimulationResponse
 )
-from ..auth import get_current_user
+from ..dependencies import get_event_for_user
 from ..engines.budget_intelligence import (
     calculate_budget_summary, simulate_what_if_changes,
-    paise_to_rupees, rupees_to_paise
+    paise_to_rupees
 )
 
 router = APIRouter(prefix="/events/{event_id}/budget", tags=["Budget Intelligence"])
@@ -27,35 +27,25 @@ def enrich_category_response(cat: BudgetCategory) -> BudgetCategoryResponse:
 
 @router.get("/summary", response_model=BudgetSummaryResponse)
 def get_budget_summary(
-    event_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
     categories = db.query(BudgetCategory).options(
         selectinload(BudgetCategory.expenses)
     ).filter(
-        BudgetCategory.event_id == event_id
+        BudgetCategory.event_id == event.id
     ).order_by(BudgetCategory.sort_order.asc()).all()
-    
+
     summary = calculate_budget_summary(event, categories)
     summary["categories"] = [enrich_category_response(c) for c in categories]
     return summary
 
 @router.post("/categories", response_model=BudgetCategoryResponse)
 def create_category(
-    event_id: str,
     cat_in: BudgetCategoryCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
     cat = BudgetCategory(
         event_id=event.id,
         name=cat_in.name,
@@ -73,23 +63,18 @@ def create_category(
 
 @router.patch("/categories/{category_id}", response_model=BudgetCategoryResponse)
 def update_category(
-    event_id: str,
     category_id: str,
     cat_in: BudgetCategoryUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
     cat = db.query(BudgetCategory).filter(
         BudgetCategory.id == category_id,
-        BudgetCategory.event_id == event_id
+        BudgetCategory.event_id == event.id
     ).first()
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
-        
+
     data = cat_in.model_dump(exclude_unset=True)
     if "expected_version" in data:
         data.pop("expected_version")
@@ -99,30 +84,28 @@ def update_category(
                 detail=f"Conflict: Category was modified by another user (expected version {cat_in.expected_version}, current version {cat.version}). Please refresh and retry."
             )
         cat.version += 1
-        
+
     for k, v in data.items():
         setattr(cat, k, v)
-        
+
     db.commit()
     db.refresh(cat)
     return enrich_category_response(cat)
 
 @router.post("/categories/{category_id}/expenses", response_model=ExpenseResponse)
 def add_expense(
-    event_id: str,
     category_id: str,
     exp_in: ExpenseCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
-    cat = db.query(BudgetCategory).filter(BudgetCategory.id == category_id, BudgetCategory.event_id == event_id).first()
+    cat = db.query(BudgetCategory).filter(
+        BudgetCategory.id == category_id,
+        BudgetCategory.event_id == event.id
+    ).first()
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
-        
+
     exp = Expense(
         category_id=cat.id,
         name=exp_in.name,
@@ -134,7 +117,7 @@ def add_expense(
     db.add(exp)
     db.commit()
     db.refresh(exp)
-    
+
     res = ExpenseResponse.model_validate(exp)
     res.planned_rupees = paise_to_rupees(exp.planned_amount_minor)
     res.actual_rupees = paise_to_rupees(exp.actual_amount_minor)
@@ -142,23 +125,18 @@ def add_expense(
 
 @router.patch("/expenses/{expense_id}", response_model=ExpenseResponse)
 def update_expense(
-    event_id: str,
     expense_id: str,
     exp_in: ExpenseUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
     exp = db.query(Expense).join(BudgetCategory).filter(
         Expense.id == expense_id,
-        BudgetCategory.event_id == event_id
+        BudgetCategory.event_id == event.id
     ).first()
     if not exp:
         raise HTTPException(status_code=404, detail="Expense not found")
-        
+
     data = exp_in.model_dump(exclude_unset=True)
     if "expected_version" in data:
         data.pop("expected_version")
@@ -168,13 +146,13 @@ def update_expense(
                 detail=f"Conflict: Expense was modified by another user (expected version {exp_in.expected_version}, current version {exp.version}). Please refresh and retry."
             )
         exp.version += 1
-        
+
     for k, v in data.items():
         setattr(exp, k, v)
-        
+
     db.commit()
     db.refresh(exp)
-    
+
     res = ExpenseResponse.model_validate(exp)
     res.planned_rupees = paise_to_rupees(exp.planned_amount_minor)
     res.actual_rupees = paise_to_rupees(exp.actual_amount_minor)
@@ -182,41 +160,31 @@ def update_expense(
 
 @router.delete("/expenses/{expense_id}")
 def delete_expense(
-    event_id: str,
     expense_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
     exp = db.query(Expense).join(BudgetCategory).filter(
         Expense.id == expense_id,
-        BudgetCategory.event_id == event_id
+        BudgetCategory.event_id == event.id
     ).first()
     if not exp:
         raise HTTPException(status_code=404, detail="Expense not found")
-        
+
     db.delete(exp)
     db.commit()
     return {"message": "Expense deleted successfully"}
 
 @router.post("/what-if", response_model=WhatIfSimulationResponse)
 def simulate_budget_scenario(
-    event_id: str,
     sim_in: WhatIfSimulationRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-        
     categories = db.query(BudgetCategory).filter(
-        BudgetCategory.event_id == event_id
+        BudgetCategory.event_id == event.id
     ).order_by(BudgetCategory.sort_order.asc()).all()
-    
+
     result = simulate_what_if_changes(
         event,
         categories,

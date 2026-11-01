@@ -5,6 +5,8 @@ import httpx
 from app.database import SessionLocal
 from app.models import User, Event, Approval
 from app.auth import hash_password, create_access_token
+from app.main import app
+from fastapi.testclient import TestClient
 
 BASE_URL = "http://127.0.0.1:8000"
 
@@ -28,7 +30,7 @@ def test_fault_duplicate_submit(token: str, event_id: str):
     }
 
     # First Submit
-    with httpx.Client(base_url=BASE_URL) as client:
+    with TestClient(app) as client:
         r1 = client.post(f"/api/events/{event_id}/tasks", json=payload, headers=headers)
         print(f"1st Submit Status: {r1.status_code} | Raw text: {repr(r1.text)[:120]}")
         print(f"Body ID: {r1.json().get('id') if r1.status_code == 200 else 'N/A'}")
@@ -47,7 +49,7 @@ def test_fault_duplicate_submit(token: str, event_id: str):
 def test_fault_provider_timeout(token: str, event_id: str):
     print("\n--- FAULT INJECTION 2: AI Provider Timeout & Fast Fallback ---")
     headers = {"Authorization": f"Bearer {token}"}
-    with httpx.Client(base_url=BASE_URL, timeout=10.0) as client:
+    with TestClient(app) as client:
         # Request with timeout_sec=0.10s (extremely aggressive timeout to simulate provider hang)
         t0 = time.perf_counter()
         resp = client.post(f"/api/events/{event_id}/ai/generate-plan-parallel?timeout_sec=0.10", headers=headers)
@@ -74,7 +76,7 @@ def test_fault_database_down():
 
 def test_traceback_in_500_leak(token: str):
     print("\n--- FAULT INJECTION 4: Verify 'Traceback in 500' Claim with Real Request ---")
-    with httpx.Client(base_url=BASE_URL) as client:
+    with TestClient(app, raise_server_exceptions=False) as client:
         # Send real request triggering an unhandled ZeroDivisionError on the server
         resp = client.get("/api/test-fault/unhandled-error")
         print(f"Status Code: {resp.status_code}")
