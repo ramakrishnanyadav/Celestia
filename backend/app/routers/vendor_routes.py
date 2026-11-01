@@ -1,4 +1,5 @@
 
+import json
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
@@ -65,7 +66,8 @@ def add_quotation(
         raise HTTPException(status_code=404, detail="Vendor not found")
 
     # Scan for indirect prompt injection in terms and vendor remarks
-    ai_gateway.sanitize_untrusted_input(quote_in.terms or "", "quotation terms")
+    terms_str = json.dumps(quote_in.terms) if isinstance(quote_in.terms, dict) else str(quote_in.terms or "")
+    ai_gateway.sanitize_untrusted_input(terms_str, "quotation terms")
     for inc in quote_in.inclusions:
         ai_gateway.sanitize_untrusted_input(inc, "quotation inclusion")
     for exc in quote_in.exclusions:
@@ -131,12 +133,11 @@ async def upload_vendor_document(
     # Persist document metadata
     doc = Document(
         event_id=event.id,
-        filename=file.filename or "upload.pdf",
-        file_path=f"uploads/{event.id}/{file.filename}",
-        doc_type=doc_type,
-        parsed_status="ready"
+        file_name=file.filename or "upload.pdf",
+        file_type=file.content_type or "application/pdf",
+        metadata_json={"doc_type": doc_type, "size_bytes": len(content)}
     )
     db.add(doc)
     db.commit()
     db.refresh(doc)
-    return {"status": "uploaded", "document_id": doc.id, "filename": doc.filename}
+    return {"status": "uploaded", "document_id": doc.id, "filename": doc.file_name}

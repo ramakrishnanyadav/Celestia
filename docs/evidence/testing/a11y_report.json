@@ -1,0 +1,120 @@
+{
+  "timestamp": "2026-11-01T16:05:02Z",
+  "total_audits": 16,
+  "total_violations": 0,
+  "details": [
+    {
+      "viewport": "mobile_375",
+      "theme": "light",
+      "reduced_motion": "no-preference",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "mobile_375",
+      "theme": "light",
+      "reduced_motion": "reduce",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "mobile_375",
+      "theme": "dark",
+      "reduced_motion": "no-preference",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "mobile_375",
+      "theme": "dark",
+      "reduced_motion": "reduce",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "tablet_768",
+      "theme": "light",
+      "reduced_motion": "no-preference",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "tablet_768",
+      "theme": "light",
+      "reduced_motion": "reduce",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "tablet_768",
+      "theme": "dark",
+      "reduced_motion": "no-preference",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "tablet_768",
+      "theme": "dark",
+      "reduced_motion": "reduce",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "desktop_1280",
+      "theme": "light",
+      "reduced_motion": "no-preference",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "desktop_1280",
+      "theme": "light",
+      "reduced_motion": "reduce",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "desktop_1280",
+      "theme": "dark",
+      "reduced_motion": "no-preference",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "desktop_1280",
+      "theme": "dark",
+      "reduced_motion": "reduce",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "ultrawide_1920",
+      "theme": "light",
+      "reduced_motion": "no-preference",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "ultrawide_1920",
+      "theme": "light",
+      "reduced_motion": "reduce",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "ultrawide_1920",
+      "theme": "dark",
+      "reduced_motion": "no-preference",
+      "violations_count": 0,
+      "violations": []
+    },
+    {
+      "viewport": "ultrawide_1920",
+      "theme": "dark",
+      "reduced_motion": "reduce",
+      "violations_count": 0,
+      "violations": []
+    }
+  ],
+  "overall_status": "PASS"
+}

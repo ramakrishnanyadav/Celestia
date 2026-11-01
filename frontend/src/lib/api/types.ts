@@ -5,27 +5,35 @@ export type TokenResponse = components["schemas"]["Token"];
 
 export type EventItem = components["schemas"]["EventResponse"];
 export type EventOverview = components["schemas"]["EventOverviewResponse"];
-export type EventCreateInput = components["schemas"]["EventCreate"];
+export type EventCreateInput = Partial<components["schemas"]["EventCreate"]> &
+  Pick<components["schemas"]["EventCreate"], "title">;
 export type EventUpdateInput = components["schemas"]["EventUpdate"];
 export type EventPreference = components["schemas"]["EventPreferenceResponse"];
 
 export type BudgetSummary = components["schemas"]["BudgetSummaryResponse"];
 export type BudgetCategory = components["schemas"]["BudgetCategoryResponse"];
 export type BudgetCategoryCreateInput =
-  components["schemas"]["BudgetCategoryCreate"];
+  Partial<components["schemas"]["BudgetCategoryCreate"]> &
+    Pick<components["schemas"]["BudgetCategoryCreate"], "name">;
 export type ExpenseItem = components["schemas"]["ExpenseResponse"];
-export type ExpenseCreateInput = components["schemas"]["ExpenseCreate"];
+export type ExpenseCreateInput =
+  Partial<components["schemas"]["ExpenseCreate"]> &
+    Pick<components["schemas"]["ExpenseCreate"], "name">;
 export type ExpenseUpdateInput = components["schemas"]["ExpenseUpdate"];
 export type WhatIfResponse = components["schemas"]["WhatIfSimulationResponse"];
 
 export type TaskItem = components["schemas"]["TaskResponse"];
-export type TaskCreateInput = components["schemas"]["TaskCreate"];
+export type TaskCreateInput = Partial<components["schemas"]["TaskCreate"]> &
+  Pick<components["schemas"]["TaskCreate"], "title">;
 export type TaskUpdateInput = components["schemas"]["TaskUpdate"];
 
 export type VendorItem = components["schemas"]["VendorResponse"];
-export type VendorCreateInput = components["schemas"]["VendorCreate"];
+export type VendorCreateInput = Partial<components["schemas"]["VendorCreate"]> &
+  Pick<components["schemas"]["VendorCreate"], "name" | "category">;
 export type QuotationItem = components["schemas"]["QuotationResponse"];
-export type QuotationCreateInput = components["schemas"]["QuotationCreate"];
+export type QuotationCreateInput =
+  Partial<components["schemas"]["QuotationCreate"]> &
+    Pick<components["schemas"]["QuotationCreate"], "quoted_amount_minor">;
 export type VendorComparison =
   components["schemas"]["VendorComparisonResponse"];
 

@@ -13,10 +13,10 @@
     --ink-secondary: #3b4256;
     --ink-muted: #5b6478;
 
-    /* Brand Accents */
-    --brand-teal: #0d9488;
+    /* Brand Accents (WCAG 2.1 AA Compliant >= 4.5:1) */
+    --brand-teal: #0f766e;
     --brand-teal-light: #14b8a6;
-    --brand-teal-subtle: rgba(13, 148, 136, 0.08);
+    --brand-teal-subtle: rgba(15, 118, 110, 0.08);
     --brand-marigold: #f59e0b;
     --brand-marigold-subtle: rgba(245, 158, 11, 0.1);
     --brand-indigo: #6366f1;
@@ -36,6 +36,29 @@
     --status-info: #3b82f6;
   }
 
+  .dark,
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --canvas: #0b132b;
+      --canvas-subtle: #1c2541;
+      --canvas-sunken: #0a1128;
+      --canvas-card: #1c2541;
+
+      --ink-primary: #faf7f2;
+      --ink-secondary: #cbd5e1;
+      --ink-muted: #94a3b8;
+
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --border-accent: rgba(20, 184, 166, 0.35);
+      --brand-teal: #0f766e;
+      --brand-teal-light: #14b8a6;
+      --brand-teal-subtle: rgba(15, 118, 110, 0.2);
+      --glass-bg: rgba(28, 37, 65, 0.82);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+    }
+  }
+
   .dark {
     --canvas: #0b132b;
     --canvas-subtle: #1c2541;
@@ -48,6 +71,9 @@
 
     --border-subtle: rgba(255, 255, 255, 0.1);
     --border-accent: rgba(20, 184, 166, 0.35);
+    --brand-teal: #0f766e;
+    --brand-teal-light: #14b8a6;
+    --brand-teal-subtle: rgba(15, 118, 110, 0.2);
     --glass-bg: rgba(28, 37, 65, 0.82);
     --glass-border: rgba(255, 255, 255, 0.12);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);

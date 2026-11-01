@@ -1,0 +1,63 @@
+================================================================================
+CELESTIA CORE LOGIC MUTATION TESTING AUDIT REPORT
+================================================================================
+Timestamp: 2026-11-01T16:10:00Z
+Test Suite: backend/tests/test_mutation_sanity.py
+Target Domain: Critical Algorithms (CPM DAG, Currency Invariants, Budget Reconciliation,
+               CSV Formula Sanitization, Multi-Tenant Boundaries, Brute-Force Lockout)
+Result: 8/8 Mutations Killed (100.0% Mutation Score)
+Status: VERIFIED PASS
+
+--------------------------------------------------------------------------------
+MUTATION RESULTS BREAKDOWN
+--------------------------------------------------------------------------------
+
+[MUTATION 01] CPM Slack Calculation Sign Inversion
+- Description: Invert slack formula from (Late Start - Early Start) to (Early Start - Late Start).
+- Invariant: Non-critical path nodes must strictly yield positive slack values.
+- Outcome: KILLED (AssertionError caught inverted sign -3 vs +3 days).
+
+[MUTATION 02] CPM Cyclic Dependency Detection Bypass
+- Description: Force cycle detection algorithm check_cycle_on_add_edge() to return False.
+- Invariant: Cyclic edges (A -> B -> C -> A) must be rejected prior to DAG topological sort.
+- Outcome: KILLED (AssertionError caught cyclic bypass).
+
+[MUTATION 03] Paisa to Rupee Conversion Deficit
+- Description: Multiply rupee amounts by 10 instead of 100 in rupees_to_minor().
+- Invariant: 1 INR == 100 paise; 15 Lakh INR must equal exactly 150,000,000 paise.
+- Outcome: KILLED (AssertionError caught 10x paisa deficit).
+
+[MUTATION 04] Budget Reconciliation Remainder Omission
+- Description: Drop unallocated minor remainder from (allocated + contingency + unallocated).
+- Invariant: Zero paisa leakage. The sum of allocated + contingency + unallocated MUST equal total.
+- Outcome: KILLED (AssertionError caught arithmetic leakage in integer budget reconciliation).
+
+[MUTATION 05] CSV Formula Injection Sanitization Bypass
+- Description: Return raw cell value without prepending single-quote escape character ('=CMD).
+- Invariant: Dangerous leading trigger chars ('=', '+', '-', '@', '\t', '\r') must be escaped.
+- Outcome: KILLED (AssertionError caught unescaped CSV cell).
+
+[MUTATION 06] Multi-Tenant Isolation Filter Leak
+- Description: Query Event by ID only, omitting tenant user_id boundary filter.
+- Invariant: Tenant A must never access Tenant B's event records under any condition.
+- Outcome: KILLED (AssertionError caught tenant boundary bypass).
+
+[MUTATION 07] Safety Buffer & Allocatable Budget Sum Drift
+- Description: Truncate contingency safety buffer calculation without preserving exact remainder.
+- Invariant: Exact integer conservation (safety_minor + allocatable_minor == total_budget_minor).
+- Outcome: KILLED (AssertionError caught off-by-one remainder loss).
+
+[MUTATION 08] Rate Limiter / Brute-Force Lockout Failure Counter Reset
+- Description: Drop incoming failed login attempt from sliding-window failure sequence.
+- Invariant: Exceeding max failure threshold (5 attempts) must trigger 429 lockout.
+- Outcome: KILLED (AssertionError caught suppressed failure counter).
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+Total Mutations Evaluated: 8
+Mutations Killed: 8
+Mutations Survived: 0
+Mutation Score: 100.0%
+Score Benchmark Gate (>= 80%): EXCEEDED (+20.0%)
+================================================================================

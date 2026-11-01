@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-11-01T16:05:02Z",
+  "browsers_tested": [
+    "chromium",
+    "firefox",
+    "webkit"
+  ],
+  "flows": [
+    {
+      "browser": "chromium",
+      "steps": [
+        {
+          "step": "Landing Page Load",
+          "status": "PASS",
+          "duration_ms": 4305.29
+        },
+        {
+          "step": "Document Title",
+          "status": "PASS",
+          "title": "CELESTIA \u2014 AI Celebration & Event Planning Assistant"
+        },
+        {
+          "step": "DOM Render & Root Mount",
+          "status": "PASS"
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "browser": "firefox",
+      "steps": [
+        {
+          "step": "Landing Page Load",
+          "status": "PASS",
+          "duration_ms": 1412.4
+        },
+        {
+          "step": "Document Title",
+          "status": "PASS",
+          "title": "CELESTIA \u2014 AI Celebration & Event Planning Assistant"
+        },
+        {
+          "step": "DOM Render & Root Mount",
+          "status": "PASS"
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "browser": "webkit",
+      "steps": [
+        {
+          "step": "Landing Page Load",
+          "status": "PASS",
+          "duration_ms": 1652.57
+        },
+        {
+          "step": "Document Title",
+          "status": "PASS",
+          "title": "CELESTIA \u2014 AI Celebration & Event Planning Assistant"
+        },
+        {
+          "step": "DOM Render & Root Mount",
+          "status": "PASS"
+        }
+      ],
+      "status": "PASS"
+    }
+  ],
+  "overall_status": "PASS"
+}
