@@ -13,29 +13,38 @@ from ..dependencies import get_event_for_user
 from ..engines.ai_service import AIService
 from ..engines.celebration_intelligence import generate_personalized_ideas
 from ..engines.ai_efficiency import AIEfficiencyService
+from ..engines.ai_gateway import ai_gateway
 from ..idempotency import check_idempotency, record_idempotency
+from ..rate_limiter import rate_limit_ai
 
 router = APIRouter(prefix="", tags=["AI Intelligence"])
 
 class ChatCommandRequest(BaseModel):
     command: str
 
-@router.post("/ai/extract-requirements", response_model=ExtractedRequirement)
+@router.post("/ai/extract-requirements", response_model=ExtractedRequirement, dependencies=[Depends(rate_limit_ai)])
 def extract_requirements(req: RequirementExtractionRequest):
-    return AIService.extract_requirements_from_text(req.natural_language_prompt)
+    ai_gateway.check_pause_switch()
+    sanitized_prompt = ai_gateway.sanitize_untrusted_input(req.natural_language_prompt, "prompt")
+    return AIService.extract_requirements_from_text(sanitized_prompt)
 
-@router.get("/events/{event_id}/ai/ideas", response_model=PersonalizedIdeasResponse)
+@router.get("/events/{event_id}/ai/ideas", response_model=PersonalizedIdeasResponse, dependencies=[Depends(rate_limit_ai)])
 def get_ideas(
     event: Event = Depends(get_event_for_user)
 ):
+    ai_gateway.check_pause_switch(event.ai_paused)
+    ai_gateway.check_user_budget(event.user_id)
     return generate_personalized_ideas(event, event.preference)
 
-@router.post("/events/{event_id}/ai/generate-plan", response_model=PlanGenerationResponse)
+@router.post("/events/{event_id}/ai/generate-plan", response_model=PlanGenerationResponse, dependencies=[Depends(rate_limit_ai)])
 def generate_event_plan(
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
 ):
+    ai_gateway.check_pause_switch(event.ai_paused)
+    ai_gateway.check_user_budget(event.user_id)
+
     cached = check_idempotency(db, idempotency_key, event.user_id, f"generate_plan_{event.id}", {"event_id": event.id})
     if cached:
         return cached[1]
@@ -45,13 +54,16 @@ def generate_event_plan(
     record_idempotency(db, idempotency_key, event.user_id, f"generate_plan_{event.id}", {"event_id": event.id}, 200, res_data)
     return res
 
-@router.post("/events/{event_id}/ai/command")
+@router.post("/events/{event_id}/ai/command", dependencies=[Depends(rate_limit_ai)])
 def execute_ai_command(
     cmd_in: ChatCommandRequest,
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db)
 ):
-    return AIService.process_natural_language_command(db, event, cmd_in.command)
+    ai_gateway.check_pause_switch(event.ai_paused)
+    ai_gateway.check_user_budget(event.user_id)
+    sanitized_cmd = ai_gateway.sanitize_untrusted_input(cmd_in.command, "command")
+    return AIService.process_natural_language_command(db, event, sanitized_cmd)
 
 @router.get("/events/{event_id}/ai/stream-plan")
 async def stream_event_plan(

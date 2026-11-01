@@ -62,6 +62,12 @@ class RealGeminiProvider(AIProvider):
             "prompt_tokens": TokenCostTracker.estimate_tokens(prompt)
         }
 
+def get_ai_provider() -> AIProvider:
+    """Returns configured provider: RealGeminiProvider if API key exists, else RuleBasedFallbackProvider."""
+    if settings.GEMINI_API_KEY:
+        return RealGeminiProvider(settings.GEMINI_API_KEY)
+    return RuleBasedFallbackProvider()
+
 # ============================================================================
 # ESTIMATED TOKEN & COST TRACKER
 # ============================================================================

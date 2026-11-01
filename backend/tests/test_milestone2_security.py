@@ -103,7 +103,8 @@ def test_demo_login_endpoint(client):
     data = res.json()
     assert "access_token" in data
     assert data["token_type"] == "bearer"
-    assert data["user"]["email"] == "demo@celestia.ai"
+    assert data["user"]["is_demo"] is True
+    assert "@celestia.demo" in data["user"]["email"]
     
     # Token must be usable
     ev_res = client.get("/api/events", headers={"Authorization": f"Bearer {data['access_token']}"})

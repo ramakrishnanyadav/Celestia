@@ -21,10 +21,13 @@ class User(Base):
     name = Column(String(255), nullable=False)
     password_hash = Column(String(255), nullable=False)
     role = Column(String(50), default="planner")
+    is_demo = Column(Boolean, default=False)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     events = relationship("Event", back_populates="user", cascade="all, delete-orphan")
+    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
 
 class Event(Base):
     __tablename__ = "events"
@@ -289,3 +292,16 @@ class IdempotencyRecord(Base):
     response_code = Column(Integer, nullable=False, default=200)
     response_body = Column(JSON, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now)
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash = Column(String(64), unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    revoked = Column(Boolean, default=False)
+    replaced_by = Column(String(64), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+
+    user = relationship("User", back_populates="refresh_tokens")

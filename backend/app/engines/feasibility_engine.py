@@ -11,20 +11,26 @@ class FeasibilityResult:
     min_recommended_budget_rupees: float
     reasons: List[str] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
+    trade_off_options: List[str] = field(default_factory=list)
+    provenance_label: str = "estimate"
+    source: str = "Research: Indian Wedding & Celebration Industry Survey (Mumbai, Tier 1 & Tier 2 City Banquet & Catering Cost Index 2024-2025)"
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "benchmarks_v1.json"
 
-def _load_benchmarks() -> tuple[set, set, dict]:
+def _load_benchmarks() -> tuple[set, set, dict, list, dict, str, str]:
     try:
         with open(DATA_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
             return (
                 set(data.get("tier_1_cities", [])),
                 set(data.get("tier_2_cities", [])),
-                data.get("market_benchmarks", {})
+                data.get("market_benchmarks", {}),
+                data.get("trade_off_options", []),
+                data.get("event_type_bounds", {}),
+                data.get("label", "estimate"),
+                data.get("source", "Research: Indian Celebration Benchmark Survey 2024-2025")
             )
     except Exception:
-        # Fallback to hardcoded defaults if file unavailable
         return (
             {"mumbai", "delhi", "new delhi", "bengaluru", "bangalore", "chennai", "hyderabad", "kolkata"},
             {"pune", "ahmedabad", "jaipur", "lucknow", "chandigarh", "surat", "indore", "kochi", "nagpur", "bhopal", "patna", "vadodara"},
@@ -44,10 +50,18 @@ def _load_benchmarks() -> tuple[set, set, dict]:
                     "tier2": {"min_per_guest": 350.0, "comfortable_per_guest": 650.0, "fixed_floor": 60000.0},
                     "other": {"min_per_guest": 250.0, "comfortable_per_guest": 450.0, "fixed_floor": 40000.0},
                 }
-            }
+            },
+            [
+                "Adjust guest count: Decreasing guest tally directly lowers per-head banquet and catering commitments while preserving culinary quality.",
+                "Optimize venue tier: Shift from a Tier-1 5-star suburban banquet to an elite heritage community hall or weekday Muhurtham slot.",
+                "Rebalance category allocation: Cap non-essential decorative floral structures and cinematic drones to protect core culinary and ritual ceremonies."
+            ],
+            {},
+            "estimate",
+            "Research: Indian Celebration Benchmark Survey 2024-2025"
         )
 
-TIER_1_CITIES, TIER_2_CITIES, MARKET_BENCHMARKS = _load_benchmarks()
+TIER_1_CITIES, TIER_2_CITIES, MARKET_BENCHMARKS, TRADE_OFF_OPTIONS, EVENT_TYPE_BOUNDS, BENCHMARK_LABEL, BENCHMARK_SOURCE = _load_benchmarks()
 
 def get_city_tier(city: str) -> str:
     norm = city.strip().lower()
@@ -132,12 +146,17 @@ def check_event_feasibility(
             "Prioritize venue and caterer locking immediately to avoid rush-booking surcharges."
         )
 
+    trade_offs = TRADE_OFF_OPTIONS if status in ("tight", "infeasible") else []
+
     return FeasibilityResult(
         status=status,
         per_guest_rupees=per_guest_rupees,
         min_recommended_per_guest_rupees=min_per_guest,
         min_recommended_budget_rupees=min_recommended_budget_rupees,
         reasons=reasons,
-        recommendations=recommendations
+        recommendations=recommendations,
+        trade_off_options=trade_offs,
+        provenance_label=BENCHMARK_LABEL,
+        source=BENCHMARK_SOURCE
     )
 

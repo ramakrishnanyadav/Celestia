@@ -1,8 +1,8 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import Event, Vendor, Quotation
+from ..models import Event, Vendor, Quotation, Document
 from ..schemas import (
     VendorCreate, VendorResponse, QuotationCreate, QuotationResponse,
     VendorComparisonResponse
@@ -10,6 +10,8 @@ from ..schemas import (
 from ..dependencies import get_event_for_user
 from ..engines.budget_intelligence import paise_to_rupees
 from ..engines.vendor_intelligence import compare_quotations_for_category, analyze_quotation_risks
+from ..engines.ai_gateway import ai_gateway
+from ..rate_limiter import rate_limit_upload
 
 router = APIRouter(prefix="/events/{event_id}/vendors", tags=["Vendor Intelligence"])
 
@@ -47,7 +49,7 @@ def create_vendor(
     db.refresh(vendor)
     return enrich_vendor_response(vendor)
 
-@router.post("/{vendor_id}/quotations", response_model=QuotationResponse)
+@router.post("/{vendor_id}/quotations", response_model=QuotationResponse, dependencies=[Depends(rate_limit_upload)])
 def add_quotation(
     vendor_id: str,
     quote_in: QuotationCreate,
@@ -57,6 +59,13 @@ def add_quotation(
     vendor = db.query(Vendor).filter(Vendor.id == vendor_id, Vendor.event_id == event.id).first()
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
+
+    # Scan for indirect prompt injection in terms and vendor remarks
+    ai_gateway.sanitize_untrusted_input(quote_in.terms or "", "quotation terms")
+    for inc in quote_in.inclusions:
+        ai_gateway.sanitize_untrusted_input(inc, "quotation inclusion")
+    for exc in quote_in.exclusions:
+        ai_gateway.sanitize_untrusted_input(exc, "quotation exclusion")
 
     # Analyze risks
     detected_risks = analyze_quotation_risks(quote_in.terms, quote_in.inclusions, quote_in.exclusions)
@@ -89,3 +98,41 @@ def compare_quotations(
     db: Session = Depends(get_db)
 ):
     return compare_quotations_for_category(db, event.id, category)
+
+@router.post("/documents/upload", dependencies=[Depends(rate_limit_upload)])
+async def upload_vendor_document(
+    file: UploadFile = File(...),
+    doc_type: str = Form("contract"),
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Secure document upload endpoint with rate limiting, file type and size validation.
+    """
+    allowed_types = ["application/pdf", "image/jpeg", "image/png"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Unsupported file format. Only PDF, JPEG, and PNG documents are permitted."
+        )
+
+    content = await file.read()
+    max_bytes = 10 * 1024 * 1024 # 10MB
+    if len(content) > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File size exceeds maximum allowable limit of 10 MB."
+        )
+
+    # Persist document metadata
+    doc = Document(
+        event_id=event.id,
+        filename=file.filename or "upload.pdf",
+        file_path=f"uploads/{event.id}/{file.filename}",
+        doc_type=doc_type,
+        parsed_status="ready"
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+    return {"status": "uploaded", "document_id": doc.id, "filename": doc.filename}

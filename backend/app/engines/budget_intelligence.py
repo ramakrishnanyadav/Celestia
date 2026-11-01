@@ -218,6 +218,10 @@ def calculate_budget_summary(event: Event, categories: List[BudgetCategory]) -> 
     # 10% explicit contingency reserve via pure integer arithmetic
     contingency_reserve_minor = (total_budget_minor * 10) // 100
     contingency_reserve_rupees = paise_to_rupees(contingency_reserve_minor)
+    safety_buffer_minor = contingency_reserve_minor
+    safety_buffer_rupees = contingency_reserve_rupees
+    allocatable_minor = total_budget_minor - safety_buffer_minor
+    allocatable_rupees = paise_to_rupees(allocatable_minor)
     
     unallocated_minor = max(0, total_budget_minor - allocated_minor - contingency_reserve_minor)
     unallocated_rupees = paise_to_rupees(unallocated_minor)
@@ -239,6 +243,10 @@ def calculate_budget_summary(event: Event, categories: List[BudgetCategory]) -> 
         "total_budget_rupees": total_budget_rupees,
         "allocated_minor": allocated_minor,
         "allocated_rupees": allocated_rupees,
+        "allocatable_minor": allocatable_minor,
+        "allocatable_rupees": allocatable_rupees,
+        "safety_buffer_minor": safety_buffer_minor,
+        "safety_buffer_rupees": safety_buffer_rupees,
         "unallocated_minor": unallocated_minor,
         "unallocated_rupees": unallocated_rupees,
         "is_reconciled": is_reconciled,

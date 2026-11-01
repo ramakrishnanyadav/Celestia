@@ -1,25 +1,27 @@
 import os
 import time
+import secrets
 import hashlib
 import hmac
 import base64
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, InvalidHashError
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from .config import settings
 from .database import get_db
-from .models import User
+from .models import User, RefreshToken
 
 security = HTTPBearer(auto_error=False)
 
 def get_argon2_hasher() -> PasswordHasher:
     """
     Returns an Argon2id hasher.
-    In testing mode, uses lower cost parameters for sub-millisecond execution.
+    In testing mode, uses lower cost parameters for fast test execution.
     In production, uses RFC 9106 recommended parameters (time=3, mem=64MB, parallelism=4).
     """
     if os.environ.get("TESTING") == "1":
@@ -36,7 +38,6 @@ def verify_password_and_needs_rehash(plain_password: str, hashed_password: str) 
     """
     Verifies a password against either Argon2id or legacy PBKDF2.
     Returns (is_valid, needs_rehash).
-    If a legacy PBKDF2 password succeeds, needs_rehash is True so caller can re-hash to Argon2id.
     """
     if hashed_password.startswith("$argon2"):
         try:
@@ -57,7 +58,7 @@ def verify_password_and_needs_rehash(plain_password: str, hashed_password: str) 
         )
         computed_legacy = base64.b64encode(raw_hash).decode('utf-8')
         if hmac.compare_digest(computed_legacy, hashed_password):
-            return True, True # Valid, but needs upgrade to Argon2id
+            return True, True
     except Exception:
         pass
         
@@ -90,8 +91,160 @@ def decode_token(token: str) -> Optional[dict]:
     except (jwt.PyJWTError, Exception):
         return None
 
+def hash_token(raw_token: str) -> str:
+    """Computes SHA-256 hash of refresh token for safe database persistence."""
+    return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+def create_refresh_token(db: Session, user_id: str) -> str:
+    """
+    Generates a cryptographically secure refresh token, stores its hash,
+    and sets expiration according to REFRESH_TOKEN_EXPIRE_DAYS.
+    """
+    raw_token = secrets.token_urlsafe(48)
+    token_h = hash_token(raw_token)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    
+    rt = RefreshToken(
+        user_id=user_id,
+        token_hash=token_h,
+        expires_at=expires_at,
+        revoked=False
+    )
+    db.add(rt)
+    db.commit()
+    return raw_token
+
+def rotate_refresh_token(db: Session, raw_token: str) -> Tuple[User, str, str]:
+    """
+    Validates the refresh token, revokes it, and issues a new pair (access token + refresh token).
+    If a revoked token is replayed, all refresh tokens for that user are revoked (breach detection).
+    """
+    token_h = hash_token(raw_token)
+    rt = db.query(RefreshToken).filter(RefreshToken.token_hash == token_h).first()
+    
+    if not rt:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+        
+    if rt.revoked:
+        # Breach detection: Revoke all tokens for this user immediately
+        db.query(RefreshToken).filter(RefreshToken.user_id == rt.user_id).update({"revoked": True})
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Revoked refresh token re-used. Session invalidated for security.",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+        
+    rt_expires = rt.expires_at
+    if rt_expires.tzinfo is None:
+        rt_expires = rt_expires.replace(tzinfo=timezone.utc)
+        
+    if rt_expires < datetime.now(timezone.utc):
+        rt.revoked = True
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token has expired",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+        
+    user = db.query(User).filter(User.id == rt.user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+        
+    # Rotate: revoke old, create new
+    new_raw_token = secrets.token_urlsafe(48)
+    new_token_h = hash_token(new_raw_token)
+    
+    rt.revoked = True
+    rt.replaced_by = new_token_h
+    
+    new_rt = RefreshToken(
+        user_id=user.id,
+        token_hash=new_token_h,
+        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+        revoked=False
+    )
+    db.add(new_rt)
+    db.commit()
+    
+    new_access_token = create_access_token({"sub": user.id, "email": user.email})
+    return user, new_access_token, new_raw_token
+
+def revoke_refresh_token(db: Session, raw_token: str) -> bool:
+    """Revokes a refresh token on logout."""
+    token_h = hash_token(raw_token)
+    rt = db.query(RefreshToken).filter(RefreshToken.token_hash == token_h).first()
+    if rt:
+        rt.revoked = True
+        db.commit()
+        return True
+    return False
+
+def set_auth_cookies(
+    response: Response,
+    access_token: str,
+    refresh_token: Optional[str] = None,
+    csrf_token: Optional[str] = None
+):
+    """
+    Sets secure HttpOnly, SameSite cookies for tokens and readable CSRF token.
+    In production, Secure=True is enforced.
+    """
+    is_prod = (settings.ENV == "production")
+    
+    # Access token in HttpOnly cookie
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_prod,
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/"
+    )
+    
+    if refresh_token:
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=is_prod,
+            samesite="lax",
+            max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+            path="/api/auth"
+        )
+        
+    if csrf_token:
+        # CSRF token is deliberately NOT HttpOnly so frontend JS can read and send in header
+        response.set_cookie(
+            key="csrf_token",
+            value=csrf_token,
+            httponly=False,
+            secure=is_prod,
+            samesite="lax",
+            max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+            path="/"
+        )
+
+def clear_auth_cookies(response: Response):
+    """Clears all authentication cookies."""
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/api/auth")
+    response.delete_cookie("csrf_token", path="/")
+
 def get_or_create_demo_user(db: Session) -> User:
-    """Returns or seeds the primary demo user 'demo@celestia.ai'."""
+    """
+    Returns or seeds the primary demo user 'demo@celestia.ai'.
+    """
     demo_email = "demo@celestia.ai"
     user = db.query(User).filter(User.email == demo_email).first()
     if not user:
@@ -99,30 +252,70 @@ def get_or_create_demo_user(db: Session) -> User:
             email=demo_email,
             name="Anjali & Rahul",
             password_hash=hash_password("celestia2026"),
-            role="planner"
+            role="planner",
+            is_demo=True
         )
         db.add(user)
         db.commit()
         db.refresh(user)
     return user
 
+def create_ephemeral_demo_user(db: Session) -> User:
+    """
+    Creates a fresh temporary demo account with 24-hour expiry.
+    """
+    rand_id = secrets.token_hex(4)
+    email = f"demo_{rand_id}@celestia.demo"
+    user = User(
+        email=email,
+        name=f"Demo Guest ({rand_id.upper()})",
+        password_hash=hash_password(secrets.token_urlsafe(16)),
+        role="planner",
+        is_demo=True,
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24)
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
 def get_current_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """
-    Dependency returning the currently authenticated user.
-    Strictly returns HTTP 401 Unauthorized if token is missing, expired, or invalid.
-    No demo-user fallback.
+    Extracts authenticated user from either:
+    1. HTTP Authorization Bearer header, OR
+    2. HttpOnly 'access_token' cookie with CSRF verification on mutating requests.
+    Strictly returns HTTP 401 Unauthorized if missing, expired, or invalid.
     """
-    if not credentials:
+    token: Optional[str] = None
+    from_cookie = False
+
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+    elif "access_token" in request.cookies:
+        token = request.cookies["access_token"]
+        from_cookie = True
+
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing authentication credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        
-    token = credentials.credentials
+
+    # CSRF Check on state-changing requests when authenticated via cookie
+    if from_cookie and request.method in ("POST", "PUT", "PATCH", "DELETE"):
+        csrf_cookie = request.cookies.get("csrf_token")
+        csrf_header = request.headers.get("X-CSRF-Token")
+        if not csrf_cookie or not csrf_header or not hmac.compare_digest(csrf_cookie, csrf_header):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="CSRF token validation failed."
+            )
+
     payload = decode_token(token)
     if not payload or "sub" not in payload:
         raise HTTPException(
@@ -130,7 +323,7 @@ def get_current_user(
             detail="Invalid or expired access token",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        
+
     user = db.query(User).filter(User.id == payload["sub"]).first()
     if not user:
         raise HTTPException(
@@ -138,5 +331,17 @@ def get_current_user(
             detail="User account not found",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        
+
+    # Check if demo account has expired
+    if user.is_demo and user.expires_at:
+        u_exp = user.expires_at
+        if u_exp.tzinfo is None:
+            u_exp = u_exp.replace(tzinfo=timezone.utc)
+        if u_exp < datetime.now(timezone.utc):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Temporary demo account has expired. Please launch a fresh demo session.",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+
     return user

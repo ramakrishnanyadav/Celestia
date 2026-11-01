@@ -20,12 +20,15 @@ class UserResponse(BaseModel):
     email: str
     name: str
     role: str
+    is_demo: Optional[bool] = False
     created_at: datetime
 
 class Token(BaseModel):
     access_token: str
     token_type: str
     user: UserResponse
+    refresh_token: Optional[str] = None
+    csrf_token: Optional[str] = None
 
 # --- PREFERENCE SCHEMAS ---
 class EventPreferenceBase(BaseModel):
@@ -190,6 +193,10 @@ class BudgetSummaryResponse(BaseModel):
     total_budget_rupees: float
     allocated_minor: int
     allocated_rupees: float
+    allocatable_minor: Optional[int] = 0
+    allocatable_rupees: Optional[float] = 0.0
+    safety_buffer_minor: Optional[int] = 0
+    safety_buffer_rupees: Optional[float] = 0.0
     unallocated_minor: Optional[int] = 0
     unallocated_rupees: Optional[float] = 0.0
     is_reconciled: Optional[bool] = True

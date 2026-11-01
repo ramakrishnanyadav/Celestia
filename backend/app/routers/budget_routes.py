@@ -175,20 +175,53 @@ def delete_expense(
     db.commit()
     return {"message": "Expense deleted successfully"}
 
-@router.post("/what-if", response_model=WhatIfSimulationResponse)
-def simulate_budget_scenario(
-    sim_in: WhatIfSimulationRequest,
+import io
+import csv
+from fastapi.responses import Response
+
+def sanitize_csv_cell(value: Any) -> str:
+    """Neutralizes CSV Formula Injection (DDE injection) attacks."""
+    s = str(value)
+    if s and s[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return f"'{s}"
+    return s
+
+@router.get("/export-csv")
+def export_budget_csv(
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db)
 ):
-    categories = db.query(BudgetCategory).filter(
-        BudgetCategory.event_id == event.id
-    ).order_by(BudgetCategory.sort_order.asc()).all()
+    """
+    Exports event budget ledger to CSV with formula injection neutralization.
+    """
+    categories = db.query(BudgetCategory).options(
+        selectinload(BudgetCategory.expenses)
+    ).filter(BudgetCategory.event_id == event.id).all()
 
-    result = simulate_what_if_changes(
-        event,
-        categories,
-        sim_in.simulated_guest_count,
-        sim_in.simulated_budget_minor
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Category", "Allocation Minor", "Allocation INR", "Expense Name", "Planned Minor", "Actual Minor", "Provenance"])
+
+    for cat in categories:
+        cat_name = sanitize_csv_cell(cat.name)
+        alloc_inr = paise_to_rupees(cat.allocated_amount_minor)
+        if not cat.expenses:
+            writer.writerow([cat_name, cat.allocated_amount_minor, alloc_inr, "", "", "", ""])
+        else:
+            for exp in cat.expenses:
+                writer.writerow([
+                    cat_name,
+                    cat.allocated_amount_minor,
+                    alloc_inr,
+                    sanitize_csv_cell(exp.name),
+                    exp.planned_amount_minor,
+                    exp.actual_amount_minor,
+                    sanitize_csv_cell(exp.provenance)
+                ])
+
+    csv_data = output.getvalue()
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=budget_{event.id}.csv"}
     )
-    return result

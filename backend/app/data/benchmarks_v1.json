@@ -1,5 +1,35 @@
 {
-  "version": "1.0",
+  "version": "1.1",
+  "label": "estimate",
+  "source": "Research: Indian Wedding & Celebration Industry Survey (Mumbai, Tier 1 & Tier 2 City Banquet & Catering Cost Index 2024-2025)",
+  "trade_off_options": [
+    "Adjust guest count: Decreasing guest tally directly lowers per-head banquet and catering commitments while preserving culinary quality.",
+    "Optimize venue tier: Shift from a Tier-1 5-star suburban banquet to an elite heritage community hall or weekday Muhurtham slot.",
+    "Rebalance category allocation: Cap non-essential decorative floral structures and cinematic drones to protect core culinary and ritual ceremonies."
+  ],
+  "event_type_bounds": {
+    "wedding": {
+      "min_guests": 10,
+      "max_guests": 5000,
+      "min_budget_minor": 15000000,
+      "min_prep_days": 30,
+      "max_prep_days": 730
+    },
+    "birthday": {
+      "min_guests": 5,
+      "max_guests": 500,
+      "min_budget_minor": 2500000,
+      "min_prep_days": 3,
+      "max_prep_days": 180
+    },
+    "community": {
+      "min_guests": 20,
+      "max_guests": 10000,
+      "min_budget_minor": 4000000,
+      "min_prep_days": 7,
+      "max_prep_days": 365
+    }
+  },
   "tier_1_cities": [
     "mumbai", "delhi", "new delhi", "bengaluru", "bangalore", 
     "chennai", "hyderabad", "kolkata"

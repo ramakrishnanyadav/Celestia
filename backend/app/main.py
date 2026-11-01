@@ -1,8 +1,17 @@
+import os
+import uuid
+import time
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from .config import settings
-from .database import engine, Base, SessionLocal
+from .database import engine, Base, SessionLocal, get_db
 from .models import User, Event, EventPreference
 from .auth import hash_password, get_or_create_demo_user
 from .routers import (
@@ -11,18 +20,22 @@ from .routers import (
 )
 from .engines.ai_service import AIService
 
+logger = logging.getLogger("celestia")
+
+# Validate environment configuration before booting
+settings.validate_production_config()
+
 # Initialize tables
 Base.metadata.create_all(bind=engine)
 
 def bootstrap_primary_demonstration_scenario():
     """
-    Seeds the primary demonstration scenario if the database is fresh:
+    Seeds the primary demonstration scenario if database is fresh:
     - User: Anjali & Rahul
     - Event: Traditional Maharashtrian Wedding in Mumbai
     - 300 Guests, ₹15,00,000 Budget (150,000,000 paise)
     - Pure Vegetarian Catering
     - Royal Marigold Theme
-    - Deterministic budget categories, CPM tasks, and vendor quotations.
     """
     db = SessionLocal()
     try:
@@ -36,7 +49,7 @@ def bootstrap_primary_demonstration_scenario():
                 city="Mumbai",
                 venue_type="Grand Banquet Hall",
                 guest_count=300,
-                budget_minor=150000000, # ₹15,00,000 in paise
+                budget_minor=150000000,
                 currency="INR",
                 timezone="Asia/Kolkata",
                 preparation_months=6,
@@ -60,12 +73,10 @@ def bootstrap_primary_demonstration_scenario():
             db.add(pref)
             db.commit()
             
-            # Generate complete plan, budget, tasks with CPM, and quotations
             AIService.generate_full_event_plan(db, wedding_event)
     except Exception as e:
         db.rollback()
-        import logging
-        logging.getLogger("celestia").error(f"Error bootstrapping scenario: {e}")
+        logger.error(f"Error bootstrapping scenario: {e}")
     finally:
         db.close()
 
@@ -74,20 +85,18 @@ async def lifespan(app: FastAPI):
     bootstrap_primary_demonstration_scenario()
     yield
 
+# In production, disable documentation and OpenAPI schema endpoints
+is_prod = (settings.ENV == "production")
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.VERSION,
     description="CELESTIA AI Event Planning Assistant — Deterministic Budgeting, CPM Timeline, Cultural Intelligence & Autonomy",
+    docs_url=None if is_prod else "/docs",
+    redoc_url=None if is_prod else "/redoc",
+    openapi_url=None if is_prod else "/openapi.json",
     lifespan=lifespan
 )
-
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from fastapi import Request
-import uuid
-import logging
-
-logger = logging.getLogger("celestia")
 
 @app.exception_handler(Exception)
 async def global_unhandled_exception_handler(request: Request, exc: Exception):
@@ -102,16 +111,16 @@ async def global_unhandled_exception_handler(request: Request, exc: Exception):
         }
     )
 
-# Enable CORS for Next.js frontend
+# Strict CORS Allowlist
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Enable Gzip compression for responses > 1000 bytes
+# Gzip compression for responses > 1000 bytes
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Security Headers Middleware
@@ -121,8 +130,20 @@ async def add_security_headers_middleware(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' data:; "
+        "connect-src 'self' http://localhost:3000 http://localhost:8000; "
+        "frame-ancestors 'none';"
+    )
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    # Explicitly ensure X-XSS-Protection is absent (deprecated and insecure)
+    if "X-XSS-Protection" in response.headers:
+        del response.headers["X-XSS-Protection"]
     return response
 
 # Include Routers
@@ -134,10 +155,12 @@ app.include_router(vendor_routes.router, prefix="/api")
 app.include_router(approval_routes.router, prefix="/api")
 app.include_router(ai_routes.router, prefix="/api")
 
-@app.get("/api/test-fault/unhandled-error")
-def trigger_unhandled_error_for_audit():
-    """Diagnostic fault injection endpoint to verify sanitization of 500 errors."""
-    return 1 / 0
+# Mount fault-injection diagnostic endpoint strictly in non-production
+if settings.ENV != "production":
+    @app.get("/api/test-fault/unhandled-error")
+    def trigger_unhandled_error_for_audit():
+        """Diagnostic fault injection endpoint to verify sanitization of 500 errors."""
+        return 1 / 0
 
 @app.get("/")
 def root():
@@ -145,13 +168,8 @@ def root():
         "app": settings.APP_NAME,
         "version": settings.VERSION,
         "status": "operational",
-        "docs_url": "/docs"
+        "docs_url": None if is_prod else "/docs"
     }
-
-import time
-from sqlalchemy import text
-from sqlalchemy.orm import Session
-from .database import get_db
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
