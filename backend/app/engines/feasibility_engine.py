@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 
@@ -10,33 +12,42 @@ class FeasibilityResult:
     reasons: List[str] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
 
-TIER_1_CITIES = {
-    "mumbai", "delhi", "new delhi", "bengaluru", "bangalore", 
-    "chennai", "hyderabad", "kolkata"
-}
+DATA_PATH = Path(__file__).parent.parent / "data" / "benchmarks_v1.json"
 
-TIER_2_CITIES = {
-    "pune", "ahmedabad", "jaipur", "lucknow", "chandigarh", 
-    "surat", "indore", "kochi", "nagpur", "bhopal", "patna", "vadodara"
-}
+def _load_benchmarks() -> tuple[set, set, dict]:
+    try:
+        with open(DATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return (
+                set(data.get("tier_1_cities", [])),
+                set(data.get("tier_2_cities", [])),
+                data.get("market_benchmarks", {})
+            )
+    except Exception:
+        # Fallback to hardcoded defaults if file unavailable
+        return (
+            {"mumbai", "delhi", "new delhi", "bengaluru", "bangalore", "chennai", "hyderabad", "kolkata"},
+            {"pune", "ahmedabad", "jaipur", "lucknow", "chandigarh", "surat", "indore", "kochi", "nagpur", "bhopal", "patna", "vadodara"},
+            {
+                "wedding": {
+                    "tier1": {"min_per_guest": 2500.0, "comfortable_per_guest": 3500.0, "fixed_floor": 300000.0},
+                    "tier2": {"min_per_guest": 1800.0, "comfortable_per_guest": 2800.0, "fixed_floor": 200000.0},
+                    "other": {"min_per_guest": 1400.0, "comfortable_per_guest": 2200.0, "fixed_floor": 150000.0},
+                },
+                "birthday": {
+                    "tier1": {"min_per_guest": 1000.0, "comfortable_per_guest": 1800.0, "fixed_floor": 50000.0},
+                    "tier2": {"min_per_guest": 750.0, "comfortable_per_guest": 1300.0, "fixed_floor": 35000.0},
+                    "other": {"min_per_guest": 500.0, "comfortable_per_guest": 900.0, "fixed_floor": 25000.0},
+                },
+                "community": {
+                    "tier1": {"min_per_guest": 500.0, "comfortable_per_guest": 900.0, "fixed_floor": 100000.0},
+                    "tier2": {"min_per_guest": 350.0, "comfortable_per_guest": 650.0, "fixed_floor": 60000.0},
+                    "other": {"min_per_guest": 250.0, "comfortable_per_guest": 450.0, "fixed_floor": 40000.0},
+                }
+            }
+        )
 
-MARKET_BENCHMARKS = {
-    "wedding": {
-        "tier1": {"min_per_guest": 2500.0, "comfortable_per_guest": 3500.0, "fixed_floor": 300000.0},
-        "tier2": {"min_per_guest": 1800.0, "comfortable_per_guest": 2800.0, "fixed_floor": 200000.0},
-        "other": {"min_per_guest": 1400.0, "comfortable_per_guest": 2200.0, "fixed_floor": 150000.0},
-    },
-    "birthday": {
-        "tier1": {"min_per_guest": 1000.0, "comfortable_per_guest": 1800.0, "fixed_floor": 50000.0},
-        "tier2": {"min_per_guest": 750.0, "comfortable_per_guest": 1300.0, "fixed_floor": 35000.0},
-        "other": {"min_per_guest": 500.0, "comfortable_per_guest": 900.0, "fixed_floor": 25000.0},
-    },
-    "community": {
-        "tier1": {"min_per_guest": 500.0, "comfortable_per_guest": 900.0, "fixed_floor": 100000.0},
-        "tier2": {"min_per_guest": 350.0, "comfortable_per_guest": 650.0, "fixed_floor": 60000.0},
-        "other": {"min_per_guest": 250.0, "comfortable_per_guest": 450.0, "fixed_floor": 40000.0},
-    }
-}
+TIER_1_CITIES, TIER_2_CITIES, MARKET_BENCHMARKS = _load_benchmarks()
 
 def get_city_tier(city: str) -> str:
     norm = city.strip().lower()

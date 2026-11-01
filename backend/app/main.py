@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import engine, Base, SessionLocal
@@ -148,6 +148,39 @@ def root():
         "docs_url": "/docs"
     }
 
+import time
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from .database import get_db
+
 @app.get("/health")
-def health_check():
-    return {"status": "healthy", "service": "celestia-backend"}
+def health_check(db: Session = Depends(get_db)):
+    """
+    Active health check verifying application and database connectivity.
+    Returns HTTP 200 if database responds, HTTP 503 if database is unreachable.
+    """
+    try:
+        t0 = time.perf_counter()
+        db.execute(text("SELECT 1"))
+        db_latency = round((time.perf_counter() - t0) * 1000.0, 2)
+        return {
+            "status": "healthy",
+            "service": "celestia-backend",
+            "database": {
+                "status": "connected",
+                "latency_ms": db_latency,
+                "dialect": engine.dialect.name
+            }
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "unhealthy",
+                "service": "celestia-backend",
+                "database": {
+                    "status": "disconnected",
+                    "error": type(e).__name__
+                }
+            }
+        )

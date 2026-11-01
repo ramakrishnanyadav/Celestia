@@ -1,44 +1,43 @@
+import json
+from pathlib import Path
 from typing import Dict, List, Any, Set, Tuple
 from sqlalchemy.orm import Session
 from ..models import Event, Task, TaskDependency
 from .cpm_solver import CPMNode, solve_cpm_pure, check_cycle_on_add_edge
 
-WEDDING_TASK_TEMPLATES = [
-    # 6 Months Out (Day 180 -> 150)
-    {"title": "Lock Banquet Venue in Suburban Mumbai", "category": "Venue", "milestone": "6 Months Out", "days": 180, "duration": 14, "priority": "critical", "assigned": "Rahul & Family", "dep_indices": []},
-    {"title": "Finalize Muhurtham & Consult Family Pandit", "category": "Ceremony", "milestone": "6 Months Out", "days": 175, "duration": 5, "priority": "critical", "assigned": "Family Elders", "dep_indices": []},
-    {"title": "Appoint Pure Vegetarian Caterer & Conduct Tasting", "category": "Catering", "milestone": "6 Months Out", "days": 165, "duration": 10, "priority": "critical", "assigned": "Anjali & Parents", "dep_indices": [0]},
-    {"title": "Book Candid Photographer & Cinematic Film Crew", "category": "Photography", "milestone": "6 Months Out", "days": 160, "duration": 7, "priority": "high", "assigned": "Anjali & Rahul", "dep_indices": [0]},
-    
-    # 4 Months Out (Day 120 -> 90)
-    {"title": "Mandap & Decor Concept Sign-off (Marigold Theme)", "category": "Decor", "milestone": "4 Months Out", "days": 120, "duration": 10, "priority": "high", "assigned": "Anjali", "dep_indices": [0]},
-    {"title": "Select Bridal Paithani/Kanjeevaram & Groom Sherwani", "category": "Attire", "milestone": "4 Months Out", "days": 115, "duration": 14, "priority": "high", "assigned": "Anjali & Rahul", "dep_indices": []},
-    {"title": "Book Live Shehnai, Dhol-Tasha & Sangeet DJ", "category": "Entertainment", "milestone": "4 Months Out", "days": 110, "duration": 7, "priority": "medium", "assigned": "Rahul", "dep_indices": [0]},
-    
-    # 3 Months Out (Day 90 -> 60)
-    {"title": "Design Eco-Friendly Seed Paper Invitations", "category": "Invitations", "milestone": "3 Months Out", "days": 90, "duration": 10, "priority": "medium", "assigned": "Anjali", "dep_indices": [0, 1]},
-    {"title": "Source Traditional Handcrafted Brass Return Gifts", "category": "Favors", "milestone": "3 Months Out", "days": 85, "duration": 14, "priority": "medium", "assigned": "Parents", "dep_indices": []},
-    {"title": "Lock Pooja Samagri & Ritual Inventory with Pandit", "category": "Ceremony", "milestone": "3 Months Out", "days": 75, "duration": 5, "priority": "high", "assigned": "Family Elders", "dep_indices": [1]},
-    
-    # 2 Months Out (Day 60 -> 30)
-    {"title": "Dispatch Digital & Physical Wedding Invites", "category": "Invitations", "milestone": "2 Months Out", "days": 60, "duration": 14, "priority": "high", "assigned": "Both Families", "dep_indices": [7]},
-    {"title": "Acquire Sound & BMC Local Permits for Dhol-Tasha", "category": "Logistics", "milestone": "2 Months Out", "days": 55, "duration": 10, "priority": "critical", "assigned": "Wedding Planner", "dep_indices": [6]},
-    {"title": "Finalize Mehendi Artist & Haldi Traditional Setup", "category": "Ceremony", "milestone": "2 Months Out", "days": 45, "duration": 7, "priority": "medium", "assigned": "Anjali", "dep_indices": [4]},
-    
-    # 1 Month Out (Day 30 -> 14)
-    {"title": "Lock Final 300-Guest RSVP Tally with Caterer", "category": "Catering", "milestone": "1 Month Out", "days": 30, "duration": 5, "priority": "critical", "assigned": "Rahul", "dep_indices": [2, 10]},
-    {"title": "Conduct Bridal Hair & Makeup Trial Session", "category": "Attire", "milestone": "1 Month Out", "days": 25, "duration": 3, "priority": "medium", "assigned": "Anjali", "dep_indices": [5]},
-    {"title": "Banquet Seating & Stage Floorplan Verification", "category": "Venue", "milestone": "1 Month Out", "days": 20, "duration": 4, "priority": "high", "assigned": "Wedding Planner", "dep_indices": [0, 4, 13]},
-    
-    # 1-2 Weeks Out (Day 14 -> 1)
-    {"title": "Final Venue Walkthrough & Electrical Load Inspection", "category": "Venue", "milestone": "2 Weeks Out", "days": 14, "duration": 2, "priority": "critical", "assigned": "Planner & Decorator", "dep_indices": [0, 4, 11]},
-    {"title": "Assemble Return Gift Boxes & Welcome Kits", "category": "Favors", "milestone": "1 Week Out", "days": 7, "duration": 3, "priority": "medium", "assigned": "Family Volunteers", "dep_indices": [8, 13]},
-    {"title": "Prepare Vendor Milestone Payment Envelopes", "category": "Logistics", "milestone": "3 Days Out", "days": 3, "duration": 1, "priority": "critical", "assigned": "Rahul & Parents", "dep_indices": [13, 16]},
-    
-    # Event Day (Day 0)
-    {"title": "Morning Muhurtham Ceremony & Saat Phere Coordination", "category": "Ceremony", "milestone": "Wedding Day", "days": 0, "duration": 1, "priority": "critical", "assigned": "Pandit & Family", "dep_indices": [9, 16, 18]},
-    {"title": "Supervise Pure Vegetarian Feast Service", "category": "Catering", "milestone": "Wedding Day", "days": 0, "duration": 1, "priority": "critical", "assigned": "Catering Manager", "dep_indices": [13, 16]}
-]
+TASKS_DATA_PATH = Path(__file__).parent.parent / "data" / "wedding_tasks_v1.json"
+
+def _load_wedding_tasks() -> List[Dict[str, Any]]:
+    try:
+        with open(TASKS_DATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data.get("tasks", [])
+    except Exception:
+        return [
+            {"title": "Lock Banquet Venue in Suburban Mumbai", "category": "Venue", "milestone": "6 Months Out", "days": 180, "duration": 14, "priority": "critical", "assigned": "Rahul & Family", "dep_indices": []},
+            {"title": "Finalize Muhurtham & Consult Family Pandit", "category": "Ceremony", "milestone": "6 Months Out", "days": 175, "duration": 5, "priority": "critical", "assigned": "Family Elders", "dep_indices": []},
+            {"title": "Appoint Pure Vegetarian Caterer & Conduct Tasting", "category": "Catering", "milestone": "6 Months Out", "days": 165, "duration": 10, "priority": "critical", "assigned": "Anjali & Parents", "dep_indices": [0]},
+            {"title": "Book Candid Photographer & Cinematic Film Crew", "category": "Photography", "milestone": "6 Months Out", "days": 160, "duration": 7, "priority": "high", "assigned": "Anjali & Rahul", "dep_indices": [0]},
+            {"title": "Mandap & Decor Concept Sign-off (Marigold Theme)", "category": "Decor", "milestone": "4 Months Out", "days": 120, "duration": 10, "priority": "high", "assigned": "Anjali", "dep_indices": [0]},
+            {"title": "Select Bridal Paithani/Kanjeevaram & Groom Sherwani", "category": "Attire", "milestone": "4 Months Out", "days": 115, "duration": 14, "priority": "high", "assigned": "Anjali & Rahul", "dep_indices": []},
+            {"title": "Book Live Shehnai, Dhol-Tasha & Sangeet DJ", "category": "Entertainment", "milestone": "4 Months Out", "days": 110, "duration": 7, "priority": "medium", "assigned": "Rahul", "dep_indices": [0]},
+            {"title": "Design Eco-Friendly Seed Paper Invitations", "category": "Invitations", "milestone": "3 Months Out", "days": 90, "duration": 10, "priority": "medium", "assigned": "Anjali", "dep_indices": [0, 1]},
+            {"title": "Source Traditional Handcrafted Brass Return Gifts", "category": "Favors", "milestone": "3 Months Out", "days": 85, "duration": 14, "priority": "medium", "assigned": "Parents", "dep_indices": []},
+            {"title": "Lock Pooja Samagri & Ritual Inventory with Pandit", "category": "Ceremony", "milestone": "3 Months Out", "days": 75, "duration": 5, "priority": "high", "assigned": "Family Elders", "dep_indices": [1]},
+            {"title": "Dispatch Digital & Physical Wedding Invites", "category": "Invitations", "milestone": "2 Months Out", "days": 60, "duration": 14, "priority": "high", "assigned": "Both Families", "dep_indices": [7]},
+            {"title": "Acquire Sound & BMC Local Permits for Dhol-Tasha", "category": "Logistics", "milestone": "2 Months Out", "days": 55, "duration": 10, "priority": "critical", "assigned": "Wedding Planner", "dep_indices": [6]},
+            {"title": "Finalize Mehendi Artist & Haldi Traditional Setup", "category": "Ceremony", "milestone": "2 Months Out", "days": 45, "duration": 7, "priority": "medium", "assigned": "Anjali", "dep_indices": [4]},
+            {"title": "Lock Final 300-Guest RSVP Tally with Caterer", "category": "Catering", "milestone": "1 Month Out", "days": 30, "duration": 5, "priority": "critical", "assigned": "Rahul", "dep_indices": [2, 10]},
+            {"title": "Conduct Bridal Hair & Makeup Trial Session", "category": "Attire", "milestone": "1 Month Out", "days": 25, "duration": 3, "priority": "medium", "assigned": "Anjali", "dep_indices": [5]},
+            {"title": "Banquet Seating & Stage Floorplan Verification", "category": "Venue", "milestone": "1 Month Out", "days": 20, "duration": 4, "priority": "high", "assigned": "Wedding Planner", "dep_indices": [0, 4, 13]},
+            {"title": "Final Venue Walkthrough & Electrical Load Inspection", "category": "Venue", "milestone": "2 Weeks Out", "days": 14, "duration": 2, "priority": "critical", "assigned": "Planner & Decorator", "dep_indices": [0, 4, 11]},
+            {"title": "Assemble Return Gift Boxes & Welcome Kits", "category": "Favors", "milestone": "1 Week Out", "days": 7, "duration": 3, "priority": "medium", "assigned": "Family Volunteers", "dep_indices": [8, 13]},
+            {"title": "Prepare Vendor Milestone Payment Envelopes", "category": "Logistics", "milestone": "3 Days Out", "days": 3, "duration": 1, "priority": "critical", "assigned": "Rahul & Parents", "dep_indices": [13, 16]},
+            {"title": "Morning Muhurtham Ceremony & Saat Phere Coordination", "category": "Ceremony", "milestone": "Wedding Day", "days": 0, "duration": 1, "priority": "critical", "assigned": "Pandit & Family", "dep_indices": [9, 16, 18]},
+            {"title": "Supervise Pure Vegetarian Feast Service", "category": "Catering", "milestone": "Wedding Day", "days": 0, "duration": 1, "priority": "critical", "assigned": "Catering Manager", "dep_indices": [13, 16]}
+        ]
+
+WEDDING_TASK_TEMPLATES = _load_wedding_tasks()
 
 def seed_event_tasks(db: Session, event: Event, auto_commit: bool = False):
     """Generates the full timeline checklist and dependencies for the event"""

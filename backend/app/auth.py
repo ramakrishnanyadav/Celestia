@@ -1,3 +1,4 @@
+import os
 import time
 import hashlib
 import hmac
@@ -15,19 +16,21 @@ from .models import User
 
 security = HTTPBearer(auto_error=False)
 
-# Argon2id Hasher configured with RFC 9106 recommended parameters
-_argon2_hasher = PasswordHasher(
-    time_cost=3,
-    memory_cost=65536,
-    parallelism=4,
-    hash_len=32
-)
+def get_argon2_hasher() -> PasswordHasher:
+    """
+    Returns an Argon2id hasher.
+    In testing mode, uses lower cost parameters for sub-millisecond execution.
+    In production, uses RFC 9106 recommended parameters (time=3, mem=64MB, parallelism=4).
+    """
+    if os.environ.get("TESTING") == "1":
+        return PasswordHasher(time_cost=1, memory_cost=1024, parallelism=1, hash_len=16)
+    return PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4, hash_len=32)
 
 LEGACY_PBKDF2_SALT = "celestia_salt_indian_wedding_2026"
 
 def hash_password(password: str) -> str:
     """Hashes a plaintext password using Argon2id."""
-    return _argon2_hasher.hash(password)
+    return get_argon2_hasher().hash(password)
 
 def verify_password_and_needs_rehash(plain_password: str, hashed_password: str) -> Tuple[bool, bool]:
     """
@@ -37,8 +40,9 @@ def verify_password_and_needs_rehash(plain_password: str, hashed_password: str) 
     """
     if hashed_password.startswith("$argon2"):
         try:
-            _argon2_hasher.verify(hashed_password, plain_password)
-            needs_rehash = _argon2_hasher.check_needs_rehash(hashed_password)
+            hasher = get_argon2_hasher()
+            hasher.verify(hashed_password, plain_password)
+            needs_rehash = hasher.check_needs_rehash(hashed_password)
             return True, needs_rehash
         except (VerifyMismatchError, InvalidHashError):
             return False, False
