@@ -1,7 +1,19 @@
-from datetime import datetime, timezone
+import html
+import re
+from datetime import datetime
+from typing import Any
 from zoneinfo import ZoneInfo
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict, field_serializer
+
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+
+
+def sanitize_free_text(v: Any) -> Any:
+    """Strips control chars and escapes HTML tags without breaking apostrophes."""
+    if not isinstance(v, str):
+        return v
+    # Strip null bytes and non-printable control characters except newline and tab
+    cleaned = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', v)
+    return html.escape(cleaned.strip(), quote=False)
 
 # --- AUTH SCHEMAS ---
 class UserCreate(BaseModel):
@@ -20,25 +32,25 @@ class UserResponse(BaseModel):
     email: str
     name: str
     role: str
-    is_demo: Optional[bool] = False
+    is_demo: bool | None = False
     created_at: datetime
 
 class Token(BaseModel):
     access_token: str
     token_type: str
     user: UserResponse
-    refresh_token: Optional[str] = None
-    csrf_token: Optional[str] = None
+    refresh_token: str | None = None
+    csrf_token: str | None = None
 
 # --- PREFERENCE SCHEMAS ---
 class EventPreferenceBase(BaseModel):
     dietary: str = "Pure Vegetarian"
     theme: str = "Royal Marigold & Polished Brass"
     regional_culture: str = "Maharashtrian Traditional"
-    cultural_traditions: List[str] = Field(default_factory=lambda: ["Sakhar Puda", "Muhurtham", "Haldi", "Sangeet", "Satyanarayan Puja"])
+    cultural_traditions: list[str] = Field(default_factory=lambda: ["Sakhar Puda", "Muhurtham", "Haldi", "Sangeet", "Satyanarayan Puja"])
     music_entertainment: str = "Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ"
-    color_palette: List[str] = Field(default_factory=lambda: ["#D97706", "#B45309", "#0B132B", "#FAF7F2", "#0D9488"])
-    special_requirements: Optional[str] = "Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
+    color_palette: list[str] = Field(default_factory=lambda: ["#D97706", "#B45309", "#0B132B", "#FAF7F2", "#0D9488"])
+    special_requirements: str | None = "Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
 
 class EventPreferenceCreate(EventPreferenceBase):
     pass
@@ -50,7 +62,7 @@ class EventPreferenceResponse(EventPreferenceBase):
     updated_at: datetime
 
     @field_serializer("created_at", "updated_at", mode="plain", check_fields=False)
-    def serialize_datetime(self, dt: Optional[datetime]) -> Optional[str]:
+    def serialize_datetime(self, dt: datetime | None) -> str | None:
         if dt is None:
             return None
         if dt.tzinfo is None:
@@ -67,27 +79,37 @@ class EventCreate(BaseModel):
     venue_type: str = Field("Banquet Hall", max_length=100)
     guest_count: int = Field(300, ge=10, le=5000)
     budget_minor: int = Field(150000000, ge=1000000, le=10000000000) # ₹10,000 to ₹10,00,00,000 in paise
-    budget_rupees: Optional[float] = Field(None, ge=10000.0, le=100000000.0)
+    budget_rupees: float | None = Field(None, ge=10000.0, le=100000000.0)
     currency: str = "INR"
     timezone: str = "Asia/Kolkata"
     preparation_months: int = Field(6, ge=1, le=36)
-    target_date: Optional[datetime] = None
+    target_date: datetime | None = None
     autonomy_mode: str = "Draft" # Suggest, Draft, Approve
-    preferences: Optional[EventPreferenceBase] = None
+    preferences: EventPreferenceBase | None = None
+
+    @field_validator("title", "city", "venue_type", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class EventUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=2, max_length=255)
-    event_type: Optional[str] = None
-    city: Optional[str] = Field(None, min_length=2, max_length=100)
-    venue_type: Optional[str] = Field(None, max_length=100)
-    guest_count: Optional[int] = Field(None, ge=10, le=5000)
-    budget_minor: Optional[int] = Field(None, ge=1000000, le=10000000000)
-    budget_rupees: Optional[float] = Field(None, ge=10000.0, le=100000000.0)
-    target_date: Optional[datetime] = None
-    preparation_months: Optional[int] = Field(None, ge=1, le=36)
-    status: Optional[str] = None
-    autonomy_mode: Optional[str] = None
-    ai_paused: Optional[bool] = None
+    title: str | None = Field(None, min_length=2, max_length=255)
+    event_type: str | None = None
+    city: str | None = Field(None, min_length=2, max_length=100)
+    venue_type: str | None = Field(None, max_length=100)
+    guest_count: int | None = Field(None, ge=10, le=5000)
+    budget_minor: int | None = Field(None, ge=1000000, le=10000000000)
+    budget_rupees: float | None = Field(None, ge=10000.0, le=100000000.0)
+    target_date: datetime | None = None
+    preparation_months: int | None = Field(None, ge=1, le=36)
+    status: str | None = None
+    autonomy_mode: str | None = None
+    ai_paused: bool | None = None
+
+    @field_validator("title", "city", "venue_type", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class EventResponse(BaseModel):
     id: str
@@ -98,7 +120,7 @@ class EventResponse(BaseModel):
     venue_type: str
     guest_count: int
     budget_minor: int
-    budget_rupees: Optional[float] = None
+    budget_rupees: float | None = None
     currency: str
     timezone: str
     preparation_months: int
@@ -109,7 +131,7 @@ class EventResponse(BaseModel):
     updated_at: datetime
 
     @field_serializer("created_at", "updated_at", mode="plain", check_fields=False)
-    def serialize_datetime(self, dt: Optional[datetime]) -> Optional[str]:
+    def serialize_datetime(self, dt: datetime | None) -> str | None:
         if dt is None:
             return None
         if dt.tzinfo is None:
@@ -122,69 +144,91 @@ class EventResponse(BaseModel):
 class ExpenseCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     planned_amount_minor: int = Field(..., gt=0, le=10000000000)
-    planned_rupees: Optional[float] = Field(None, gt=0.0, le=100000000.0)
+    planned_rupees: float | None = Field(None, gt=0.0, le=100000000.0)
     actual_amount_minor: int = Field(0, ge=0, le=10000000000)
-    actual_rupees: Optional[float] = Field(None, ge=0.0, le=100000000.0)
+    actual_rupees: float | None = Field(None, ge=0.0, le=100000000.0)
     provenance: str = "estimated"
-    notes: Optional[str] = Field(None, max_length=1000)
+    notes: str | None = Field(None, max_length=1000)
+
+    @field_validator("name", "notes", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class ExpenseUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    planned_amount_minor: Optional[int] = Field(None, gt=0, le=10000000000)
-    planned_rupees: Optional[float] = Field(None, gt=0.0, le=100000000.0)
-    actual_amount_minor: Optional[int] = Field(None, ge=0, le=10000000000)
-    actual_rupees: Optional[float] = Field(None, ge=0.0, le=100000000.0)
-    provenance: Optional[str] = None
-    notes: Optional[str] = Field(None, max_length=1000)
-    expected_version: Optional[int] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    planned_amount_minor: int | None = Field(None, gt=0, le=10000000000)
+    planned_rupees: float | None = Field(None, gt=0.0, le=100000000.0)
+    actual_amount_minor: int | None = Field(None, ge=0, le=10000000000)
+    actual_rupees: float | None = Field(None, ge=0.0, le=100000000.0)
+    provenance: str | None = None
+    notes: str | None = Field(None, max_length=1000)
+    expected_version: int | None = None
+
+    @field_validator("name", "notes", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class ExpenseResponse(BaseModel):
     id: str
     category_id: str
     name: str
     planned_amount_minor: int
-    planned_rupees: Optional[float] = None
+    planned_rupees: float | None = None
     actual_amount_minor: int
-    actual_rupees: Optional[float] = None
+    actual_rupees: float | None = None
     provenance: str
-    notes: Optional[str] = None
+    notes: str | None = None
     version: int = 1
 
     model_config = ConfigDict(from_attributes=True)
 
 class BudgetCategoryCreate(BaseModel):
     name: str
-    allocation_percent: float
+    allocation_percent: float = 0.0
+    allocation_basis_points: int | None = None
     allocated_amount_minor: int
-    icon: str = "DollarSign"
+    icon: str = "IndianRupee"
     is_per_guest: bool = False
     per_guest_minor: int = 0
     sort_order: int = 0
 
+    @field_validator("name", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
+
 class BudgetCategoryUpdate(BaseModel):
-    name: Optional[str] = None
-    allocation_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
-    allocated_amount_minor: Optional[int] = Field(None, ge=0, le=100000000000)
-    icon: Optional[str] = None
-    is_per_guest: Optional[bool] = None
-    per_guest_minor: Optional[int] = Field(None, ge=0, le=100000000000)
-    sort_order: Optional[int] = None
-    expected_version: Optional[int] = None
+    name: str | None = None
+    allocation_percent: float | None = Field(None, ge=0.0, le=100.0)
+    allocated_amount_minor: int | None = Field(None, ge=0, le=100000000000)
+    icon: str | None = None
+    is_per_guest: bool | None = None
+    per_guest_minor: int | None = Field(None, ge=0, le=100000000000)
+    sort_order: int | None = None
+    expected_version: int | None = None
+
+    @field_validator("name", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class BudgetCategoryResponse(BaseModel):
     id: str
     event_id: str
     name: str
     allocation_percent: float
+    allocation_basis_points: int = 0
     allocated_amount_minor: int
-    allocated_rupees: Optional[float] = None
+    allocated_rupees: float | None = None
     icon: str
     is_per_guest: bool
     per_guest_minor: int
-    per_guest_rupees: Optional[float] = None
+    per_guest_rupees: float | None = None
     sort_order: int
     version: int = 1
-    expenses: List[ExpenseResponse] = Field(default_factory=list)
+    expenses: list[ExpenseResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -193,13 +237,13 @@ class BudgetSummaryResponse(BaseModel):
     total_budget_rupees: float
     allocated_minor: int
     allocated_rupees: float
-    allocatable_minor: Optional[int] = 0
-    allocatable_rupees: Optional[float] = 0.0
-    safety_buffer_minor: Optional[int] = 0
-    safety_buffer_rupees: Optional[float] = 0.0
-    unallocated_minor: Optional[int] = 0
-    unallocated_rupees: Optional[float] = 0.0
-    is_reconciled: Optional[bool] = True
+    allocatable_minor: int | None = 0
+    allocatable_rupees: float | None = 0.0
+    safety_buffer_minor: int | None = 0
+    safety_buffer_rupees: float | None = 0.0
+    unallocated_minor: int | None = 0
+    unallocated_rupees: float | None = 0.0
+    is_reconciled: bool | None = True
     planned_total_minor: int
     planned_total_rupees: float
     actual_total_minor: int
@@ -213,11 +257,11 @@ class BudgetSummaryResponse(BaseModel):
     deviation_rupees: float
     is_over_budget: bool
     per_guest_avg_rupees: float
-    categories: List[BudgetCategoryResponse]
+    categories: list[BudgetCategoryResponse]
 
 class WhatIfSimulationRequest(BaseModel):
     simulated_guest_count: int
-    simulated_budget_minor: Optional[int] = None
+    simulated_budget_minor: int | None = None
 
 class WhatIfCategoryChange(BaseModel):
     category_name: str
@@ -238,7 +282,7 @@ class WhatIfSimulationResponse(BaseModel):
     new_contingency_rupees: float
     feasibility_status: str # "feasible", "tight", "exceeds_budget"
     recommendation: str
-    category_breakdowns: List[WhatIfCategoryChange]
+    category_breakdowns: list[WhatIfCategoryChange]
 
 # --- TASK & TIMELINE SCHEMAS ---
 class TaskDependencyItem(BaseModel):
@@ -250,33 +294,43 @@ class TaskDependencyCreate(BaseModel):
 
 class TaskCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1000)
+    description: str | None = Field(None, max_length=1000)
     category: str = Field("General", max_length=100)
     milestone_name: str = Field("6 Months Out", max_length=100)
     days_before_event: int = Field(180, ge=0, le=1825)
     duration_days: int = Field(7, ge=1, le=365)
     priority: str = Field("medium", max_length=20)
     assigned_to: str = Field("Host", max_length=100)
-    depends_on_ids: List[str] = Field(default_factory=list)
+    depends_on_ids: list[str] = Field(default_factory=list)
+
+    @field_validator("title", "description", "category", "assigned_to", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1000)
-    category: Optional[str] = Field(None, max_length=100)
-    milestone_name: Optional[str] = Field(None, max_length=100)
-    days_before_event: Optional[int] = Field(None, ge=0, le=1825)
-    duration_days: Optional[int] = Field(None, ge=1, le=365)
-    priority: Optional[str] = Field(None, max_length=20)
-    status: Optional[str] = Field(None, max_length=50)
-    assigned_to: Optional[str] = Field(None, max_length=100)
-    is_critical: Optional[bool] = None
-    expected_version: Optional[int] = None
+    title: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = Field(None, max_length=1000)
+    category: str | None = Field(None, max_length=100)
+    milestone_name: str | None = Field(None, max_length=100)
+    days_before_event: int | None = Field(None, ge=0, le=1825)
+    duration_days: int | None = Field(None, ge=1, le=365)
+    priority: str | None = Field(None, max_length=20)
+    status: str | None = Field(None, max_length=50)
+    assigned_to: str | None = Field(None, max_length=100)
+    is_critical: bool | None = None
+    expected_version: int | None = None
+
+    @field_validator("title", "description", "category", "assigned_to", mode="before", check_fields=False)
+    @classmethod
+    def sanitize_strings(cls, v: Any) -> Any:
+        return sanitize_free_text(v)
 
 class TaskResponse(BaseModel):
     id: str
     event_id: str
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     category: str
     milestone_name: str
     days_before_event: int
@@ -292,40 +346,40 @@ class TaskResponse(BaseModel):
     total_slack: int
     version: int = 1
     created_at: datetime
-    completed_at: Optional[datetime] = None
-    depends_on_ids: List[str] = Field(default_factory=list)
+    completed_at: datetime | None = None
+    depends_on_ids: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
 class CPMResultResponse(BaseModel):
     total_duration_days: int
-    critical_path_task_ids: List[str]
-    tasks: List[TaskResponse]
+    critical_path_task_ids: list[str]
+    tasks: list[TaskResponse]
 
 # --- VENDOR & QUOTATION SCHEMAS ---
 class QuotationCreate(BaseModel):
     vendor_id: str
     quoted_amount_minor: int
     status: str = "received"
-    file_url: Optional[str] = None
-    inclusions: List[str] = Field(default_factory=list)
-    exclusions: List[str] = Field(default_factory=list)
-    terms: Dict[str, Any] = Field(default_factory=dict)
-    detected_risks: List[str] = Field(default_factory=list)
+    file_url: str | None = None
+    inclusions: list[str] = Field(default_factory=list)
+    exclusions: list[str] = Field(default_factory=list)
+    terms: dict[str, Any] = Field(default_factory=dict)
+    detected_risks: list[str] = Field(default_factory=list)
     is_sample: bool = False
 
 class QuotationResponse(BaseModel):
     id: str
     vendor_id: str
-    vendor_name_cached: Optional[str] = None
+    vendor_name_cached: str | None = None
     quoted_amount_minor: int
-    quoted_rupees: Optional[float] = None
+    quoted_rupees: float | None = None
     status: str
-    file_url: Optional[str] = None
-    inclusions: List[str]
-    exclusions: List[str]
-    terms: Dict[str, Any]
-    detected_risks: List[str]
+    file_url: str | None = None
+    inclusions: list[str]
+    exclusions: list[str]
+    terms: dict[str, Any]
+    detected_risks: list[str]
     is_sample: bool
     created_at: datetime
 
@@ -334,20 +388,20 @@ class QuotationResponse(BaseModel):
 class VendorCreate(BaseModel):
     category: str
     name: str
-    contact: Optional[str] = None
+    contact: str | None = None
     rating: float = 4.5
-    notes: Optional[str] = None
+    notes: str | None = None
 
 class VendorResponse(BaseModel):
     id: str
     event_id: str
     category: str
     name: str
-    contact: Optional[str] = None
+    contact: str | None = None
     status: str
     rating: float
-    notes: Optional[str] = None
-    quotations: List[QuotationResponse] = Field(default_factory=list)
+    notes: str | None = None
+    quotations: list[QuotationResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -360,29 +414,29 @@ class QuotationComparisonItem(BaseModel):
     advance_payment_percent: float
     cancellation_terms: str
     included_services_count: int
-    inclusions: List[str]
-    exclusions: List[str]
-    detected_risks: List[str]
+    inclusions: list[str]
+    exclusions: list[str]
+    detected_risks: list[str]
     risk_score: str # Low, Medium, High
     is_recommended: bool
 
 class VendorComparisonResponse(BaseModel):
     category: str
-    recommended_quotation_id: Optional[str] = None
-    missing_inclusions_warning: List[str] = Field(default_factory=list)
-    comparison_items: List[QuotationComparisonItem] = Field(default_factory=list)
+    recommended_quotation_id: str | None = None
+    missing_inclusions_warning: list[str] = Field(default_factory=list)
+    comparison_items: list[QuotationComparisonItem] = Field(default_factory=list)
 
 # --- APPROVAL & AUTONOMY SCHEMAS ---
 class ApprovalCreate(BaseModel):
     proposal_type: str
     title: str
     summary: str
-    diff_summary: Dict[str, Any]
-    proposed_changes_json: Dict[str, Any]
+    diff_summary: dict[str, Any]
+    proposed_changes_json: dict[str, Any]
 
 class ApprovalAction(BaseModel):
     action: str # "approve" or "reject"
-    comment: Optional[str] = None
+    comment: str | None = None
 
 class ApprovalResponse(BaseModel):
     id: str
@@ -390,11 +444,11 @@ class ApprovalResponse(BaseModel):
     proposal_type: str
     title: str
     summary: str
-    diff_summary: Dict[str, Any]
-    proposed_changes_json: Dict[str, Any]
+    diff_summary: dict[str, Any]
+    proposed_changes_json: dict[str, Any]
     status: str
     created_at: datetime
-    reviewed_at: Optional[datetime] = None
+    reviewed_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -423,25 +477,25 @@ class ExtractedRequirement(BaseModel):
     dietary: str = "Pure Vegetarian"
     theme: str = "Royal Marigold & Polished Brass"
     regional_culture: str = "Maharashtrian Traditional"
-    cultural_traditions: List[str] = Field(default_factory=list)
+    cultural_traditions: list[str] = Field(default_factory=list)
     preparation_months: int = 6
     special_requirements: str = ""
     provenance: str = "ai_suggested"
 
 class PersonalizedIdeasResponse(BaseModel):
-    themes: List[Dict[str, Any]]
-    decor_concepts: List[Dict[str, Any]]
-    food_and_menu: List[Dict[str, Any]]
-    entertainment: List[Dict[str, Any]]
-    return_gifts: List[Dict[str, Any]]
-    cultural_traditions: List[Dict[str, Any]]
-    budget_conscious_alternatives: List[Dict[str, Any]]
+    themes: list[dict[str, Any]]
+    decor_concepts: list[dict[str, Any]]
+    food_and_menu: list[dict[str, Any]]
+    entertainment: list[dict[str, Any]]
+    return_gifts: list[dict[str, Any]]
+    cultural_traditions: list[dict[str, Any]]
+    budget_conscious_alternatives: list[dict[str, Any]]
 
 class PlanGenerationResponse(BaseModel):
     event_id: str
     plan_title: str
     summary: str
-    blueprint_json: Dict[str, Any]
-    budget_allocation_summary: Dict[str, Any]
+    blueprint_json: dict[str, Any]
+    budget_allocation_summary: dict[str, Any]
     task_count: int
     milestone_count: int

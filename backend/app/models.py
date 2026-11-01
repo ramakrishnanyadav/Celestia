@@ -1,17 +1,29 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from sqlalchemy import (
-    Column, String, Integer, BigInteger, Float, Boolean, 
-    Text, ForeignKey, DateTime, JSON, CheckConstraint
+    JSON,
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
 )
 from sqlalchemy.orm import relationship
+
 from .database import Base
+
 
 def generate_uuid() -> str:
     return str(uuid.uuid4())
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 class User(Base):
     __tablename__ = "users"
@@ -103,19 +115,27 @@ class BudgetCategory(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(100), nullable=False)
-    allocation_percent = Column(Float, default=0.0) # e.g. 35.0%
+    allocation_basis_points = Column(Integer, default=0, nullable=False) # 100% = 10000 basis points
     allocated_amount_minor = Column(BigInteger, default=0) # Integer minor units (paise)
-    icon = Column(String(50), default="DollarSign")
+    icon = Column(String(50), default="IndianRupee")
     is_per_guest = Column(Boolean, default=False)
     per_guest_minor = Column(BigInteger, default=0) # Unit price per guest
     sort_order = Column(Integer, default=0)
     version = Column(Integer, default=1, nullable=False)
 
+    @property
+    def allocation_percent(self) -> float:
+        return self.allocation_basis_points / 100.0
+
+    @allocation_percent.setter
+    def allocation_percent(self, val: float) -> None:
+        self.allocation_basis_points = int(round(val * 100))
+
     event = relationship("Event", back_populates="budget_categories")
     expenses = relationship("Expense", back_populates="category", cascade="all, delete-orphan")
 
     __table_args__ = (
-        CheckConstraint("allocation_percent >= 0.0 AND allocation_percent <= 100.0", name="check_cat_allocation_percent"),
+        CheckConstraint("allocation_basis_points >= 0 AND allocation_basis_points <= 10000", name="check_cat_allocation_basis_points"),
         CheckConstraint("allocated_amount_minor >= 0", name="check_cat_allocated_amount"),
     )
 
@@ -166,7 +186,7 @@ class Task(Base):
 
     event = relationship("Event", back_populates="tasks")
     dependencies = relationship(
-        "TaskDependency", 
+        "TaskDependency",
         foreign_keys="TaskDependency.task_id",
         back_populates="task",
         cascade="all, delete-orphan"

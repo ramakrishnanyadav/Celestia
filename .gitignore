@@ -42,3 +42,9 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Caches & Test artifacts
+.hypothesis/
+.coverage
+htmlcov/
+*.zip

@@ -1,17 +1,22 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+import csv
+import io
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session, selectinload
+
 from ..database import get_db
-from ..models import Event, BudgetCategory, Expense
-from ..schemas import (
-    BudgetSummaryResponse, BudgetCategoryResponse, ExpenseResponse,
-    BudgetCategoryCreate, BudgetCategoryUpdate, ExpenseCreate, ExpenseUpdate,
-    WhatIfSimulationRequest, WhatIfSimulationResponse
-)
 from ..dependencies import get_event_for_user
-from ..engines.budget_intelligence import (
-    calculate_budget_summary, simulate_what_if_changes,
-    paise_to_rupees
+from ..engines.budget_intelligence import calculate_budget_summary, paise_to_rupees
+from ..models import BudgetCategory, Event, Expense
+from ..schemas import (
+    BudgetCategoryCreate,
+    BudgetCategoryResponse,
+    BudgetCategoryUpdate,
+    BudgetSummaryResponse,
+    ExpenseCreate,
+    ExpenseResponse,
+    ExpenseUpdate,
 )
 
 router = APIRouter(prefix="/events/{event_id}/budget", tags=["Budget Intelligence"])
@@ -20,7 +25,7 @@ def enrich_category_response(cat: BudgetCategory) -> BudgetCategoryResponse:
     res = BudgetCategoryResponse.model_validate(cat)
     res.allocated_rupees = paise_to_rupees(cat.allocated_amount_minor)
     res.per_guest_rupees = paise_to_rupees(cat.per_guest_minor)
-    for exp_res, exp_model in zip(res.expenses, cat.expenses):
+    for exp_res, exp_model in zip(res.expenses, cat.expenses, strict=False):
         exp_res.planned_rupees = paise_to_rupees(exp_model.planned_amount_minor)
         exp_res.actual_rupees = paise_to_rupees(exp_model.actual_amount_minor)
     return res
@@ -174,10 +179,6 @@ def delete_expense(
     db.delete(exp)
     db.commit()
     return {"message": "Expense deleted successfully"}
-
-import io
-import csv
-from fastapi.responses import Response
 
 def sanitize_csv_cell(value: Any) -> str:
     """Neutralizes CSV Formula Injection (DDE injection) attacks."""

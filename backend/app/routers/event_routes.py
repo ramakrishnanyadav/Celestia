@@ -1,16 +1,20 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..models import User, Event, EventPreference, EventPlan, ActivityLog
-from ..schemas import (
-    EventCreate, EventUpdate, EventResponse, 
-    EventPreferenceCreate, EventPreferenceResponse
-)
+
 from ..auth import get_current_user
-from ..engines.budget_intelligence import paise_to_rupees, rupees_to_paise
+from ..database import get_db
 from ..engines.ai_service import AIService
+from ..engines.budget_intelligence import paise_to_rupees, rupees_to_paise
 from ..idempotency import check_idempotency, record_idempotency
+from ..models import Event, EventPlan, EventPreference, User
+from ..schemas import (
+    EventCreate,
+    EventPreferenceCreate,
+    EventPreferenceResponse,
+    EventResponse,
+    EventUpdate,
+)
 
 router = APIRouter(prefix="/events", tags=["Events"])
 
@@ -19,7 +23,7 @@ def enrich_event_response(event: Event) -> EventResponse:
     res.budget_rupees = paise_to_rupees(event.budget_minor)
     return res
 
-@router.get("", response_model=List[EventResponse])
+@router.get("", response_model=list[EventResponse])
 def list_user_events(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -32,7 +36,7 @@ def create_event(
     event_in: EventCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
+    idempotency_key: str | None = Header(None, alias="Idempotency-Key")
 ):
     cached = check_idempotency(db, idempotency_key, current_user.id, "create_event", event_in.model_dump())
     if cached:
@@ -75,7 +79,7 @@ def create_event(
 
     # Seed baseline plan, budget, tasks, and vendors
     AIService.generate_full_event_plan(db, event)
-    
+
     db.commit()
     db.refresh(event)
     res = enrich_event_response(event)
@@ -152,15 +156,15 @@ def update_preferences(
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    
+
     pref = event.preference
     if not pref:
         pref = EventPreference(event_id=event.id)
         db.add(pref)
-        
+
     for k, v in pref_in.model_dump().items():
         setattr(pref, k, v)
-        
+
     db.commit()
     db.refresh(pref)
     return pref
@@ -174,16 +178,18 @@ def get_active_plan(
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-        
+
     plan = db.query(EventPlan).filter(
         EventPlan.event_id == event_id,
         EventPlan.status == "active"
     ).order_by(EventPlan.created_at.desc()).first()
-    
+
     if not plan:
-        res = AIService.generate_full_event_plan(db, event)
+        AIService.generate_full_event_plan(db, event)
         plan = db.query(EventPlan).filter(EventPlan.event_id == event_id).first()
-        
+        if not plan:
+            raise HTTPException(status_code=404, detail="Event plan could not be generated")
+
     return {
         "id": plan.id,
         "title": plan.title,

@@ -1,19 +1,27 @@
 import secrets
-from typing import Optional, Dict, Any
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..config import settings
-from ..models import User, Event, EventPreference, BudgetCategory, Expense, Task, Vendor, Approval
-from ..schemas import UserCreate, UserLogin, UserResponse, Token
+
 from ..auth import (
-    hash_password, verify_password_and_needs_rehash, 
-    create_access_token, create_refresh_token, rotate_refresh_token,
-    revoke_refresh_token, set_auth_cookies, clear_auth_cookies,
-    get_current_user, create_ephemeral_demo_user
+    clear_auth_cookies,
+    create_access_token,
+    create_ephemeral_demo_user,
+    create_refresh_token,
+    get_current_user,
+    hash_password,
+    revoke_refresh_token,
+    rotate_refresh_token,
+    set_auth_cookies,
+    verify_password_and_needs_rehash,
 )
+from ..config import settings
+from ..database import get_db
 from ..engines.ai_service import AIService
-from ..rate_limiter import rate_limit_auth, limiter, get_client_ip
+from ..models import Event, EventPreference, User
+from ..rate_limiter import get_client_ip, limiter, rate_limit_auth
+from ..schemas import Token, UserCreate, UserLogin, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -25,7 +33,7 @@ def register(
     db: Session = Depends(get_db),
     _rl = Depends(rate_limit_auth)
 ):
-    ip = get_client_ip(request)
+    get_client_ip(request)
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
         raise HTTPException(
@@ -41,11 +49,11 @@ def register(
     db.add(user)
     db.commit()
     db.refresh(user)
-    
+
     access_token = create_access_token({"sub": user.id, "email": user.email})
     refresh_token = create_refresh_token(db, user.id)
     csrf_token = secrets.token_hex(24)
-    
+
     set_auth_cookies(response, access_token, refresh_token, csrf_token)
     return {
         "access_token": access_token,
@@ -66,7 +74,7 @@ def login(
     ip = get_client_ip(request)
     lockout_key = f"failed_login:{ip}:{login_in.email.lower()}"
     limiter.check_lockout(lockout_key)
-    
+
     user = db.query(User).filter(User.email == login_in.email).first()
     if not user:
         limiter.record_failed_login(lockout_key, max_failures=5, lockout_duration_seconds=900)
@@ -74,7 +82,7 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
-        
+
     valid, needs_rehash = verify_password_and_needs_rehash(login_in.password, user.password_hash)
     if not valid:
         limiter.record_failed_login(lockout_key, max_failures=5, lockout_duration_seconds=900)
@@ -82,7 +90,7 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
-        
+
     # Clear failed login attempts on success
     limiter.clear_failed_logins(lockout_key)
 
@@ -90,11 +98,11 @@ def login(
         user.password_hash = hash_password(login_in.password)
         db.commit()
         db.refresh(user)
-        
+
     access_token = create_access_token({"sub": user.id, "email": user.email})
     refresh_token = create_refresh_token(db, user.id)
     csrf_token = secrets.token_hex(24)
-    
+
     set_auth_cookies(response, access_token, refresh_token, csrf_token)
     return {
         "access_token": access_token,
@@ -117,18 +125,18 @@ def refresh(
         auth_hdr = request.headers.get("Authorization")
         if auth_hdr and auth_hdr.startswith("Bearer "):
             raw_token = auth_hdr[7:]
-            
+
     if not raw_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing refresh token",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        
+
     user, new_access_token, new_refresh_token = rotate_refresh_token(db, raw_token)
     csrf_token = secrets.token_hex(24)
     set_auth_cookies(response, new_access_token, new_refresh_token, csrf_token)
-    
+
     return {
         "access_token": new_access_token,
         "token_type": "bearer",
@@ -167,9 +175,9 @@ def demo_login(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Demo showcase is disabled in production environments."
         )
-        
+
     demo_user = create_ephemeral_demo_user(db)
-    
+
     # Seed authentic Mumbai Indian Wedding showcase
     wedding_event = Event(
         user_id=demo_user.id,
@@ -188,7 +196,7 @@ def demo_login(
     db.add(wedding_event)
     db.commit()
     db.refresh(wedding_event)
-    
+
     pref = EventPreference(
         event_id=wedding_event.id,
         dietary="Pure Vegetarian",
@@ -201,13 +209,13 @@ def demo_login(
     )
     db.add(pref)
     db.commit()
-    
+
     AIService.generate_full_event_plan(db, wedding_event)
-    
+
     access_token = create_access_token({"sub": demo_user.id, "email": demo_user.email})
     refresh_token = create_refresh_token(db, demo_user.id)
     csrf_token = secrets.token_hex(24)
-    
+
     set_auth_cookies(response, access_token, refresh_token, csrf_token)
     return {
         "access_token": access_token,
@@ -225,7 +233,7 @@ def get_me(current_user: User = Depends(get_current_user)):
 def export_user_data(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Data portability endpoint (GDPR/DPDP compliance).
     Exports complete user account history, celebrations, budgets, tasks, and vendors.

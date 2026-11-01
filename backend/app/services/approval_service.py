@@ -1,10 +1,12 @@
-from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from ..models import Event, Approval, ActivityLog
+
 from ..engines.budget_intelligence import seed_event_budget
 from ..engines.planning_intelligence import run_cpm_calculation
+from ..models import ActivityLog, Approval, Event
+
 
 class ApprovalService:
     """
@@ -13,7 +15,7 @@ class ApprovalService:
     """
 
     @staticmethod
-    def list_approvals(db: Session, event_id: str) -> List[Approval]:
+    def list_approvals(db: Session, event_id: str) -> list[Approval]:
         return db.query(Approval).filter(
             Approval.event_id == event_id
         ).order_by(Approval.created_at.desc()).all()
@@ -24,7 +26,7 @@ class ApprovalService:
         event: Event,
         proposal_id: str,
         action: str,
-        comment: Optional[str] = None
+        comment: str | None = None
     ) -> Approval:
         action_clean = action.lower()
         if action_clean not in ["approve", "reject"]:
@@ -34,7 +36,7 @@ class ApprovalService:
             )
 
         new_status = "approved" if action_clean == "approve" else "rejected"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Atomic UPDATE with row-count check in one transaction
         rows_updated = db.query(Approval).filter(
@@ -63,6 +65,8 @@ class ApprovalService:
             )
 
         proposal = db.query(Approval).filter(Approval.id == proposal_id).first()
+        if not proposal:
+            raise HTTPException(status_code=404, detail="Approval proposal not found")
 
         try:
             if action_clean == "approve":
@@ -179,7 +183,7 @@ class ApprovalService:
             raise
 
     @staticmethod
-    def get_activity_logs(db: Session, event_id: str) -> List[ActivityLog]:
+    def get_activity_logs(db: Session, event_id: str) -> list[ActivityLog]:
         return db.query(ActivityLog).filter(
             ActivityLog.event_id == event_id
         ).order_by(ActivityLog.timestamp.desc()).all()

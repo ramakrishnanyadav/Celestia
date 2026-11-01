@@ -94,3 +94,4 @@ jobs:
       - name: Next.js Production Build
         working-directory: frontend
         run: npm run build
+

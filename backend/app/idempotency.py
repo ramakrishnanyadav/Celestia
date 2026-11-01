@@ -1,9 +1,11 @@
-import json
 import hashlib
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Any, Tuple
+import json
+from datetime import UTC, datetime
+from typing import Any
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+
 from .models import IdempotencyRecord
 
 IDEMPOTENCY_DEFAULT_TTL_SECONDS = 86400  # 24 hours
@@ -14,12 +16,12 @@ def compute_request_hash(payload: Any) -> str:
 
 def check_idempotency(
     db: Session,
-    idempotency_key: Optional[str],
+    idempotency_key: str | None,
     user_id: str,
     endpoint: str,
     payload: Any,
     ttl_seconds: int = IDEMPOTENCY_DEFAULT_TTL_SECONDS
-) -> Optional[Tuple[int, Any]]:
+) -> tuple[int, Any] | None:
     """
     Checks if an idempotent operation was already completed.
     Returns (status_code, response_body) if found, or None if new request.
@@ -50,9 +52,9 @@ def check_idempotency(
         return None
 
     # Check TTL expiration
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if record.created_at:
-        created = record.created_at if record.created_at.tzinfo else record.created_at.replace(tzinfo=timezone.utc)
+        created = record.created_at if record.created_at.tzinfo else record.created_at.replace(tzinfo=UTC)
         if (now - created).total_seconds() > ttl_seconds:
             # Expired: clean up record and allow new request
             db.delete(record)
@@ -66,11 +68,11 @@ def check_idempotency(
             detail="Idempotency key was previously used with a different request payload or endpoint."
         )
 
-    return record.response_code, record.response_body
+    return int(record.response_code), record.response_body
 
 def record_idempotency(
     db: Session,
-    idempotency_key: Optional[str],
+    idempotency_key: str | None,
     user_id: str,
     endpoint: str,
     payload: Any,

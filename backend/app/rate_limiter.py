@@ -5,17 +5,32 @@ on authentication, AI, and upload endpoints.
 Returns HTTP 429 Too Many Requests when limits are exceeded.
 """
 import time
-from typing import Dict, List, Tuple
-from fastapi import Request, HTTPException, status
+
+from fastapi import HTTPException, Request, status
+
+from .config import settings
+
 
 class InMemoryRateLimiter:
-    def __init__(self):
+    def __init__(self, max_keys: int = 10000):
         # map key -> list of timestamps
-        self._requests: Dict[str, List[float]] = {}
+        self._requests: dict[str, list[float]] = {}
         # map key -> list of failed attempt timestamps
-        self._failed_attempts: Dict[str, List[float]] = {}
+        self._failed_attempts: dict[str, list[float]] = {}
         # map key -> lockout expiry timestamp
-        self._lockouts: Dict[str, float] = {}
+        self._lockouts: dict[str, float] = {}
+        self._max_keys = max_keys
+
+    def _evict_stale_keys(self, now: float) -> None:
+        """Evicts stale keys when map exceeds max_keys to prevent memory leaks."""
+        if len(self._requests) > self._max_keys:
+            stale_cutoff = now - 3600 # 1 hour
+            self._requests = {k: v for k, v in self._requests.items() if v and v[-1] > stale_cutoff}
+        if len(self._failed_attempts) > self._max_keys:
+            stale_cutoff = now - 3600
+            self._failed_attempts = {k: v for k, v in self._failed_attempts.items() if v and v[-1] > stale_cutoff}
+        if len(self._lockouts) > self._max_keys:
+            self._lockouts = {k: v for k, v in self._lockouts.items() if v > now}
 
     def check_rate_limit(
         self,
@@ -26,7 +41,8 @@ class InMemoryRateLimiter:
     ):
         """Standard sliding-window rate limit."""
         now = time.time()
-        
+        self._evict_stale_keys(now)
+
         # Check if currently locked out
         if key in self._lockouts:
             remaining = self._lockouts[key] - now
@@ -43,7 +59,7 @@ class InMemoryRateLimiter:
         # Prune old timestamps
         cutoff = now - window_seconds
         timestamps = [t for t in timestamps if t > cutoff]
-        
+
         if len(timestamps) >= max_requests:
             retry_after = int(window_seconds - (now - timestamps[0])) + 1
             raise HTTPException(
@@ -51,7 +67,7 @@ class InMemoryRateLimiter:
                 detail=f"Rate limit exceeded for {endpoint_name}. Maximum {max_requests} requests per {window_seconds}s.",
                 headers={"Retry-After": str(max(1, retry_after))}
             )
-            
+
         timestamps.append(now)
         self._requests[key] = timestamps
 
@@ -76,12 +92,13 @@ class InMemoryRateLimiter:
     ):
         """Records a failed authentication attempt and locks out if threshold reached."""
         now = time.time()
+        self._evict_stale_keys(now)
         failures = self._failed_attempts.get(key, [])
         cutoff = now - lockout_duration_seconds
         failures = [t for t in failures if t > cutoff]
         failures.append(now)
         self._failed_attempts[key] = failures
-        
+
         if len(failures) >= max_failures:
             self._lockouts[key] = now + lockout_duration_seconds
 
@@ -99,11 +116,26 @@ class InMemoryRateLimiter:
 limiter = InMemoryRateLimiter()
 
 def get_client_ip(request: Request) -> str:
-    """Extracts client IP address safely, checking X-Forwarded-For if available."""
+    """
+    Extracts client IP address securely.
+    Only trusts X-Forwarded-For if request comes from a configured trusted proxy,
+    and inspects the right-most untrusted hop to prevent client-spoofed headers.
+    """
+    remote_addr = request.client.host if request.client else "127.0.0.1"
+
+    # If remote address is not in trusted proxies, ignore X-Forwarded-For completely
+    if remote_addr not in settings.TRUSTED_PROXIES:
+        return remote_addr
+
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else "127.0.0.1"
+        # Traverse from right to left to find the first untrusted IP
+        hops = [ip.strip() for ip in forwarded.split(",") if ip.strip()]
+        for hop in reversed(hops):
+            if hop not in settings.TRUSTED_PROXIES:
+                return hop
+
+    return remote_addr
 
 def rate_limit_auth(request: Request):
     """Rate limit for login, register, and demo-login: 10 requests / 60 seconds per IP."""

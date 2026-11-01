@@ -1,27 +1,31 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
+
 from ..database import get_db
-from ..models import Event, Vendor, Quotation, Document
-from ..schemas import (
-    VendorCreate, VendorResponse, QuotationCreate, QuotationResponse,
-    VendorComparisonResponse
-)
 from ..dependencies import get_event_for_user
-from ..engines.budget_intelligence import paise_to_rupees
-from ..engines.vendor_intelligence import compare_quotations_for_category, analyze_quotation_risks
 from ..engines.ai_gateway import ai_gateway
+from ..engines.budget_intelligence import paise_to_rupees
+from ..engines.vendor_intelligence import analyze_quotation_risks, compare_quotations_for_category
+from ..models import Document, Event, Quotation, Vendor
 from ..rate_limiter import rate_limit_upload
+from ..schemas import (
+    QuotationCreate,
+    QuotationResponse,
+    VendorComparisonResponse,
+    VendorCreate,
+    VendorResponse,
+)
 
 router = APIRouter(prefix="/events/{event_id}/vendors", tags=["Vendor Intelligence"])
 
 def enrich_vendor_response(v: Vendor) -> VendorResponse:
     res = VendorResponse.model_validate(v)
-    for q_res, q_model in zip(res.quotations, v.quotations):
+    for q_res, q_model in zip(res.quotations, v.quotations, strict=False):
         q_res.quoted_rupees = paise_to_rupees(q_model.quoted_amount_minor)
     return res
 
-@router.get("", response_model=List[VendorResponse])
+@router.get("", response_model=list[VendorResponse])
 def list_vendors(
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db)

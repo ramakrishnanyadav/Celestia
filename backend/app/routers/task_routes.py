@@ -1,13 +1,14 @@
-from typing import List, Optional
-from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session, selectinload
+
 from ..database import get_db
-from ..models import Event, Task, TaskDependency
-from ..schemas import TaskCreate, TaskUpdate, TaskResponse, CPMResultResponse, TaskDependencyCreate
 from ..dependencies import get_event_for_user
-from ..engines.planning_intelligence import run_cpm_calculation, check_dependency_cycle
+from ..engines.planning_intelligence import check_dependency_cycle, run_cpm_calculation
 from ..idempotency import check_idempotency, record_idempotency
+from ..models import Event, Task, TaskDependency
+from ..schemas import CPMResultResponse, TaskCreate, TaskDependencyCreate, TaskResponse, TaskUpdate
 
 router = APIRouter(prefix="/events/{event_id}/tasks", tags=["Planning & Tasks"])
 
@@ -16,7 +17,7 @@ def enrich_task_response(task: Task) -> TaskResponse:
     res.depends_on_ids = [d.depends_on_task_id for d in task.dependencies]
     return res
 
-@router.get("", response_model=List[TaskResponse])
+@router.get("", response_model=list[TaskResponse])
 def list_tasks(
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db)
@@ -31,7 +32,7 @@ def create_task(
     task_in: TaskCreate,
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db),
-    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
+    idempotency_key: str | None = Header(None, alias="Idempotency-Key")
 ):
     cached = check_idempotency(db, idempotency_key, event.user_id, f"create_task_{event.id}", task_in.model_dump())
     if cached:
@@ -123,7 +124,7 @@ def update_task(
         task.version += 1
 
     if data.get("status") == "completed" and task.status != "completed":
-        task.completed_at = datetime.now(timezone.utc)
+        task.completed_at = datetime.now(UTC)
     elif data.get("status") == "pending":
         task.completed_at = None
 

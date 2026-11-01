@@ -4,12 +4,11 @@ Single canonical module for monetary minor unit (paise) conversions, safe intege
 and authentic Indian numbering formatting (Lakhs / Crores / ₹ symbol).
 Eliminates floating-point money inaccuracies.
 """
-from typing import Tuple, Union
 
 # 1 Rupee = 100 Paise
 PAISE_PER_RUPEE = 100
 
-def rupees_to_minor(rupees: Union[int, float, str]) -> int:
+def rupees_to_minor(rupees: int | float | str) -> int:
     """
     Converts rupees to integer minor units (paise).
     Handles string or numeric inputs safely without floating point drift.
@@ -27,7 +26,7 @@ def rupees_to_minor(rupees: Union[int, float, str]) -> int:
             sign = -1 if whole < 0 or cleaned.startswith("-") else 1
             return sign * (abs(whole) * PAISE_PER_RUPEE + int(fraction))
         return int(cleaned) * PAISE_PER_RUPEE
-    
+
     # Use exact integer rounding for numeric inputs
     return int(round(rupees * PAISE_PER_RUPEE))
 
@@ -45,10 +44,10 @@ def format_inr_minor(minor: int, show_paise: bool = False) -> str:
     """
     if minor < 0:
         return f"-{format_inr_minor(abs(minor), show_paise)}"
-        
+
     rupees = minor // PAISE_PER_RUPEE
     paise = minor % PAISE_PER_RUPEE
-    
+
     s = str(rupees)
     if len(s) <= 3:
         formatted = s
@@ -88,7 +87,7 @@ def format_inr_compact(minor: int) -> str:
 def calculate_budget_allocation(
     total_budget_minor: int,
     contingency_percent: float = 0.10
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """
     Calculates safety buffer and allocatable budget from total budget.
     Guarantees: contingency_minor + allocatable_minor == total_budget_minor
@@ -96,3 +95,4 @@ def calculate_budget_allocation(
     contingency_minor = int(round(total_budget_minor * contingency_percent))
     allocatable_minor = total_budget_minor - contingency_minor
     return contingency_minor, allocatable_minor
+

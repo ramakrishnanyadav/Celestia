@@ -1,14 +1,15 @@
 import asyncio
-import time
 import json
+import time
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional, AsyncGenerator, Protocol
-from sqlalchemy.orm import Session
-from ..models import Event, EventPreference
-from ..engines.budget_intelligence import paise_to_rupees, BENCHMARK_ALLOCATIONS
-from ..engines.planning_intelligence import WEDDING_TASK_TEMPLATES
+from collections.abc import AsyncGenerator
+from typing import Any
+
+from ..config import settings
+from ..engines.budget_intelligence import paise_to_rupees
 from ..engines.celebration_intelligence import generate_personalized_ideas
-from ..engines.vendor_intelligence import compare_quotations_for_category
+from ..engines.planning_intelligence import WEDDING_TASK_TEMPLATES
+from ..models import Event, EventPreference
 
 # Token Cost Parameters (Gemini 1.5 Flash / GPT-4o-mini tier benchmarks)
 INPUT_TOKEN_RATE_USD_PER_M = 0.15
@@ -31,12 +32,12 @@ TASK_MODEL_MAPPING = {
 class AIProvider(ABC):
     """Abstract interface defining contract for AI execution engines."""
     @abstractmethod
-    async def generate_completion(self, prompt: str, task_type: str = "plan_generation") -> Dict[str, Any]:
+    async def generate_completion(self, prompt: str, task_type: str = "plan_generation") -> dict[str, Any]:
         pass
 
 class RuleBasedFallbackProvider(AIProvider):
     """Deterministic, zero-latency rule-based provider for offline & fallback paths."""
-    async def generate_completion(self, prompt: str, task_type: str = "plan_generation") -> Dict[str, Any]:
+    async def generate_completion(self, prompt: str, task_type: str = "plan_generation") -> dict[str, Any]:
         return {
             "provider": "rule-based-deterministic",
             "model": TASK_MODEL_MAPPING.get("offline_fallback", "rule-based"),
@@ -46,10 +47,10 @@ class RuleBasedFallbackProvider(AIProvider):
 
 class RealGeminiProvider(AIProvider):
     """External Google Gemini Interactions API provider with per-task model routing."""
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key
 
-    async def generate_completion(self, prompt: str, task_type: str = "plan_generation") -> Dict[str, Any]:
+    async def generate_completion(self, prompt: str, task_type: str = "plan_generation") -> dict[str, Any]:
         model = TASK_MODEL_MAPPING.get(task_type, "gemini-1.5-flash")
         # When API key is absent or in simulated test conditions, seamlessly routes to rule-based fallback
         if not self.api_key:
@@ -79,7 +80,7 @@ class TokenCostTracker:
         return max(1, len(text) // 4)
 
     @classmethod
-    def calculate_cost(cls, prompt_tokens: int, completion_tokens: int, model: str = "gemini-1.5-flash") -> Dict[str, Any]:
+    def calculate_cost(cls, prompt_tokens: int, completion_tokens: int, model: str = "gemini-1.5-flash") -> dict[str, Any]:
         cost_usd = (
             (prompt_tokens / 1_000_000.0) * INPUT_TOKEN_RATE_USD_PER_M +
             (completion_tokens / 1_000_000.0) * OUTPUT_TOKEN_RATE_USD_PER_M
@@ -98,7 +99,7 @@ class TokenCostTracker:
 class CompactPromptBuilder:
     """Creates minimized, high-density prompts stripping conversational boilerplate."""
     @staticmethod
-    def build_event_context(event: Event, pref: Optional[EventPreference] = None) -> str:
+    def build_event_context(event: Event, pref: EventPreference | None = None) -> str:
         data = {
             "type": event.event_type,
             "city": event.city,
@@ -118,7 +119,7 @@ class CompactPromptBuilder:
 
 class UserPlanCache:
     """In-memory TTL cache for deterministic plan sections scoped per user & event hash."""
-    _store: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+    _store: dict[str, tuple[float, dict[str, Any]]] = {}
     DEFAULT_TTL_SEC = 300 # 5 minutes
 
     @classmethod
@@ -126,7 +127,7 @@ class UserPlanCache:
         return f"{user_id}:{event_id}:{section}"
 
     @classmethod
-    def get(cls, user_id: str, event_id: str, section: str) -> Optional[Dict[str, Any]]:
+    def get(cls, user_id: str, event_id: str, section: str) -> dict[str, Any] | None:
         key = cls._make_key(user_id, event_id, section)
         if key in cls._store:
             timestamp, data = cls._store[key]
@@ -136,7 +137,7 @@ class UserPlanCache:
         return None
 
     @classmethod
-    def set(cls, user_id: str, event_id: str, section: str, data: Dict[str, Any]) -> None:
+    def set(cls, user_id: str, event_id: str, section: str, data: dict[str, Any]) -> None:
         key = cls._make_key(user_id, event_id, section)
         cls._store[key] = (time.time(), data)
 
@@ -152,7 +153,7 @@ class AIEfficiencyService:
     DEFAULT_TIMEOUT_SEC = 2.5
 
     @staticmethod
-    async def generate_budget_section(event: Event, fake_delay: float = 0.0) -> Dict[str, Any]:
+    async def generate_budget_section(event: Event, fake_delay: float = 0.0) -> dict[str, Any]:
         if fake_delay > 0:
             await asyncio.sleep(fake_delay)
         total_rupees = paise_to_rupees(event.budget_minor)
@@ -165,7 +166,7 @@ class AIEfficiencyService:
         }
 
     @staticmethod
-    async def generate_timeline_section(event: Event, fake_delay: float = 0.0) -> Dict[str, Any]:
+    async def generate_timeline_section(event: Event, fake_delay: float = 0.0) -> dict[str, Any]:
         if fake_delay > 0:
             await asyncio.sleep(fake_delay)
         return {
@@ -175,7 +176,7 @@ class AIEfficiencyService:
         }
 
     @staticmethod
-    async def generate_vendor_section(event: Event, fake_delay: float = 0.0) -> Dict[str, Any]:
+    async def generate_vendor_section(event: Event, fake_delay: float = 0.0) -> dict[str, Any]:
         if fake_delay > 0:
             await asyncio.sleep(fake_delay)
         return {
@@ -185,7 +186,7 @@ class AIEfficiencyService:
         }
 
     @staticmethod
-    async def generate_ideas_section(event: Event, pref: Optional[EventPreference], fake_delay: float = 0.0) -> Dict[str, Any]:
+    async def generate_ideas_section(event: Event, pref: EventPreference | None, fake_delay: float = 0.0) -> dict[str, Any]:
         if fake_delay > 0:
             await asyncio.sleep(fake_delay)
         return generate_personalized_ideas(event, pref)
@@ -195,8 +196,8 @@ class AIEfficiencyService:
         cls,
         event: Event,
         section_name: str,
-        pref: Optional[EventPreference] = None
-    ) -> Dict[str, Any]:
+        pref: EventPreference | None = None
+    ) -> dict[str, Any]:
         """
         Regenerates ONLY the requested changed section without re-running full plan.
         Saves ~75% compute and token expenditure when a user adjusts single dimensions.
@@ -226,10 +227,10 @@ class AIEfficiencyService:
     async def generate_plan_parallel(
         cls,
         event: Event,
-        pref: Optional[EventPreference] = None,
+        pref: EventPreference | None = None,
         timeout_sec: float = DEFAULT_TIMEOUT_SEC,
         fake_delay: float = 0.0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Executes parallel generation of 4 plan sections using asyncio.gather.
         Guarded by per-call timeouts with automatic fallback to template plan.
@@ -249,18 +250,22 @@ class AIEfficiencyService:
                 res = await asyncio.wait_for(coro, timeout=timeout_sec)
                 UserPlanCache.set(event.user_id, event.id, name, res)
                 return res
-            except (asyncio.TimeoutError, Exception):
+            except (TimeoutError, Exception):
                 return fallback_fn()
 
         # Define fallbacks
-        fallback_budget = lambda: {
-            "total_budget_rupees": paise_to_rupees(event.budget_minor),
-            "contingency_reserve_rupees": round(paise_to_rupees(event.budget_minor) * 0.10, 2),
-            "per_guest_avg_rupees": round(paise_to_rupees(event.budget_minor) / max(1, event.guest_count), 2)
-        }
-        fallback_timeline = lambda: {"total_tasks_seeded": len(WEDDING_TASK_TEMPLATES), "status": "template_fallback"}
-        fallback_vendors = lambda: {"status": "template_fallback", "categories": ["Catering", "Decor"]}
-        fallback_ideas = lambda: generate_personalized_ideas(event, pref)
+        def fallback_budget():
+            return {
+                    "total_budget_rupees": paise_to_rupees(event.budget_minor),
+                    "contingency_reserve_rupees": round(paise_to_rupees(event.budget_minor) * 0.10, 2),
+                    "per_guest_avg_rupees": round(paise_to_rupees(event.budget_minor) / max(1, event.guest_count), 2)
+                }
+        def fallback_timeline():
+            return {"total_tasks_seeded": len(WEDDING_TASK_TEMPLATES), "status": "template_fallback"}
+        def fallback_vendors():
+            return {"status": "template_fallback", "categories": ["Catering", "Decor"]}
+        def fallback_ideas():
+            return generate_personalized_ideas(event, pref)
 
         # Parallel Section Execution
         budget_res, timeline_res, vendor_res, ideas_res = await asyncio.gather(
@@ -297,15 +302,15 @@ class AIEfficiencyService:
     async def generate_plan_serial(
         cls,
         event: Event,
-        pref: Optional[EventPreference] = None,
+        pref: EventPreference | None = None,
         fake_delay: float = 0.0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Serial generation for empirical A/B benchmark comparison."""
         t0 = time.perf_counter()
-        budget_res = await cls.generate_budget_section(event, fake_delay)
-        timeline_res = await cls.generate_timeline_section(event, fake_delay)
-        vendor_res = await cls.generate_vendor_section(event, fake_delay)
-        ideas_res = await cls.generate_ideas_section(event, pref, fake_delay)
+        await cls.generate_budget_section(event, fake_delay)
+        await cls.generate_timeline_section(event, fake_delay)
+        await cls.generate_vendor_section(event, fake_delay)
+        await cls.generate_ideas_section(event, pref, fake_delay)
         elapsed = time.perf_counter() - t0
         return {
             "generation_mode": "serial",
@@ -316,7 +321,7 @@ class AIEfficiencyService:
     async def stream_plan_tokens(
         cls,
         event: Event,
-        pref: Optional[EventPreference] = None
+        pref: EventPreference | None = None
     ) -> AsyncGenerator[str, None]:
         """Yields Server-Sent Events (SSE) data chunks for progressive UI rendering."""
         sections = [

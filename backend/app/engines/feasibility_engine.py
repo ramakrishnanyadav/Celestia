@@ -1,7 +1,7 @@
 import json
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from pathlib import Path
+
 
 @dataclass
 class FeasibilityResult:
@@ -9,9 +9,9 @@ class FeasibilityResult:
     per_guest_rupees: float
     min_recommended_per_guest_rupees: float
     min_recommended_budget_rupees: float
-    reasons: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    trade_off_options: List[str] = field(default_factory=list)
+    reasons: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
+    trade_off_options: list[str] = field(default_factory=list)
     provenance_label: str = "estimate"
     source: str = "Research: Indian Wedding & Celebration Industry Survey (Mumbai, Tier 1 & Tier 2 City Banquet & Catering Cost Index 2024-2025)"
 
@@ -19,7 +19,7 @@ DATA_PATH = Path(__file__).parent.parent / "data" / "benchmarks_v1.json"
 
 def _load_benchmarks() -> tuple[set, set, dict, list, dict, str, str]:
     try:
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
+        with open(DATA_PATH, encoding="utf-8") as f:
             data = json.load(f)
             return (
                 set(data.get("tier_1_cities", [])),
@@ -77,7 +77,7 @@ def check_event_feasibility(
     guest_count: int,
     budget_minor: int,
     dietary: str = "Pure Vegetarian",
-    preparation_months: Optional[int] = None
+    preparation_months: int | None = None
 ) -> FeasibilityResult:
     """
     Deterministic Feasibility Engine:
@@ -100,8 +100,8 @@ def check_event_feasibility(
     # Minimum recommended budget is the greater of (fixed floor) and (guests * min_per_guest)
     min_recommended_budget_rupees = max(fixed_floor, min_per_guest * guest_count)
 
-    reasons: List[str] = []
-    recommendations: List[str] = []
+    reasons: list[str] = []
+    recommendations: list[str] = []
     status = "feasible"
 
     if budget_rupees < fixed_floor:
@@ -126,7 +126,7 @@ def check_event_feasibility(
             f"Budget of ₹{per_guest_rupees:,.2f}/guest is workable but tight (comfortable benchmark is ₹{comfortable_per_guest:,.2f}/guest)."
         )
         recommendations.append(
-            f"Keep catering menus focused on high-quality signature regional specialties rather than excessive live counters to protect contingency reserves."
+            "Keep catering menus focused on high-quality signature regional specialties rather than excessive live counters to protect contingency reserves."
         )
     else:
         status = "feasible"
@@ -134,7 +134,7 @@ def check_event_feasibility(
             f"Budget of ₹{per_guest_rupees:,.2f}/guest provides healthy headroom above the ₹{min_per_guest:,.2f}/guest baseline."
         )
         recommendations.append(
-            f"Balanced budget allows full premium decor, live classical music, and dedicated guest hospitality."
+            "Balanced budget allows full premium decor, live classical music, and dedicated guest hospitality."
         )
 
     # Lead time advisory

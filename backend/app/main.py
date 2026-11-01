@@ -1,32 +1,39 @@
-import os
-import uuid
-import time
 import logging
+import os
+import time
+import uuid
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Depends
+
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from .auth import get_or_create_demo_user
 from .config import settings
-from .database import engine, Base, SessionLocal, get_db
-from .models import User, Event, EventPreference
-from .auth import hash_password, get_or_create_demo_user
-from .routers import (
-    auth_routes, event_routes, budget_routes,
-    task_routes, vendor_routes, approval_routes, ai_routes
-)
+from .database import Base, SessionLocal, engine, get_db
 from .engines.ai_service import AIService
+from .models import Event, EventPreference
+from .routers import (
+    ai_routes,
+    approval_routes,
+    auth_routes,
+    budget_routes,
+    event_routes,
+    task_routes,
+    vendor_routes,
+)
 
 logger = logging.getLogger("celestia")
 
 # Validate environment configuration before booting
 settings.validate_production_config()
 
-# Initialize tables
-Base.metadata.create_all(bind=engine)
+# Initialize tables only in test environment; production/staging uses Alembic migrations
+if os.environ.get("TESTING") == "1" or settings.ENV == "testing":
+    Base.metadata.create_all(bind=engine)
 
 def bootstrap_primary_demonstration_scenario():
     """
@@ -37,6 +44,8 @@ def bootstrap_primary_demonstration_scenario():
     - Pure Vegetarian Catering
     - Royal Marigold Theme
     """
+    if not settings.DEMO_ACCOUNT_ENABLED or settings.ENV == "production":
+        return
     db = SessionLocal()
     try:
         demo_user = get_or_create_demo_user(db)
@@ -59,7 +68,7 @@ def bootstrap_primary_demonstration_scenario():
             db.add(wedding_event)
             db.commit()
             db.refresh(wedding_event)
-            
+
             pref = EventPreference(
                 event_id=wedding_event.id,
                 dietary="Pure Vegetarian",
@@ -72,7 +81,7 @@ def bootstrap_primary_demonstration_scenario():
             )
             db.add(pref)
             db.commit()
-            
+
             AIService.generate_full_event_plan(db, wedding_event)
     except Exception as e:
         db.rollback()
@@ -101,7 +110,7 @@ app = FastAPI(
 @app.exception_handler(Exception)
 async def global_unhandled_exception_handler(request: Request, exc: Exception):
     err_id = str(uuid.uuid4())
-    logger.error(f"[Unhandled Error {err_id}] Path: {request.url.path} | Exception: {str(exc)}", exc_info=True)
+    logger.error(f"[Unhandled Error {err_id}] Path: {request.url.path} | Exception: {exc!s}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={
@@ -117,11 +126,25 @@ app.add_middleware(
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type", "X-CSRF-Token", "Idempotency-Key", "Accept", "X-Requested-With"],
+    expose_headers=["X-Request-ID"]
 )
 
 # Gzip compression for responses > 1000 bytes
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Request ID & Structured Logging Middleware
+@app.middleware("http")
+async def request_id_and_logging_middleware(request: Request, call_next):
+    req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    request.state.request_id = req_id
+    t0 = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = round((time.perf_counter() - t0) * 1000.0, 2)
+    response.headers["X-Request-ID"] = req_id
+    logger.info("request_completed path=%s method=%s status=%d duration_ms=%.2f request_id=%s",
+                request.url.path, request.method, response.status_code, duration_ms, req_id)
+    return response
 
 # Security Headers Middleware
 @app.middleware("http")
@@ -170,6 +193,18 @@ def root():
         "status": "operational",
         "docs_url": None if is_prod else "/docs"
     }
+
+@app.get("/healthz")
+def liveness():
+    return {"status": "ok", "service": "celestia-backend"}
+
+@app.get("/readyz")
+def readiness(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ready", "service": "celestia-backend", "database": "connected"}
+    except Exception as e:
+        return JSONResponse(status_code=503, content={"status": "not_ready", "error": type(e).__name__})
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):

@@ -1,15 +1,16 @@
-from typing import List
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
 from ..database import get_db
-from ..models import Event
-from ..schemas import ApprovalAction, ApprovalResponse, ActivityLogResponse
 from ..dependencies import get_event_for_user
+from ..models import Event
+from ..schemas import ActivityLogResponse, ApprovalAction, ApprovalResponse
 from ..services.approval_service import ApprovalService
 
 router = APIRouter(prefix="/events/{event_id}", tags=["Approvals & Autonomy"])
 
-@router.get("/approvals", response_model=List[ApprovalResponse])
+@router.get("/approvals", response_model=list[ApprovalResponse])
 def list_approvals(
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db)
@@ -31,7 +32,7 @@ def execute_proposal_action(
         comment=action_in.comment
     )
 
-@router.get("/activity-logs", response_model=List[ActivityLogResponse])
+@router.get("/activity-logs", response_model=list[ActivityLogResponse])
 def get_activity_logs(
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db)

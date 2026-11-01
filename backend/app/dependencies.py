@@ -1,8 +1,10 @@
 from fastapi import Depends, HTTPException, Path, status
 from sqlalchemy.orm import Session
-from .database import get_db
-from .models import User, Event
+
 from .auth import get_current_user
+from .database import get_db
+from .models import Event, User
+
 
 def get_event_for_user(
     event_id: str = Path(..., description="Unique event identifier"),

@@ -230,7 +230,7 @@ def run_security_probe():
         print(f"  [FAIL] No HTTP 429 rate limit response observed after 15 rapid login attempts.")
 
     # Save probe results
-    with open("security_probe_results.json", "w", encoding="utf-8") as fp:
+    with open("docs/evidence/security_probe_results.json", "w", encoding="utf-8") as fp:
         json.dump(findings, fp, indent=2)
 
     print(f"\nTotal Vulnerabilities Found by Probe: {len(findings)}")

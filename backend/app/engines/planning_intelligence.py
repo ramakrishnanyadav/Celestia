@@ -1,15 +1,17 @@
 import json
 from pathlib import Path
-from typing import Dict, List, Any, Set, Tuple
+from typing import Any
+
 from sqlalchemy.orm import Session
+
 from ..models import Event, Task, TaskDependency
-from .cpm_solver import CPMNode, solve_cpm_pure, check_cycle_on_add_edge
+from .cpm_solver import CPMNode, check_cycle_on_add_edge, solve_cpm_pure
 
 TASKS_DATA_PATH = Path(__file__).parent.parent / "data" / "wedding_tasks_v1.json"
 
-def _load_wedding_tasks() -> List[Dict[str, Any]]:
+def _load_wedding_tasks() -> list[dict[str, Any]]:
     try:
-        with open(TASKS_DATA_PATH, "r", encoding="utf-8") as f:
+        with open(TASKS_DATA_PATH, encoding="utf-8") as f:
             data = json.load(f)
             return data.get("tasks", [])
     except Exception:
@@ -43,7 +45,7 @@ def seed_event_tasks(db: Session, event: Event, auto_commit: bool = False):
     """Generates the full timeline checklist and dependencies for the event"""
     # Clear existing tasks
     db.query(Task).filter(Task.event_id == event.id).delete()
-    
+
     created_tasks = []
     for item in WEDDING_TASK_TEMPLATES:
         t = Task(
@@ -60,10 +62,10 @@ def seed_event_tasks(db: Session, event: Event, auto_commit: bool = False):
             is_critical=False
         )
         created_tasks.append(t)
-        
+
     db.add_all(created_tasks)
     db.flush()
-        
+
     # Wire dependencies based on index mapping
     deps = []
     for i, item in enumerate(WEDDING_TASK_TEMPLATES):
@@ -76,7 +78,7 @@ def seed_event_tasks(db: Session, event: Event, auto_commit: bool = False):
                 ))
     db.add_all(deps)
     db.flush()
-    
+
     # Run Critical Path Method calculation
     run_cpm_calculation(db, event.id, auto_commit=auto_commit)
     if auto_commit:
@@ -98,7 +100,7 @@ def check_dependency_cycle(db: Session, event_id: str, task_id: str, depends_on_
     existing_edges = [(d.depends_on_task_id, d.task_id) for d in deps]
     return check_cycle_on_add_edge(existing_edges, new_edge=(depends_on_id, task_id))
 
-def run_cpm_calculation(db: Session, event_id: str, auto_commit: bool = True) -> Dict[str, Any]:
+def run_cpm_calculation(db: Session, event_id: str, auto_commit: bool = True) -> dict[str, Any]:
     """
     Computes Early Start (ES), Early Finish (EF), Late Start (LS), Late Finish (LF),
     Total Slack (Float), and flags the Critical Path for all tasks.
@@ -107,14 +109,14 @@ def run_cpm_calculation(db: Session, event_id: str, auto_commit: bool = True) ->
     tasks = db.query(Task).filter(Task.event_id == event_id).all()
     if not tasks:
         return {"total_duration_days": 0, "critical_path_task_ids": [], "tasks": []}
-        
+
     task_map = {t.id: t for t in tasks}
-    
+
     deps = db.query(TaskDependency).filter(
         TaskDependency.task_id.in_(task_map.keys())
     ).all()
-    
-    predecessors: Dict[str, List[str]] = {t.id: [] for t in tasks}
+
+    predecessors: dict[str, list[str]] = {t.id: [] for t in tasks}
     for d in deps:
         if d.task_id in task_map and d.depends_on_task_id in task_map:
             predecessors[d.task_id].append(d.depends_on_task_id)
@@ -143,12 +145,12 @@ def run_cpm_calculation(db: Session, event_id: str, auto_commit: bool = True) ->
         t.late_finish_day = sched.late_finish
         t.total_slack = sched.slack
         t.is_critical = sched.is_critical
-            
+
     if auto_commit:
         db.commit()
     else:
         db.flush()
-    
+
     return {
         "total_duration_days": cpm_res.total_duration_days,
         "critical_path_task_ids": cpm_res.critical_path_ids,

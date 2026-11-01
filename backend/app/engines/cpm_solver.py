@@ -1,12 +1,12 @@
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Tuple, Optional, Set
 from collections import deque
+from dataclasses import dataclass, field
+
 
 @dataclass
 class CPMNode:
     id: str
     duration_days: int
-    depends_on_ids: List[str] = field(default_factory=list)
+    depends_on_ids: list[str] = field(default_factory=list)
 
 @dataclass
 class CPMSchedule:
@@ -20,12 +20,12 @@ class CPMSchedule:
 @dataclass
 class CPMResult:
     total_duration_days: int
-    critical_path_ids: List[str]
-    schedule: Dict[str, CPMSchedule]
+    critical_path_ids: list[str]
+    schedule: dict[str, CPMSchedule]
     has_cycle: bool
-    topological_order: List[str] = field(default_factory=list)
+    topological_order: list[str] = field(default_factory=list)
 
-def solve_cpm_pure(nodes: List[CPMNode]) -> CPMResult:
+def solve_cpm_pure(nodes: list[CPMNode]) -> CPMResult:
     """
     Pure Critical Path Method (CPM) solver.
     Operates solely on pure Python dataclasses without database or ORM dependencies.
@@ -42,11 +42,11 @@ def solve_cpm_pure(nodes: List[CPMNode]) -> CPMResult:
         )
 
     node_map = {n.id: n for n in nodes}
-    
+
     # Predecessors: tasks that task_id depends on
     # Successors: tasks that depend on task_id
-    predecessors: Dict[str, List[str]] = {n.id: [] for n in nodes}
-    successors: Dict[str, List[str]] = {n.id: [] for n in nodes}
+    predecessors: dict[str, list[str]] = {n.id: [] for n in nodes}
+    successors: dict[str, list[str]] = {n.id: [] for n in nodes}
 
     for n in nodes:
         for dep_id in n.depends_on_ids:
@@ -57,7 +57,7 @@ def solve_cpm_pure(nodes: List[CPMNode]) -> CPMResult:
     # Topological Sort via Kahn's Algorithm
     in_degree = {n.id: len(predecessors[n.id]) for n in nodes}
     queue = deque([n.id for n in nodes if in_degree[n.id] == 0])
-    topological_order: List[str] = []
+    topological_order: list[str] = []
 
     while queue:
         curr = queue.popleft()
@@ -78,8 +78,8 @@ def solve_cpm_pure(nodes: List[CPMNode]) -> CPMResult:
         )
 
     # --- FORWARD PASS: Early Start (ES) and Early Finish (EF) ---
-    es: Dict[str, int] = {}
-    ef: Dict[str, int] = {}
+    es: dict[str, int] = {}
+    ef: dict[str, int] = {}
 
     for n_id in topological_order:
         duration = max(1, node_map[n_id].duration_days)
@@ -92,8 +92,8 @@ def solve_cpm_pure(nodes: List[CPMNode]) -> CPMResult:
     total_duration = max(ef.values()) if ef else 0
 
     # --- BACKWARD PASS: Late Finish (LF) and Late Start (LS) ---
-    ls: Dict[str, int] = {}
-    lf: Dict[str, int] = {}
+    ls: dict[str, int] = {}
+    lf: dict[str, int] = {}
 
     for n_id in reversed(topological_order):
         duration = max(1, node_map[n_id].duration_days)
@@ -104,8 +104,8 @@ def solve_cpm_pure(nodes: List[CPMNode]) -> CPMResult:
         ls[n_id] = lf[n_id] - duration
 
     # --- SLACK & CRITICAL PATH ---
-    critical_path_ids: List[str] = []
-    schedule: Dict[str, CPMSchedule] = {}
+    critical_path_ids: list[str] = []
+    schedule: dict[str, CPMSchedule] = {}
 
     for n in nodes:
         n_id = n.id
@@ -132,8 +132,8 @@ def solve_cpm_pure(nodes: List[CPMNode]) -> CPMResult:
     )
 
 def check_cycle_on_add_edge(
-    existing_edges: List[Tuple[str, str]],
-    new_edge: Tuple[str, str]
+    existing_edges: list[tuple[str, str]],
+    new_edge: tuple[str, str]
 ) -> bool:
     """
     Checks if adding new_edge (u -> v) creates a cycle in a directed graph.
@@ -146,12 +146,12 @@ def check_cycle_on_add_edge(
         return True
 
     # Build adjacency list from existing edges
-    adj: Dict[str, List[str]] = {}
+    adj: dict[str, list[str]] = {}
     for u, v in existing_edges:
         adj.setdefault(u, []).append(v)
 
     # Check if to_node can reach from_node
-    visited: Set[str] = set()
+    visited: set[str] = set()
     queue = deque([to_node])
 
     while queue:

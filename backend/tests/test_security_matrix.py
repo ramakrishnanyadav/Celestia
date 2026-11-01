@@ -13,10 +13,12 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.models import User, Event, Task, BudgetCategory
 from app.database import SessionLocal
+from app.rate_limiter import limiter
 
 client = TestClient(app, raise_server_exceptions=False)
 
 def create_test_user_and_token(email_prefix: str):
+    limiter.reset_all()
     email = f"{email_prefix}_{int(time.time()*1000)}@celestia.ai"
     reg = client.post("/api/auth/register", json={
         "email": email,

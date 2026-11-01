@@ -12,9 +12,11 @@ Provides safety boundaries, sanitization, and cost controls for AI operations:
 """
 import re
 import time
-from typing import Dict, Any, List, Optional
-from pydantic import BaseModel, ValidationError
+from typing import Any
+
 from fastapi import HTTPException, status
+from pydantic import BaseModel, ValidationError
+
 from ..config import settings
 
 # Disallowed prompt injection patterns commonly embedded in vendor quotations or user notes
@@ -34,7 +36,7 @@ EMAIL_REGEX = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 class AIGateway:
     def __init__(self):
         # In-memory per-user daily call counter: user_id -> (day_timestamp, call_count)
-        self._user_usage: Dict[str, Tuple_Usage] = {}
+        self._user_usage: dict[str, Tuple_Usage] = {}
         self.global_paused: bool = settings.AI_PAUSED_GLOBAL
         self.tool_allowlist: Set_Tools = {
             "generate_event_plan",
@@ -93,7 +95,7 @@ class AIGateway:
         """Enforces daily call limits per user account."""
         now = time.time()
         current_day = int(now // 86400)
-        
+
         usage = self._user_usage.get(user_id)
         if not usage or usage[0] != current_day:
             self._user_usage[user_id] = (current_day, 1)
@@ -127,7 +129,7 @@ class AIGateway:
                 detail=f"Action '{tool_name}' is not in the approved AI tool allowlist."
             )
 
-    def validate_output_schema(self, raw_output: Dict[str, Any], schema_cls: type[BaseModel]) -> BaseModel:
+    def validate_output_schema(self, raw_output: dict[str, Any], schema_cls: type[BaseModel]) -> BaseModel:
         """Validates AI response against target Pydantic schema before persistence."""
         try:
             return schema_cls.model_validate(raw_output)
@@ -135,10 +137,11 @@ class AIGateway:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=f"AI model produced an invalid response schema: {e.errors()[:2]}"
-            )
+            ) from e
 
 # Types helper
 Tuple_Usage = Any
 Set_Tools = set
 
 ai_gateway = AIGateway()
+

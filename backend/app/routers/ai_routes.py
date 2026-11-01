@@ -1,21 +1,23 @@
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+from fastapi import APIRouter, Depends, Header
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from ..database import get_db
-from ..models import Event
-from ..schemas import (
-    RequirementExtractionRequest, ExtractedRequirement,
-    PersonalizedIdeasResponse, PlanGenerationResponse
-)
 from ..dependencies import get_event_for_user
-from ..engines.ai_service import AIService
-from ..engines.celebration_intelligence import generate_personalized_ideas
 from ..engines.ai_efficiency import AIEfficiencyService
 from ..engines.ai_gateway import ai_gateway
+from ..engines.ai_service import AIService
+from ..engines.celebration_intelligence import generate_personalized_ideas
 from ..idempotency import check_idempotency, record_idempotency
+from ..models import Event
 from ..rate_limiter import rate_limit_ai
+from ..schemas import (
+    ExtractedRequirement,
+    PersonalizedIdeasResponse,
+    PlanGenerationResponse,
+    RequirementExtractionRequest,
+)
 
 router = APIRouter(prefix="", tags=["AI Intelligence"])
 
@@ -40,7 +42,7 @@ def get_ideas(
 def generate_event_plan(
     event: Event = Depends(get_event_for_user),
     db: Session = Depends(get_db),
-    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
+    idempotency_key: str | None = Header(None, alias="Idempotency-Key")
 ):
     ai_gateway.check_pause_switch(event.ai_paused)
     ai_gateway.check_user_budget(event.user_id)

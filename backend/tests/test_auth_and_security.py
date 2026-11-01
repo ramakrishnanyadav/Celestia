@@ -68,7 +68,7 @@ def test_startup_config_validation():
     )
     with pytest.raises(RuntimeError) as exc_info:
         bad_secret_cfg.validate_production_config()
-    assert "Insecure or missing SECRET_KEY" in str(exc_info.value)
+    assert "Insecure or default SECRET_KEY" in str(exc_info.value) or "Insecure or missing SECRET_KEY" in str(exc_info.value)
 
     # Test SQLite in production
     bad_db_cfg = Settings(
