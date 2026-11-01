@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,19 +16,37 @@ import {
   Store,
   CheckCheck,
   Settings,
+  Printer,
   ChevronLeft,
   ChevronRight,
+  Palette,
 } from "lucide-react";
 
 interface SidebarProps {
   eventId: string;
-  pendingApprovalsCount?: number;
+  pendingApprovalsCount?: number | undefined;
 }
 
 export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const queryClient = useQueryClient();
+
+  // Persist sidebar collapsed state
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("celestia_sidebar_collapsed");
+      if (stored === "true") setCollapsed(true);
+    } catch {}
+  }, []);
+
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    try {
+      localStorage.setItem("celestia_sidebar_collapsed", String(next));
+    } catch {}
+  };
 
   const handlePrefetch = useCallback(
     (href: string) => {
@@ -69,11 +87,15 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
 
   const navItems = [
     {
-      label: "Overview",
+      label: "Overview Bento",
       href: `/app/events/${eventId}`,
       icon: LayoutDashboard,
     },
-    { label: "AI Planner", href: `/app/events/${eventId}/planner`, icon: Bot },
+    {
+      label: "AI Planner",
+      href: `/app/events/${eventId}/planner`,
+      icon: Bot,
+    },
     {
       label: "Celebration Ideas",
       href: `/app/events/${eventId}/ideas`,
@@ -95,24 +117,34 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
       icon: Store,
     },
     {
-      label: "Approvals",
+      label: "Human Approvals",
       href: `/app/events/${eventId}/approvals`,
       icon: CheckCheck,
       badge: pendingApprovalsCount,
     },
     {
-      label: "Settings",
+      label: "Print Blueprint",
+      href: `/app/events/${eventId}/blueprint`,
+      icon: Printer,
+    },
+    {
+      label: "Celebration Settings",
       href: `/app/events/${eventId}/settings`,
       icon: Settings,
+    },
+    {
+      label: "Design Tokens",
+      href: "/design",
+      icon: Palette,
     },
   ];
 
   return (
     <aside
-      className={`relative hidden lg:flex flex-col border-r border-[var(--border-subtle)] bg-[var(--canvas-subtle)] transition-all duration-300 ${
+      className={`relative hidden lg:flex flex-col border-r border-[var(--border-subtle)] bg-[var(--canvas-subtle)] transition-all duration-200 z-20 ${
         collapsed ? "w-20" : "w-64"
       }`}
-      aria-label="Event Navigation"
+      aria-label="Event Navigation Sidebar"
     >
       {/* Brand Header */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-[var(--border-subtle)]">
@@ -120,29 +152,32 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
           href={`/app/events/${eventId}`}
           className="flex items-center gap-2.5 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] rounded-xl p-1"
           aria-label="CELESTIA Home"
+          title="CELESTIA AI Celebration Platform"
         >
           <div
-            className="w-9 h-9 rounded-xl bg-[var(--brand-teal)] flex items-center justify-center shrink-0 shadow-sm text-white"
+            className="w-9 h-9 rounded-xl bg-[var(--brand-teal)] flex items-center justify-center shrink-0 shadow-xs text-white"
             aria-hidden="true"
           >
             <Sparkles className="w-5 h-5" />
           </div>
           {!collapsed && (
             <div className="leading-tight">
-              <span className="font-bold tracking-wider text-[var(--ink-primary)] text-base">
+              <span className="font-extrabold tracking-wider text-[var(--ink-primary)] text-base">
                 CELESTIA
               </span>
-              <span className="block text-xs tracking-widest text-[var(--ink-muted)] uppercase font-semibold">
-                AI Celebration
+              <span className="block text-[10px] tracking-widest text-[var(--ink-muted)] uppercase font-bold">
+                Celebration OS
               </span>
             </div>
           )}
         </Link>
+
         <button
           type="button"
-          onClick={() => setCollapsed(!collapsed)}
-          className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg text-[var(--ink-muted)] hover:text-[var(--ink-primary)] hover:bg-[var(--canvas)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)]"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onClick={toggleCollapsed}
+          className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl text-[var(--ink-muted)] hover:text-[var(--ink-primary)] hover:bg-[var(--canvas)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)]"
+          aria-label={collapsed ? "Expand sidebar (264px)" : "Collapse sidebar (72px rail)"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
             <ChevronRight className="w-5 h-5" aria-hidden="true" />
@@ -155,30 +190,33 @@ export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {
       {/* Navigation Links */}
       <nav
         className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto"
-        aria-label="Main Navigation"
+        aria-label="Celebration Modules"
       >
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
+
           return (
             <Link
               key={item.href}
               href={item.href}
               onMouseEnter={() => handlePrefetch(item.href)}
               aria-current={isActive ? "page" : undefined}
-              className={`min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] ${
+              title={collapsed ? item.label : undefined}
+              className={`min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] ${
                 isActive
-                  ? "bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] font-bold shadow-xs border border-[var(--border-accent)]"
+                  ? "bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] shadow-xs border border-[var(--border-accent)]"
                   : "text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--canvas)]"
               }`}
             >
               <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
               {!collapsed && <span className="truncate">{item.label}</span>}
+
               {!collapsed &&
                 typeof item.badge === "number" &&
                 item.badge > 0 && (
                   <span
-                    className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--brand-marigold-subtle)] text-[var(--brand-marigold)]"
+                    className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--brand-marigold-subtle)] text-[var(--brand-marigold)] border border-[var(--brand-marigold)]/30"
                     aria-label={`${item.badge} pending approvals`}
                   >
                     {item.badge}

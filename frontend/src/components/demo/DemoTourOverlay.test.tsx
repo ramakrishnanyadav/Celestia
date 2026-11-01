@@ -36,3 +36,4 @@ describe("DemoTourOverlay", () => {
     expect(screen.getByRole("button", { name: /Start Guided 3-Minute Demo Tour/i })).toBeInTheDocument();
   });
 });
+

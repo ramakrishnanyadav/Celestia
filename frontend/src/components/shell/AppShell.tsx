@@ -3,6 +3,7 @@
 import React from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { MobileTabBar } from "./MobileTabBar";
 import type { EventItem, User } from "@/lib/api/types";
 
 interface AppShellProps {
@@ -27,7 +28,14 @@ export function AppShell({
   children,
 }: AppShellProps) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--canvas)]">
+    <div className="flex h-screen overflow-hidden bg-[var(--canvas)] relative">
+      {/* Drifting Subtle Mesh Gradient Backdrop */}
+      <div className="mesh-backdrop" aria-hidden="true">
+        <div className="mesh-blob mesh-blob-1" />
+        <div className="mesh-blob mesh-blob-2" />
+        <div className="mesh-blob mesh-blob-3" />
+      </div>
+
       {/* Skip to Content for WCAG keyboard accessibility */}
       <a
         href="#main-content"
@@ -36,21 +44,23 @@ export function AppShell({
         Skip to main content
       </a>
 
-      {/* Fixed Left Sidebar */}
+      {/* Fixed Left Sidebar (>= 1024px) */}
       <Sidebar
         eventId={eventId}
         pendingApprovalsCount={pendingApprovalsCount}
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 pb-16 lg:pb-0">
         <TopBar
           event={event}
           events={events}
           currentUser={currentUser}
+          pendingApprovalsCount={pendingApprovalsCount}
           onToggleAiPause={onToggleAiPause}
           onLogout={onLogout}
         />
+
         <main
           id="main-content"
           tabIndex={-1}
@@ -59,6 +69,12 @@ export function AppShell({
           {children}
         </main>
       </div>
+
+      {/* Bottom Navigation Bar for Mobile (< 1024px) */}
+      <MobileTabBar
+        eventId={eventId}
+        pendingApprovalsCount={pendingApprovalsCount}
+      />
     </div>
   );
 }
