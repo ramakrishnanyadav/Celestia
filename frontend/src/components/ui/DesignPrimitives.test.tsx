@@ -112,3 +112,4 @@ describe("Design System Component Primitives", () => {
     expect(handleAction).toHaveBeenCalledTimes(1);
   });
 });
+
