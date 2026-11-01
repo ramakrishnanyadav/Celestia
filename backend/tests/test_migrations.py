@@ -17,10 +17,15 @@ def test_alembic_migration_upgrade_and_downgrade(tmp_path):
     # First, initialize base schema tables (users, events, tasks, etc.)
     Base.metadata.create_all(bind=engine)
 
-    # Configure Alembic
-    cfg = Config("backend/alembic.ini")
+    # Configure Alembic with dynamic paths
+    from pathlib import Path
+    backend_dir = Path(__file__).resolve().parent.parent
+    ini_path = backend_dir / "alembic.ini"
+    script_loc = backend_dir / "alembic"
+
+    cfg = Config(str(ini_path))
     cfg.set_main_option("sqlalchemy.url", db_url)
-    cfg.set_main_option("script_location", "backend/alembic")
+    cfg.set_main_option("script_location", str(script_loc))
 
     # 1. Upgrade to head
     command.upgrade(cfg, "head")

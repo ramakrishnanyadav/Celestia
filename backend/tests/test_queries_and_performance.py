@@ -3,10 +3,10 @@ import pytest
 from sqlalchemy import event as sa_event
 from fastapi.testclient import TestClient
 
-from backend.app.main import app
-from backend.app.database import SessionLocal, Base, engine
-from backend.app.models import User, Event, BudgetCategory, Expense, Task, TaskDependency
-from backend.app.auth import hash_password, create_access_token
+from app.main import app
+from app.database import SessionLocal, Base, engine
+from app.models import User, Event, BudgetCategory, Expense, Task, TaskDependency
+from app.auth import hash_password, create_access_token
 
 client = TestClient(app)
 

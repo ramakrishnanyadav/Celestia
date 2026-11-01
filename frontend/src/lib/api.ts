@@ -1,130 +1,231 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+/**
+ * CELESTIA Typed API Layer
+ * Replaces un-typed fetchJson with schema-driven, cookie-authenticated endpoints.
+ */
 
-const TOKEN_KEY = "celestia_auth_token";
+import { apiClient } from "./api/client";
+import type {
+  User,
+  TokenResponse,
+  EventItem,
+  EventCreateInput,
+  EventUpdateInput,
+  EventPreference,
+  BudgetSummary,
+  BudgetCategory,
+  BudgetCategoryCreateInput,
+  ExpenseItem,
+  ExpenseCreateInput,
+  ExpenseUpdateInput,
+  WhatIfResponse,
+  TaskItem,
+  TaskCreateInput,
+  TaskUpdateInput,
+  VendorItem,
+  VendorCreateInput,
+  QuotationItem,
+  QuotationCreateInput,
+  VendorComparison,
+  ApprovalItem,
+  ActivityLogItem,
+  IdeasResponse,
+  PlanResponse,
+  ExtractedRequirement,
+} from "./api/types";
 
-export function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function setAuthToken(token: string | null) {
-  if (typeof window === "undefined") return;
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  } else {
-    localStorage.removeItem(TOKEN_KEY);
-  }
-}
-
-export async function fetchJson(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_BASE}${endpoint}`;
-  const token = getAuthToken();
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-    ...(options.headers as Record<string, string> || {}),
-  };
-
-  const response = await fetch(url, { ...options, headers });
-  if (!response.ok) {
-    let errorDetail = "API request failed";
-    try {
-      const errJson = await response.json();
-      errorDetail = errJson.detail || errJson.message || errorDetail;
-    } catch {
-      errorDetail = response.statusText;
-    }
-
-    if (response.status === 401 && typeof window !== "undefined") {
-      // Token expired or invalid
-      setAuthToken(null);
-      window.dispatchEvent(new CustomEvent("celestia_auth_required"));
-    }
-
-    throw new Error(errorDetail);
-  }
-  return response.json();
-}
+export * from "./api/types";
+export { apiClient, ApiError } from "./api/client";
 
 export const api = {
   // Authentication
-  login: async (email: string, password: string) => {
-    const res = await fetchJson("/auth/login", {
+  login: (email: string, password: string) =>
+    apiClient<TokenResponse>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password })
-    });
-    if (res.access_token) setAuthToken(res.access_token);
-    return res;
-  },
-  register: async (name: string, email: string, password: string) => {
-    const res = await fetchJson("/auth/register", {
+      body: { email, password },
+    }),
+
+  register: (name: string, email: string, password: string) =>
+    apiClient<TokenResponse>("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ name, email, password })
-    });
-    if (res.access_token) setAuthToken(res.access_token);
-    return res;
-  },
-  demoLogin: async () => {
-    const res = await fetchJson("/auth/demo-login", {
-      method: "POST"
-    });
-    if (res.access_token) setAuthToken(res.access_token);
-    return res;
-  },
-  getMe: () => fetchJson("/auth/me"),
-  logout: () => {
-    setAuthToken(null);
-  },
+      body: { name, email, password },
+    }),
+
+  demoLogin: () =>
+    apiClient<TokenResponse>("/auth/demo-login", {
+      method: "POST",
+    }),
+
+  getMe: () => apiClient<User>("/auth/me"),
+
+  logout: () =>
+    apiClient<{ message: string }>("/auth/logout", {
+      method: "POST",
+    }),
 
   // Events
-  getEvents: () => fetchJson("/events"),
-  getEvent: (id: string) => fetchJson(`/events/${id}`),
-  createEvent: (data: any) => fetchJson("/events", { method: "POST", body: JSON.stringify(data) }),
-  updateEvent: (id: string, data: any) => fetchJson(`/events/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-  deleteEvent: (id: string) => fetchJson(`/events/${id}`, { method: "DELETE" }),
-  getPreferences: (id: string) => fetchJson(`/events/${id}/preferences`),
-  updatePreferences: (id: string, data: any) => fetchJson(`/events/${id}/preferences`, { method: "PUT", body: JSON.stringify(data) }),
-  getPlan: (id: string) => fetchJson(`/events/${id}/plans`),
+  getEvents: () => apiClient<EventItem[]>("/events"),
+
+  getEvent: (id: string) => apiClient<EventItem>(`/events/${id}`),
+
+  createEvent: (data: EventCreateInput) =>
+    apiClient<EventItem>("/events", {
+      method: "POST",
+      body: data,
+    }),
+
+  updateEvent: (id: string, data: EventUpdateInput) =>
+    apiClient<EventItem>(`/events/${id}`, {
+      method: "PATCH",
+      body: data,
+    }),
+
+  deleteEvent: (id: string) =>
+    apiClient<{ message: string }>(`/events/${id}`, {
+      method: "DELETE",
+    }),
+
+  getPreferences: (id: string) =>
+    apiClient<EventPreference>(`/events/${id}/preferences`),
+
+  updatePreferences: (id: string, data: Partial<EventPreference>) =>
+    apiClient<EventPreference>(`/events/${id}/preferences`, {
+      method: "PUT",
+      body: data,
+    }),
+
+  getPlan: (id: string) => apiClient<PlanResponse>(`/events/${id}/plans`),
 
   // Budget
-  getBudgetSummary: (id: string) => fetchJson(`/events/${id}/budget/summary`),
-  addCategory: (id: string, data: any) => fetchJson(`/events/${id}/budget/categories`, { method: "POST", body: JSON.stringify(data) }),
-  addExpense: (id: string, categoryId: string, data: any) => 
-    fetchJson(`/events/${id}/budget/categories/${categoryId}/expenses`, { method: "POST", body: JSON.stringify(data) }),
-  updateExpense: (id: string, expenseId: string, data: any) => 
-    fetchJson(`/events/${id}/budget/expenses/${expenseId}`, { method: "PATCH", body: JSON.stringify(data) }),
-  deleteExpense: (id: string, expenseId: string) => 
-    fetchJson(`/events/${id}/budget/expenses/${expenseId}`, { method: "DELETE" }),
-  simulateWhatIf: (id: string, data: { simulated_guest_count: number; simulated_budget_minor?: number }) => 
-    fetchJson(`/events/${id}/budget/what-if`, { method: "POST", body: JSON.stringify(data) }),
+  getBudgetSummary: (id: string) =>
+    apiClient<BudgetSummary>(`/events/${id}/budget/summary`),
+
+  getCategories: (id: string) =>
+    apiClient<BudgetCategory[]>(`/events/${id}/budget/categories`),
+
+  addCategory: (id: string, data: BudgetCategoryCreateInput) =>
+    apiClient<BudgetCategory>(`/events/${id}/budget/categories`, {
+      method: "POST",
+      body: data,
+    }),
+
+  addExpense: (id: string, categoryId: string, data: ExpenseCreateInput) =>
+    apiClient<ExpenseItem>(
+      `/events/${id}/budget/categories/${categoryId}/expenses`,
+      {
+        method: "POST",
+        body: data,
+      }
+    ),
+
+  updateExpense: (id: string, expenseId: string, data: ExpenseUpdateInput) =>
+    apiClient<ExpenseItem>(`/events/${id}/budget/expenses/${expenseId}`, {
+      method: "PATCH",
+      body: data,
+    }),
+
+  deleteExpense: (id: string, expenseId: string) =>
+    apiClient<{ message: string }>(
+      `/events/${id}/budget/expenses/${expenseId}`,
+      {
+        method: "DELETE",
+      }
+    ),
+
+  simulateWhatIf: (
+    id: string,
+    data: { simulated_guest_count: number; simulated_budget_minor?: number }
+  ) =>
+    apiClient<WhatIfResponse>(`/events/${id}/budget/what-if`, {
+      method: "POST",
+      body: data,
+    }),
 
   // Tasks & CPM
-  getTasks: (id: string) => fetchJson(`/events/${id}/tasks`),
-  createTask: (id: string, data: any) => fetchJson(`/events/${id}/tasks`, { method: "POST", body: JSON.stringify(data) }),
-  updateTask: (id: string, taskId: string, data: any) => fetchJson(`/events/${id}/tasks/${taskId}`, { method: "PATCH", body: JSON.stringify(data) }),
-  deleteTask: (id: string, taskId: string) => fetchJson(`/events/${id}/tasks/${taskId}`, { method: "DELETE" }),
-  recalculateCPM: (id: string) => fetchJson(`/events/${id}/tasks/cpm`, { method: "POST" }),
+  getTasks: (id: string) => apiClient<TaskItem[]>(`/events/${id}/tasks`),
+
+  createTask: (id: string, data: TaskCreateInput) =>
+    apiClient<TaskItem>(`/events/${id}/tasks`, {
+      method: "POST",
+      body: data,
+    }),
+
+  updateTask: (id: string, taskId: string, data: TaskUpdateInput) =>
+    apiClient<TaskItem>(`/events/${id}/tasks/${taskId}`, {
+      method: "PATCH",
+      body: data,
+    }),
+
+  deleteTask: (id: string, taskId: string) =>
+    apiClient<{ message: string }>(`/events/${id}/tasks/${taskId}`, {
+      method: "DELETE",
+    }),
+
+  recalculateCPM: (id: string) =>
+    apiClient<{ message: string; critical_path_length_days: number }>(
+      `/events/${id}/tasks/cpm`,
+      {
+        method: "POST",
+      }
+    ),
 
   // Vendors & Quotations
-  getVendors: (id: string) => fetchJson(`/events/${id}/vendors`),
-  createVendor: (id: string, data: any) => fetchJson(`/events/${id}/vendors`, { method: "POST", body: JSON.stringify(data) }),
-  addQuotation: (id: string, vendorId: string, data: any) => 
-    fetchJson(`/events/${id}/vendors/${vendorId}/quotations`, { method: "POST", body: JSON.stringify(data) }),
-  compareVendors: (id: string, category: string = "Catering") => 
-    fetchJson(`/events/${id}/vendors/compare?category=${encodeURIComponent(category)}`),
+  getVendors: (id: string) => apiClient<VendorItem[]>(`/events/${id}/vendors`),
+
+  createVendor: (id: string, data: VendorCreateInput) =>
+    apiClient<VendorItem>(`/events/${id}/vendors`, {
+      method: "POST",
+      body: data,
+    }),
+
+  addQuotation: (id: string, vendorId: string, data: QuotationCreateInput) =>
+    apiClient<QuotationItem>(`/events/${id}/vendors/${vendorId}/quotations`, {
+      method: "POST",
+      body: data,
+    }),
+
+  compareVendors: (id: string, category: string = "Catering") =>
+    apiClient<VendorComparison>(
+      `/events/${id}/vendors/compare?category=${encodeURIComponent(category)}`
+    ),
 
   // Approvals & Audit Log
-  getApprovals: (id: string) => fetchJson(`/events/${id}/approvals`),
-  executeApproval: (id: string, proposalId: string, action: string, comment?: string) => 
-    fetchJson(`/events/${id}/approvals/${proposalId}/action`, { method: "POST", body: JSON.stringify({ action, comment }) }),
-  getActivityLogs: (id: string) => fetchJson(`/events/${id}/activity-logs`),
+  getApprovals: (id: string) =>
+    apiClient<ApprovalItem[]>(`/events/${id}/approvals`),
+
+  executeApproval: (
+    id: string,
+    proposalId: string,
+    action: string,
+    comment?: string
+  ) =>
+    apiClient<ApprovalItem>(`/events/${id}/approvals/${proposalId}/action`, {
+      method: "POST",
+      body: { action, comment },
+    }),
+
+  getActivityLogs: (id: string) =>
+    apiClient<ActivityLogItem[]>(`/events/${id}/activity-logs`),
 
   // AI & Ideas
-  extractRequirements: (natural_language_prompt: string) => 
-    fetchJson("/ai/extract-requirements", { method: "POST", body: JSON.stringify({ natural_language_prompt }) }),
-  getIdeas: (id: string) => fetchJson(`/events/${id}/ai/ideas`),
-  generatePlan: (id: string) => fetchJson(`/events/${id}/ai/generate-plan`, { method: "POST" }),
-  sendAIChatCommand: (id: string, command: string) => 
-    fetchJson(`/events/${id}/ai/command`, { method: "POST", body: JSON.stringify({ command }) }),
+  extractRequirements: (naturalLanguagePrompt: string) =>
+    apiClient<ExtractedRequirement>("/ai/extract-requirements", {
+      method: "POST",
+      body: { prompt: naturalLanguagePrompt },
+    }),
+
+  getIdeas: (id: string) => apiClient<IdeasResponse>(`/events/${id}/ai/ideas`),
+
+  generatePlan: (id: string) =>
+    apiClient<PlanResponse>(`/events/${id}/ai/generate-plan`, {
+      method: "POST",
+    }),
+
+  sendAIChatCommand: (id: string, command: string) =>
+    apiClient<{ response: string; proposal_created?: boolean }>(
+      `/events/${id}/ai/command`,
+      {
+        method: "POST",
+        body: { command },
+      }
+    ),
 };

@@ -1,0 +1,5031 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CELESTIA AI Event Planning Assistant",
+    "description": "CELESTIA AI Event Planning Assistant \u2014 Deterministic Budgeting, CPM Timeline, Cultural Intelligence & Autonomy",
+    "version": "2.0.0"
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Register",
+        "operationId": "register_api_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Refresh",
+        "description": "Rotates refresh token and issues a new access token.",
+        "operationId": "refresh_api_auth_refresh_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Logout",
+        "description": "Revokes refresh token and clears all auth cookies.",
+        "operationId": "logout_api_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/demo-login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Demo Login",
+        "description": "Creates a fresh temporary demonstration session.\nControlled by DEMO_ACCOUNT_ENABLED (strictly off by default in production).\nSeeds the authentic Mumbai wedding showcase with full budget and timeline.",
+        "operationId": "demo_login_api_auth_demo_login_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get Me",
+        "operationId": "get_me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/auth/export": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Export User Data",
+        "description": "Data portability endpoint (GDPR/DPDP compliance).\nExports complete user account history, celebrations, budgets, tasks, and vendors.",
+        "operationId": "export_user_data_api_auth_export_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Export User Data Api Auth Export Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/auth/account": {
+      "delete": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Delete User Account",
+        "description": "Permanently deletes user account and all associated events via cascading deletion.\nRevokes tokens and clears cookies.",
+        "operationId": "delete_user_account_api_auth_account_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "List User Events",
+        "operationId": "list_user_events_api_events_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  },
+                  "title": "Response List User Events Api Events Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Create Event",
+        "operationId": "create_event_api_events_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get Event",
+        "operationId": "get_event_api_events__event_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Update Event",
+        "operationId": "update_event_api_events__event_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Delete Event",
+        "operationId": "delete_event_api_events__event_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/preferences": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get Preferences",
+        "operationId": "get_preferences_api_events__event_id__preferences_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPreferenceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Update Preferences",
+        "operationId": "update_preferences_api_events__event_id__preferences_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventPreferenceCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPreferenceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/plans": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get Active Plan",
+        "operationId": "get_active_plan_api_events__event_id__plans_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/budget/summary": {
+      "get": {
+        "tags": [
+          "Budget Intelligence"
+        ],
+        "summary": "Get Budget Summary",
+        "operationId": "get_budget_summary_api_events__event_id__budget_summary_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/budget/what-if": {
+      "post": {
+        "tags": [
+          "Budget Intelligence"
+        ],
+        "summary": "Simulate What If",
+        "operationId": "simulate_what_if_api_events__event_id__budget_what_if_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WhatIfSimulationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatIfSimulationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/budget/categories": {
+      "post": {
+        "tags": [
+          "Budget Intelligence"
+        ],
+        "summary": "Create Category",
+        "operationId": "create_category_api_events__event_id__budget_categories_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetCategoryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetCategoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/budget/categories/{category_id}": {
+      "patch": {
+        "tags": [
+          "Budget Intelligence"
+        ],
+        "summary": "Update Category",
+        "operationId": "update_category_api_events__event_id__budget_categories__category_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Category Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetCategoryUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetCategoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/budget/categories/{category_id}/expenses": {
+      "post": {
+        "tags": [
+          "Budget Intelligence"
+        ],
+        "summary": "Add Expense",
+        "operationId": "add_expense_api_events__event_id__budget_categories__category_id__expenses_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Category Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpenseCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/budget/expenses/{expense_id}": {
+      "patch": {
+        "tags": [
+          "Budget Intelligence"
+        ],
+        "summary": "Update Expense",
+        "operationId": "update_expense_api_events__event_id__budget_expenses__expense_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "expense_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Expense Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpenseUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Budget Intelligence"
+        ],
+        "summary": "Delete Expense",
+        "operationId": "delete_expense_api_events__event_id__budget_expenses__expense_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "expense_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Expense Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/budget/export-csv": {
+      "get": {
+        "tags": [
+          "Budget Intelligence"
+        ],
+        "summary": "Export Budget Csv",
+        "description": "Exports event budget ledger to CSV with formula injection neutralization.",
+        "operationId": "export_budget_csv_api_events__event_id__budget_export_csv_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/tasks": {
+      "get": {
+        "tags": [
+          "Planning & Tasks"
+        ],
+        "summary": "List Tasks",
+        "operationId": "list_tasks_api_events__event_id__tasks_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskResponse"
+                  },
+                  "title": "Response List Tasks Api Events  Event Id  Tasks Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Planning & Tasks"
+        ],
+        "summary": "Create Task",
+        "operationId": "create_task_api_events__event_id__tasks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/tasks/{task_id}/dependencies": {
+      "post": {
+        "tags": [
+          "Planning & Tasks"
+        ],
+        "summary": "Add Task Dependency",
+        "operationId": "add_task_dependency_api_events__event_id__tasks__task_id__dependencies_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskDependencyCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/tasks/{task_id}": {
+      "patch": {
+        "tags": [
+          "Planning & Tasks"
+        ],
+        "summary": "Update Task",
+        "operationId": "update_task_api_events__event_id__tasks__task_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Planning & Tasks"
+        ],
+        "summary": "Delete Task",
+        "operationId": "delete_task_api_events__event_id__tasks__task_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/tasks/cpm": {
+      "post": {
+        "tags": [
+          "Planning & Tasks"
+        ],
+        "summary": "Recalculate Cpm",
+        "operationId": "recalculate_cpm_api_events__event_id__tasks_cpm_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CPMResultResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/vendors": {
+      "get": {
+        "tags": [
+          "Vendor Intelligence"
+        ],
+        "summary": "List Vendors",
+        "operationId": "list_vendors_api_events__event_id__vendors_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VendorResponse"
+                  },
+                  "title": "Response List Vendors Api Events  Event Id  Vendors Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vendor Intelligence"
+        ],
+        "summary": "Create Vendor",
+        "operationId": "create_vendor_api_events__event_id__vendors_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VendorCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/vendors/{vendor_id}/quotations": {
+      "post": {
+        "tags": [
+          "Vendor Intelligence"
+        ],
+        "summary": "Add Quotation",
+        "operationId": "add_quotation_api_events__event_id__vendors__vendor_id__quotations_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vendor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Vendor Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/vendors/compare": {
+      "get": {
+        "tags": [
+          "Vendor Intelligence"
+        ],
+        "summary": "Compare Quotations",
+        "operationId": "compare_quotations_api_events__event_id__vendors_compare_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "Catering",
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorComparisonResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/vendors/documents/upload": {
+      "post": {
+        "tags": [
+          "Vendor Intelligence"
+        ],
+        "summary": "Upload Vendor Document",
+        "description": "Secure document upload endpoint with rate limiting, file type and size validation.",
+        "operationId": "upload_vendor_document_api_events__event_id__vendors_documents_upload_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/approvals": {
+      "get": {
+        "tags": [
+          "Approvals & Autonomy"
+        ],
+        "summary": "List Approvals",
+        "operationId": "list_approvals_api_events__event_id__approvals_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApprovalResponse"
+                  },
+                  "title": "Response List Approvals Api Events  Event Id  Approvals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/approvals/{proposal_id}/action": {
+      "post": {
+        "tags": [
+          "Approvals & Autonomy"
+        ],
+        "summary": "Execute Proposal Action",
+        "operationId": "execute_proposal_action_api_events__event_id__approvals__proposal_id__action_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposal Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/activity-logs": {
+      "get": {
+        "tags": [
+          "Approvals & Autonomy"
+        ],
+        "summary": "Get Activity Logs",
+        "operationId": "get_activity_logs_api_events__event_id__activity_logs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActivityLogResponse"
+                  },
+                  "title": "Response Get Activity Logs Api Events  Event Id  Activity Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/extract-requirements": {
+      "post": {
+        "tags": [
+          "AI Intelligence"
+        ],
+        "summary": "Extract Requirements",
+        "operationId": "extract_requirements_api_ai_extract_requirements_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementExtractionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractedRequirement"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/ai/ideas": {
+      "get": {
+        "tags": [
+          "AI Intelligence"
+        ],
+        "summary": "Get Ideas",
+        "operationId": "get_ideas_api_events__event_id__ai_ideas_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalizedIdeasResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/ai/generate-plan": {
+      "post": {
+        "tags": [
+          "AI Intelligence"
+        ],
+        "summary": "Generate Event Plan",
+        "operationId": "generate_event_plan_api_events__event_id__ai_generate_plan_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanGenerationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/ai/command": {
+      "post": {
+        "tags": [
+          "AI Intelligence"
+        ],
+        "summary": "Execute Ai Command",
+        "operationId": "execute_ai_command_api_events__event_id__ai_command_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/ai/stream-plan": {
+      "get": {
+        "tags": [
+          "AI Intelligence"
+        ],
+        "summary": "Stream Event Plan",
+        "operationId": "stream_event_plan_api_events__event_id__ai_stream_plan_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{event_id}/ai/generate-plan-parallel": {
+      "post": {
+        "tags": [
+          "AI Intelligence"
+        ],
+        "summary": "Generate Plan Parallel Endpoint",
+        "operationId": "generate_plan_parallel_endpoint_api_events__event_id__ai_generate_plan_parallel_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique event identifier",
+              "title": "Event Id"
+            },
+            "description": "Unique event identifier"
+          },
+          {
+            "name": "timeout_sec",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 3.0,
+              "title": "Timeout Sec"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-fault/unhandled-error": {
+      "get": {
+        "summary": "Trigger Unhandled Error For Audit",
+        "description": "Diagnostic fault injection endpoint to verify sanitization of 500 errors.",
+        "operationId": "trigger_unhandled_error_for_audit_api_test_fault_unhandled_error_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "summary": "Liveness",
+        "operationId": "liveness_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "summary": "Readiness",
+        "operationId": "readiness_readyz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Active health check verifying application and database connectivity.\nReturns HTTP 200 if database responds, HTTP 503 if database is unreachable.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityLogResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "actor": {
+            "type": "string",
+            "title": "Actor"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "details": {
+            "type": "string",
+            "title": "Details"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_id",
+          "actor",
+          "action",
+          "details",
+          "timestamp"
+        ],
+        "title": "ActivityLogResponse"
+      },
+      "ApprovalAction": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "ApprovalAction"
+      },
+      "ApprovalResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "proposal_type": {
+            "type": "string",
+            "title": "Proposal Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "diff_summary": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Diff Summary"
+          },
+          "proposed_changes_json": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Proposed Changes Json"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_id",
+          "proposal_type",
+          "title",
+          "summary",
+          "diff_summary",
+          "proposed_changes_json",
+          "status",
+          "created_at"
+        ],
+        "title": "ApprovalResponse"
+      },
+      "Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "doc_type": {
+            "type": "string",
+            "title": "Doc Type",
+            "default": "contract"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_vendor_document_api_events__event_id__vendors_documents_upload_post"
+      },
+      "BudgetCategoryCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "allocation_percent": {
+            "type": "number",
+            "title": "Allocation Percent",
+            "default": 0.0
+          },
+          "allocation_basis_points": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allocation Basis Points"
+          },
+          "allocated_amount_minor": {
+            "type": "integer",
+            "title": "Allocated Amount Minor"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon",
+            "default": "IndianRupee"
+          },
+          "is_per_guest": {
+            "type": "boolean",
+            "title": "Is Per Guest",
+            "default": false
+          },
+          "per_guest_minor": {
+            "type": "integer",
+            "title": "Per Guest Minor",
+            "default": 0
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "allocated_amount_minor"
+        ],
+        "title": "BudgetCategoryCreate"
+      },
+      "BudgetCategoryResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "allocation_percent": {
+            "type": "number",
+            "title": "Allocation Percent"
+          },
+          "allocation_basis_points": {
+            "type": "integer",
+            "title": "Allocation Basis Points",
+            "default": 0
+          },
+          "allocated_amount_minor": {
+            "type": "integer",
+            "title": "Allocated Amount Minor"
+          },
+          "allocated_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allocated Rupees"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "is_per_guest": {
+            "type": "boolean",
+            "title": "Is Per Guest"
+          },
+          "per_guest_minor": {
+            "type": "integer",
+            "title": "Per Guest Minor"
+          },
+          "per_guest_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Guest Rupees"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "expenses": {
+            "items": {
+              "$ref": "#/components/schemas/ExpenseResponse"
+            },
+            "type": "array",
+            "title": "Expenses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_id",
+          "name",
+          "allocation_percent",
+          "allocated_amount_minor",
+          "icon",
+          "is_per_guest",
+          "per_guest_minor",
+          "sort_order"
+        ],
+        "title": "BudgetCategoryResponse"
+      },
+      "BudgetCategoryUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "allocation_percent": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allocation Percent"
+          },
+          "allocated_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allocated Amount Minor"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "is_per_guest": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Per Guest"
+          },
+          "per_guest_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Guest Minor"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          }
+        },
+        "type": "object",
+        "title": "BudgetCategoryUpdate"
+      },
+      "BudgetSummaryResponse": {
+        "properties": {
+          "total_budget_minor": {
+            "type": "integer",
+            "title": "Total Budget Minor"
+          },
+          "total_budget_rupees": {
+            "type": "number",
+            "title": "Total Budget Rupees"
+          },
+          "allocated_minor": {
+            "type": "integer",
+            "title": "Allocated Minor"
+          },
+          "allocated_rupees": {
+            "type": "number",
+            "title": "Allocated Rupees"
+          },
+          "allocatable_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allocatable Minor",
+            "default": 0
+          },
+          "allocatable_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allocatable Rupees",
+            "default": 0.0
+          },
+          "safety_buffer_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Buffer Minor",
+            "default": 0
+          },
+          "safety_buffer_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Buffer Rupees",
+            "default": 0.0
+          },
+          "unallocated_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unallocated Minor",
+            "default": 0
+          },
+          "unallocated_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unallocated Rupees",
+            "default": 0.0
+          },
+          "is_reconciled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Reconciled",
+            "default": true
+          },
+          "planned_total_minor": {
+            "type": "integer",
+            "title": "Planned Total Minor"
+          },
+          "planned_total_rupees": {
+            "type": "number",
+            "title": "Planned Total Rupees"
+          },
+          "actual_total_minor": {
+            "type": "integer",
+            "title": "Actual Total Minor"
+          },
+          "actual_total_rupees": {
+            "type": "number",
+            "title": "Actual Total Rupees"
+          },
+          "remaining_balance_minor": {
+            "type": "integer",
+            "title": "Remaining Balance Minor"
+          },
+          "remaining_balance_rupees": {
+            "type": "number",
+            "title": "Remaining Balance Rupees"
+          },
+          "contingency_reserve_minor": {
+            "type": "integer",
+            "title": "Contingency Reserve Minor"
+          },
+          "contingency_reserve_rupees": {
+            "type": "number",
+            "title": "Contingency Reserve Rupees"
+          },
+          "contingency_percent": {
+            "type": "number",
+            "title": "Contingency Percent"
+          },
+          "deviation_minor": {
+            "type": "integer",
+            "title": "Deviation Minor"
+          },
+          "deviation_rupees": {
+            "type": "number",
+            "title": "Deviation Rupees"
+          },
+          "is_over_budget": {
+            "type": "boolean",
+            "title": "Is Over Budget"
+          },
+          "per_guest_avg_rupees": {
+            "type": "number",
+            "title": "Per Guest Avg Rupees"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetCategoryResponse"
+            },
+            "type": "array",
+            "title": "Categories"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_budget_minor",
+          "total_budget_rupees",
+          "allocated_minor",
+          "allocated_rupees",
+          "planned_total_minor",
+          "planned_total_rupees",
+          "actual_total_minor",
+          "actual_total_rupees",
+          "remaining_balance_minor",
+          "remaining_balance_rupees",
+          "contingency_reserve_minor",
+          "contingency_reserve_rupees",
+          "contingency_percent",
+          "deviation_minor",
+          "deviation_rupees",
+          "is_over_budget",
+          "per_guest_avg_rupees",
+          "categories"
+        ],
+        "title": "BudgetSummaryResponse"
+      },
+      "CPMResultResponse": {
+        "properties": {
+          "total_duration_days": {
+            "type": "integer",
+            "title": "Total Duration Days"
+          },
+          "critical_path_task_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Critical Path Task Ids"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskResponse"
+            },
+            "type": "array",
+            "title": "Tasks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_duration_days",
+          "critical_path_task_ids",
+          "tasks"
+        ],
+        "title": "CPMResultResponse"
+      },
+      "ChatCommandRequest": {
+        "properties": {
+          "command": {
+            "type": "string",
+            "title": "Command"
+          }
+        },
+        "type": "object",
+        "required": [
+          "command"
+        ],
+        "title": "ChatCommandRequest"
+      },
+      "EventCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Title",
+            "default": "Anjali & Rahul's Royal Mumbai Wedding"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type",
+            "default": "wedding"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "City",
+            "default": "Mumbai"
+          },
+          "venue_type": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Venue Type",
+            "default": "Banquet Hall"
+          },
+          "guest_count": {
+            "type": "integer",
+            "maximum": 5000.0,
+            "minimum": 10.0,
+            "title": "Guest Count",
+            "default": 300
+          },
+          "budget_minor": {
+            "type": "integer",
+            "maximum": 10000000000.0,
+            "minimum": 1000000.0,
+            "title": "Budget Minor",
+            "default": 150000000
+          },
+          "budget_rupees": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000000.0,
+                "minimum": 10000.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Rupees"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "default": "INR"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "Asia/Kolkata"
+          },
+          "preparation_months": {
+            "type": "integer",
+            "maximum": 36.0,
+            "minimum": 1.0,
+            "title": "Preparation Months",
+            "default": 6
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          },
+          "autonomy_mode": {
+            "type": "string",
+            "title": "Autonomy Mode",
+            "default": "Draft"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EventPreferenceBase"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "EventCreate"
+      },
+      "EventPreferenceBase": {
+        "properties": {
+          "dietary": {
+            "type": "string",
+            "title": "Dietary",
+            "default": "Pure Vegetarian"
+          },
+          "theme": {
+            "type": "string",
+            "title": "Theme",
+            "default": "Royal Marigold & Polished Brass"
+          },
+          "regional_culture": {
+            "type": "string",
+            "title": "Regional Culture",
+            "default": "Maharashtrian Traditional"
+          },
+          "cultural_traditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cultural Traditions"
+          },
+          "music_entertainment": {
+            "type": "string",
+            "title": "Music Entertainment",
+            "default": "Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ"
+          },
+          "color_palette": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Color Palette"
+          },
+          "special_requirements": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Requirements",
+            "default": "Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
+          }
+        },
+        "type": "object",
+        "title": "EventPreferenceBase"
+      },
+      "EventPreferenceCreate": {
+        "properties": {
+          "dietary": {
+            "type": "string",
+            "title": "Dietary",
+            "default": "Pure Vegetarian"
+          },
+          "theme": {
+            "type": "string",
+            "title": "Theme",
+            "default": "Royal Marigold & Polished Brass"
+          },
+          "regional_culture": {
+            "type": "string",
+            "title": "Regional Culture",
+            "default": "Maharashtrian Traditional"
+          },
+          "cultural_traditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cultural Traditions"
+          },
+          "music_entertainment": {
+            "type": "string",
+            "title": "Music Entertainment",
+            "default": "Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ"
+          },
+          "color_palette": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Color Palette"
+          },
+          "special_requirements": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Requirements",
+            "default": "Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
+          }
+        },
+        "type": "object",
+        "title": "EventPreferenceCreate"
+      },
+      "EventPreferenceResponse": {
+        "properties": {
+          "dietary": {
+            "type": "string",
+            "title": "Dietary",
+            "default": "Pure Vegetarian"
+          },
+          "theme": {
+            "type": "string",
+            "title": "Theme",
+            "default": "Royal Marigold & Polished Brass"
+          },
+          "regional_culture": {
+            "type": "string",
+            "title": "Regional Culture",
+            "default": "Maharashtrian Traditional"
+          },
+          "cultural_traditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cultural Traditions"
+          },
+          "music_entertainment": {
+            "type": "string",
+            "title": "Music Entertainment",
+            "default": "Traditional Shehnai & Dhol-Tasha + Modern Sangeet DJ"
+          },
+          "color_palette": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Color Palette"
+          },
+          "special_requirements": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Requirements",
+            "default": "Wheelchair accessible entrance, priority elderly seating, eco-friendly return gifts."
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EventPreferenceResponse"
+      },
+      "EventResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "venue_type": {
+            "type": "string",
+            "title": "Venue Type"
+          },
+          "guest_count": {
+            "type": "integer",
+            "title": "Guest Count"
+          },
+          "budget_minor": {
+            "type": "integer",
+            "title": "Budget Minor"
+          },
+          "budget_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Rupees"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "preparation_months": {
+            "type": "integer",
+            "title": "Preparation Months"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "autonomy_mode": {
+            "type": "string",
+            "title": "Autonomy Mode"
+          },
+          "ai_paused": {
+            "type": "boolean",
+            "title": "Ai Paused"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "title",
+          "event_type",
+          "city",
+          "venue_type",
+          "guest_count",
+          "budget_minor",
+          "currency",
+          "timezone",
+          "preparation_months",
+          "status",
+          "autonomy_mode",
+          "ai_paused",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EventResponse"
+      },
+      "EventUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "event_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Type"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "venue_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Venue Type"
+          },
+          "guest_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5000.0,
+                "minimum": 10.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guest Count"
+          },
+          "budget_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 1000000.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Minor"
+          },
+          "budget_rupees": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000000.0,
+                "minimum": 10000.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Rupees"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          },
+          "preparation_months": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 36.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preparation Months"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "autonomy_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Autonomy Mode"
+          },
+          "ai_paused": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Paused"
+          }
+        },
+        "type": "object",
+        "title": "EventUpdate"
+      },
+      "ExpenseCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "planned_amount_minor": {
+            "type": "integer",
+            "maximum": 10000000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Planned Amount Minor"
+          },
+          "planned_rupees": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Rupees"
+          },
+          "actual_amount_minor": {
+            "type": "integer",
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Actual Amount Minor",
+            "default": 0
+          },
+          "actual_rupees": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Rupees"
+          },
+          "provenance": {
+            "type": "string",
+            "title": "Provenance",
+            "default": "estimated"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "planned_amount_minor"
+        ],
+        "title": "ExpenseCreate"
+      },
+      "ExpenseResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "category_id": {
+            "type": "string",
+            "title": "Category Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "planned_amount_minor": {
+            "type": "integer",
+            "title": "Planned Amount Minor"
+          },
+          "planned_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Rupees"
+          },
+          "actual_amount_minor": {
+            "type": "integer",
+            "title": "Actual Amount Minor"
+          },
+          "actual_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Rupees"
+          },
+          "provenance": {
+            "type": "string",
+            "title": "Provenance"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "category_id",
+          "name",
+          "planned_amount_minor",
+          "actual_amount_minor",
+          "provenance"
+        ],
+        "title": "ExpenseResponse"
+      },
+      "ExpenseUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "planned_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Amount Minor"
+          },
+          "planned_rupees": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Rupees"
+          },
+          "actual_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Amount Minor"
+          },
+          "actual_rupees": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Rupees"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provenance"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          }
+        },
+        "type": "object",
+        "title": "ExpenseUpdate"
+      },
+      "ExtractedRequirement": {
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "title": "Event Type",
+            "default": "wedding"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "city": {
+            "type": "string",
+            "title": "City",
+            "default": "Mumbai"
+          },
+          "venue_type": {
+            "type": "string",
+            "title": "Venue Type",
+            "default": "Banquet Hall"
+          },
+          "guest_count": {
+            "type": "integer",
+            "title": "Guest Count",
+            "default": 300
+          },
+          "budget_rupees": {
+            "type": "number",
+            "title": "Budget Rupees",
+            "default": 1500000.0
+          },
+          "dietary": {
+            "type": "string",
+            "title": "Dietary",
+            "default": "Pure Vegetarian"
+          },
+          "theme": {
+            "type": "string",
+            "title": "Theme",
+            "default": "Royal Marigold & Polished Brass"
+          },
+          "regional_culture": {
+            "type": "string",
+            "title": "Regional Culture",
+            "default": "Maharashtrian Traditional"
+          },
+          "cultural_traditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cultural Traditions"
+          },
+          "preparation_months": {
+            "type": "integer",
+            "title": "Preparation Months",
+            "default": 6
+          },
+          "special_requirements": {
+            "type": "string",
+            "title": "Special Requirements",
+            "default": ""
+          },
+          "provenance": {
+            "type": "string",
+            "title": "Provenance",
+            "default": "ai_suggested"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "ExtractedRequirement"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PersonalizedIdeasResponse": {
+        "properties": {
+          "themes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Themes"
+          },
+          "decor_concepts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Decor Concepts"
+          },
+          "food_and_menu": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Food And Menu"
+          },
+          "entertainment": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Entertainment"
+          },
+          "return_gifts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Return Gifts"
+          },
+          "cultural_traditions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Cultural Traditions"
+          },
+          "budget_conscious_alternatives": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Budget Conscious Alternatives"
+          }
+        },
+        "type": "object",
+        "required": [
+          "themes",
+          "decor_concepts",
+          "food_and_menu",
+          "entertainment",
+          "return_gifts",
+          "cultural_traditions",
+          "budget_conscious_alternatives"
+        ],
+        "title": "PersonalizedIdeasResponse"
+      },
+      "PlanGenerationResponse": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "plan_title": {
+            "type": "string",
+            "title": "Plan Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "blueprint_json": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Blueprint Json"
+          },
+          "budget_allocation_summary": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Budget Allocation Summary"
+          },
+          "task_count": {
+            "type": "integer",
+            "title": "Task Count"
+          },
+          "milestone_count": {
+            "type": "integer",
+            "title": "Milestone Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "plan_title",
+          "summary",
+          "blueprint_json",
+          "budget_allocation_summary",
+          "task_count",
+          "milestone_count"
+        ],
+        "title": "PlanGenerationResponse"
+      },
+      "QuotationComparisonItem": {
+        "properties": {
+          "quotation_id": {
+            "type": "string",
+            "title": "Quotation Id"
+          },
+          "vendor_id": {
+            "type": "string",
+            "title": "Vendor Id"
+          },
+          "vendor_name": {
+            "type": "string",
+            "title": "Vendor Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "quoted_rupees": {
+            "type": "number",
+            "title": "Quoted Rupees"
+          },
+          "advance_payment_percent": {
+            "type": "number",
+            "title": "Advance Payment Percent"
+          },
+          "cancellation_terms": {
+            "type": "string",
+            "title": "Cancellation Terms"
+          },
+          "included_services_count": {
+            "type": "integer",
+            "title": "Included Services Count"
+          },
+          "inclusions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Inclusions"
+          },
+          "exclusions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Exclusions"
+          },
+          "detected_risks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Detected Risks"
+          },
+          "risk_score": {
+            "type": "string",
+            "title": "Risk Score"
+          },
+          "is_recommended": {
+            "type": "boolean",
+            "title": "Is Recommended"
+          }
+        },
+        "type": "object",
+        "required": [
+          "quotation_id",
+          "vendor_id",
+          "vendor_name",
+          "category",
+          "quoted_rupees",
+          "advance_payment_percent",
+          "cancellation_terms",
+          "included_services_count",
+          "inclusions",
+          "exclusions",
+          "detected_risks",
+          "risk_score",
+          "is_recommended"
+        ],
+        "title": "QuotationComparisonItem"
+      },
+      "QuotationCreate": {
+        "properties": {
+          "vendor_id": {
+            "type": "string",
+            "title": "Vendor Id"
+          },
+          "quoted_amount_minor": {
+            "type": "integer",
+            "title": "Quoted Amount Minor"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "received"
+          },
+          "file_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Url"
+          },
+          "inclusions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Inclusions"
+          },
+          "exclusions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Exclusions"
+          },
+          "terms": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Terms"
+          },
+          "detected_risks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Detected Risks"
+          },
+          "is_sample": {
+            "type": "boolean",
+            "title": "Is Sample",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "vendor_id",
+          "quoted_amount_minor"
+        ],
+        "title": "QuotationCreate"
+      },
+      "QuotationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "vendor_id": {
+            "type": "string",
+            "title": "Vendor Id"
+          },
+          "vendor_name_cached": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Name Cached"
+          },
+          "quoted_amount_minor": {
+            "type": "integer",
+            "title": "Quoted Amount Minor"
+          },
+          "quoted_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quoted Rupees"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "file_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Url"
+          },
+          "inclusions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Inclusions"
+          },
+          "exclusions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Exclusions"
+          },
+          "terms": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Terms"
+          },
+          "detected_risks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Detected Risks"
+          },
+          "is_sample": {
+            "type": "boolean",
+            "title": "Is Sample"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "vendor_id",
+          "quoted_amount_minor",
+          "status",
+          "inclusions",
+          "exclusions",
+          "terms",
+          "detected_risks",
+          "is_sample",
+          "created_at"
+        ],
+        "title": "QuotationResponse"
+      },
+      "RequirementExtractionRequest": {
+        "properties": {
+          "natural_language_prompt": {
+            "type": "string",
+            "title": "Natural Language Prompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "natural_language_prompt"
+        ],
+        "title": "RequirementExtractionRequest"
+      },
+      "TaskCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Category",
+            "default": "General"
+          },
+          "milestone_name": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Milestone Name",
+            "default": "6 Months Out"
+          },
+          "days_before_event": {
+            "type": "integer",
+            "maximum": 1825.0,
+            "minimum": 0.0,
+            "title": "Days Before Event",
+            "default": 180
+          },
+          "duration_days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Duration Days",
+            "default": 7
+          },
+          "priority": {
+            "type": "string",
+            "maxLength": 20,
+            "title": "Priority",
+            "default": "medium"
+          },
+          "assigned_to": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Assigned To",
+            "default": "Host"
+          },
+          "depends_on_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Depends On Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "TaskCreate"
+      },
+      "TaskDependencyCreate": {
+        "properties": {
+          "depends_on_task_id": {
+            "type": "string",
+            "title": "Depends On Task Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "depends_on_task_id"
+        ],
+        "title": "TaskDependencyCreate"
+      },
+      "TaskResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "milestone_name": {
+            "type": "string",
+            "title": "Milestone Name"
+          },
+          "days_before_event": {
+            "type": "integer",
+            "title": "Days Before Event"
+          },
+          "duration_days": {
+            "type": "integer",
+            "title": "Duration Days"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "assigned_to": {
+            "type": "string",
+            "title": "Assigned To"
+          },
+          "is_critical": {
+            "type": "boolean",
+            "title": "Is Critical"
+          },
+          "early_start_day": {
+            "type": "integer",
+            "title": "Early Start Day"
+          },
+          "early_finish_day": {
+            "type": "integer",
+            "title": "Early Finish Day"
+          },
+          "late_start_day": {
+            "type": "integer",
+            "title": "Late Start Day"
+          },
+          "late_finish_day": {
+            "type": "integer",
+            "title": "Late Finish Day"
+          },
+          "total_slack": {
+            "type": "integer",
+            "title": "Total Slack"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "depends_on_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Depends On Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_id",
+          "title",
+          "category",
+          "milestone_name",
+          "days_before_event",
+          "duration_days",
+          "priority",
+          "status",
+          "assigned_to",
+          "is_critical",
+          "early_start_day",
+          "early_finish_day",
+          "late_start_day",
+          "late_finish_day",
+          "total_slack",
+          "created_at"
+        ],
+        "title": "TaskResponse"
+      },
+      "TaskUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "milestone_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Milestone Name"
+          },
+          "days_before_event": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1825.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Before Event"
+          },
+          "duration_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 365.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Days"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "assigned_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To"
+          },
+          "is_critical": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Critical"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          }
+        },
+        "type": "object",
+        "title": "TaskUpdate"
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "refresh_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Token"
+          },
+          "csrf_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Csrf Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type",
+          "user"
+        ],
+        "title": "Token"
+      },
+      "UserCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "name",
+          "password"
+        ],
+        "title": "UserCreate"
+      },
+      "UserLogin": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "UserLogin"
+      },
+      "UserResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "is_demo": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Demo",
+            "default": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "created_at"
+        ],
+        "title": "UserResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VendorComparisonResponse": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "recommended_quotation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Quotation Id"
+          },
+          "missing_inclusions_warning": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Inclusions Warning"
+          },
+          "comparison_items": {
+            "items": {
+              "$ref": "#/components/schemas/QuotationComparisonItem"
+            },
+            "type": "array",
+            "title": "Comparison Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category"
+        ],
+        "title": "VendorComparisonResponse"
+      },
+      "VendorCreate": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "rating": {
+            "type": "number",
+            "title": "Rating",
+            "default": 4.5
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "name"
+        ],
+        "title": "VendorCreate"
+      },
+      "VendorResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "rating": {
+            "type": "number",
+            "title": "Rating"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quotations": {
+            "items": {
+              "$ref": "#/components/schemas/QuotationResponse"
+            },
+            "type": "array",
+            "title": "Quotations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_id",
+          "category",
+          "name",
+          "status",
+          "rating"
+        ],
+        "title": "VendorResponse"
+      },
+      "WhatIfCategoryChange": {
+        "properties": {
+          "category_name": {
+            "type": "string",
+            "title": "Category Name"
+          },
+          "original_allocation_rupees": {
+            "type": "number",
+            "title": "Original Allocation Rupees"
+          },
+          "simulated_allocation_rupees": {
+            "type": "number",
+            "title": "Simulated Allocation Rupees"
+          },
+          "difference_rupees": {
+            "type": "number",
+            "title": "Difference Rupees"
+          },
+          "is_per_guest": {
+            "type": "boolean",
+            "title": "Is Per Guest"
+          },
+          "per_guest_rate_rupees": {
+            "type": "number",
+            "title": "Per Guest Rate Rupees"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category_name",
+          "original_allocation_rupees",
+          "simulated_allocation_rupees",
+          "difference_rupees",
+          "is_per_guest",
+          "per_guest_rate_rupees"
+        ],
+        "title": "WhatIfCategoryChange"
+      },
+      "WhatIfSimulationRequest": {
+        "properties": {
+          "simulated_guest_count": {
+            "type": "integer",
+            "title": "Simulated Guest Count"
+          },
+          "simulated_budget_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulated Budget Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "simulated_guest_count"
+        ],
+        "title": "WhatIfSimulationRequest"
+      },
+      "WhatIfSimulationResponse": {
+        "properties": {
+          "original_guests": {
+            "type": "integer",
+            "title": "Original Guests"
+          },
+          "simulated_guests": {
+            "type": "integer",
+            "title": "Simulated Guests"
+          },
+          "guest_count_change": {
+            "type": "integer",
+            "title": "Guest Count Change"
+          },
+          "original_budget_rupees": {
+            "type": "number",
+            "title": "Original Budget Rupees"
+          },
+          "simulated_budget_rupees": {
+            "type": "number",
+            "title": "Simulated Budget Rupees"
+          },
+          "variable_cost_impact_rupees": {
+            "type": "number",
+            "title": "Variable Cost Impact Rupees"
+          },
+          "fixed_cost_total_rupees": {
+            "type": "number",
+            "title": "Fixed Cost Total Rupees"
+          },
+          "new_contingency_rupees": {
+            "type": "number",
+            "title": "New Contingency Rupees"
+          },
+          "feasibility_status": {
+            "type": "string",
+            "title": "Feasibility Status"
+          },
+          "recommendation": {
+            "type": "string",
+            "title": "Recommendation"
+          },
+          "category_breakdowns": {
+            "items": {
+              "$ref": "#/components/schemas/WhatIfCategoryChange"
+            },
+            "type": "array",
+            "title": "Category Breakdowns"
+          }
+        },
+        "type": "object",
+        "required": [
+          "original_guests",
+          "simulated_guests",
+          "guest_count_change",
+          "original_budget_rupees",
+          "simulated_budget_rupees",
+          "variable_cost_impact_rupees",
+          "fixed_cost_total_rupees",
+          "new_contingency_rupees",
+          "feasibility_status",
+          "recommendation",
+          "category_breakdowns"
+        ],
+        "title": "WhatIfSimulationResponse"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

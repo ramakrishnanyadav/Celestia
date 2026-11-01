@@ -4,12 +4,12 @@ from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from fastapi.testclient import TestClient
 
-from backend.app.main import app
-from backend.app.database import SessionLocal, Base, engine
-from backend.app.models import User, Event, BudgetCategory, Expense, Task, TaskDependency, Approval
-from backend.app.auth import hash_password, create_access_token
-from backend.app.engines.budget_intelligence import paise_to_rupees, rupees_to_paise, seed_event_budget, calculate_budget_summary
-from backend.app.engines.planning_intelligence import run_cpm_calculation
+from app.main import app
+from app.database import SessionLocal, Base, engine
+from app.models import User, Event, BudgetCategory, Expense, Task, TaskDependency, Approval
+from app.auth import hash_password, create_access_token
+from app.engines.budget_intelligence import paise_to_rupees, rupees_to_paise, seed_event_budget, calculate_budget_summary
+from app.engines.planning_intelligence import run_cpm_calculation
 
 client = TestClient(app)
 

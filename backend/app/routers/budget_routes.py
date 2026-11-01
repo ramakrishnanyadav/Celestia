@@ -7,7 +7,11 @@ from sqlalchemy.orm import Session, selectinload
 
 from ..database import get_db
 from ..dependencies import get_event_for_user
-from ..engines.budget_intelligence import calculate_budget_summary, paise_to_rupees
+from ..engines.budget_intelligence import (
+    calculate_budget_summary,
+    paise_to_rupees,
+    simulate_what_if_changes,
+)
 from ..models import BudgetCategory, Event, Expense
 from ..schemas import (
     BudgetCategoryCreate,
@@ -17,6 +21,8 @@ from ..schemas import (
     ExpenseCreate,
     ExpenseResponse,
     ExpenseUpdate,
+    WhatIfSimulationRequest,
+    WhatIfSimulationResponse,
 )
 
 router = APIRouter(prefix="/events/{event_id}/budget", tags=["Budget Intelligence"])
@@ -44,6 +50,25 @@ def get_budget_summary(
     summary = calculate_budget_summary(event, categories)
     summary["categories"] = [enrich_category_response(c) for c in categories]
     return summary
+
+@router.post("/what-if", response_model=WhatIfSimulationResponse)
+def simulate_what_if(
+    sim_req: WhatIfSimulationRequest,
+    event: Event = Depends(get_event_for_user),
+    db: Session = Depends(get_db)
+):
+    categories = db.query(BudgetCategory).options(
+        selectinload(BudgetCategory.expenses)
+    ).filter(
+        BudgetCategory.event_id == event.id
+    ).order_by(BudgetCategory.sort_order.asc()).all()
+
+    return simulate_what_if_changes(
+        event=event,
+        categories=categories,
+        simulated_guest_count=sim_req.simulated_guest_count,
+        simulated_budget_minor=sim_req.simulated_budget_minor,
+    )
 
 @router.post("/categories", response_model=BudgetCategoryResponse)
 def create_category(

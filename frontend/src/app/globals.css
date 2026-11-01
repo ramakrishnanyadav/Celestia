@@ -2,46 +2,111 @@
 
 @layer base {
   :root {
-    --bg-main: #0B132B;
-    --bg-card: #1C2541;
-    --bg-card-subtle: #243054;
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-accent: rgba(13, 148, 136, 0.3);
-    
-    --text-primary: #FAF7F2;
-    --text-secondary: #94A3B8;
-    --text-muted: #64748B;
-    
-    --brand-teal: #0D9488;
-    --brand-teal-light: #14B8A6;
-    --brand-amber: #D97706;
-    --brand-amber-light: #F59E0B;
-    --brand-navy: #0A1128;
+    /* Canvas & Backgrounds (Bright, premium white baseline by default) */
+    --canvas: #ffffff;
+    --canvas-subtle: #f7f8fc;
+    --canvas-sunken: #eef1f8;
+    --canvas-card: #ffffff;
+
+    /* Ink & Typography (High contrast >= 4.5:1) */
+    --ink-primary: #0b1020;
+    --ink-secondary: #3b4256;
+    --ink-muted: #5b6478;
+
+    /* Brand Accents */
+    --brand-teal: #0d9488;
+    --brand-teal-light: #14b8a6;
+    --brand-teal-subtle: rgba(13, 148, 136, 0.08);
+    --brand-marigold: #f59e0b;
+    --brand-marigold-subtle: rgba(245, 158, 11, 0.1);
+    --brand-indigo: #6366f1;
+    --brand-indigo-subtle: rgba(99, 102, 241, 0.08);
+
+    /* Borders & Glass Highlights */
+    --border-subtle: #e2e8f0;
+    --border-accent: rgba(13, 148, 136, 0.25);
+    --glass-bg: rgba(255, 255, 255, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.85);
+    --glass-shadow: 0 8px 32px 0 rgba(11, 16, 32, 0.06);
+
+    /* Status Colors */
+    --status-success: #10b981;
+    --status-warning: #f59e0b;
+    --status-danger: #ef4444;
+    --status-info: #3b82f6;
+  }
+
+  .dark {
+    --canvas: #0b132b;
+    --canvas-subtle: #1c2541;
+    --canvas-sunken: #0a1128;
+    --canvas-card: #1c2541;
+
+    --ink-primary: #faf7f2;
+    --ink-secondary: #cbd5e1;
+    --ink-muted: #94a3b8;
+
+    --border-subtle: rgba(255, 255, 255, 0.1);
+    --border-accent: rgba(20, 184, 166, 0.35);
+    --glass-bg: rgba(28, 37, 65, 0.82);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  html {
+    scrollbar-color: var(--ink-muted) transparent;
+    scrollbar-width: thin;
   }
 
   body {
-    background-color: var(--bg-main);
-    color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--canvas);
+    color: var(--ink-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
 }
 
-/* Custom scrollbar for modern feel */
+/* Glassmorphic Utility Classes */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 4px 20px -2px rgba(11, 16, 32, 0.05);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--border-accent);
+  box-shadow: 0 8px 30px -4px rgba(13, 148, 136, 0.12);
+}
+
+/* Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B132B;
+  background: var(--canvas-sunken);
 }
 ::-webkit-scrollbar-thumb {
-  background: #243054;
+  background: var(--ink-muted);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0D9488;
+  background: var(--brand-teal);
 }
 
 /* Print styling for PDF event blueprint export */

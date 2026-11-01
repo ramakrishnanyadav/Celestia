@@ -1,401 +1,152 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Header } from "@/components/Header";
-import { LandingHero } from "@/components/LandingHero";
-import { DashboardView } from "@/components/DashboardView";
-import { AIPlanningWorkspace } from "@/components/AIPlanningWorkspace";
-import { BudgetManagerView } from "@/components/BudgetManagerView";
-import { TimelineTaskManagerView } from "@/components/TimelineTaskManagerView";
-import { VendorComparisonView } from "@/components/VendorComparisonView";
-import { PersonalizedIdeasExplorer } from "@/components/PersonalizedIdeasExplorer";
-import { ApprovalsView } from "@/components/ApprovalsView";
-import { SettingsView } from "@/components/SettingsView";
-import { EventCreationWizard } from "@/components/EventCreationWizard";
-import { PrintableEventBlueprint } from "@/components/PrintableEventBlueprint";
-import { AuthModal } from "@/components/AuthModal";
-import { api, getAuthToken } from "@/lib/api";
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import {
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  Sliders,
+  CalendarDays,
+  IndianRupee,
+} from "lucide-react";
 
-export default function CelestiaMainPage() {
-  const [currentTab, setCurrentTab] = useState<string>("dashboard");
-  const [activeEvent, setActiveEvent] = useState<any>(null);
-  const [eventsList, setEventsList] = useState<any[]>([]);
-  const [budgetSummary, setBudgetSummary] = useState<any>(null);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [approvals, setApprovals] = useState<any[]>([]);
-  const [activityLogs, setActivityLogs] = useState<any[]>([]);
-  const [plan, setPlan] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [showCreateWizard, setShowCreateWizard] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+export default function MarketingLandingPage() {
+  const router = useRouter();
+  const [prompt, setPrompt] = useState(
+    "Traditional Maharashtrian wedding in Mumbai for 300 guests, ₹15 Lakhs budget, pure vegetarian catering, 6 months preparation."
+  );
+  const [loading, setLoading] = useState(false);
 
-  // Load initial data
-  const loadInitialData = async () => {
-    setIsLoading(true);
+  const handleLaunch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prompt.trim() || loading) return;
+    setLoading(true);
     try {
-      // 1. Verify authentication
-      let user = null;
-      try {
-        user = await api.getMe();
-        setCurrentUser(user);
-      } catch {
-        // If not signed in, auto-login with sample demo account if token not present, or open auth modal
-        if (!getAuthToken()) {
-          try {
-            const demoRes = await api.demoLogin();
-            user = demoRes.user;
-            setCurrentUser(user);
-          } catch {
-            setShowAuthModal(true);
-            setIsLoading(false);
-            return;
-          }
-        } else {
-          setShowAuthModal(true);
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // 2. Load user events
-      const events = await api.getEvents();
-      setEventsList(events);
-      if (events && events.length > 0) {
-        const primaryEvent = events[0];
-        setActiveEvent(primaryEvent);
-        await fetchEventDetails(primaryEvent.id);
-      }
-    } catch (err) {
-      console.error("Error loading events", err);
+      await api.demoLogin();
+      router.push("/app/events");
+    } catch {
+      router.push("/login");
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchEventDetails = async (eventId: string) => {
-    try {
-      const [bSummary, tList, aList, logs, planData] = await Promise.all([
-        api.getBudgetSummary(eventId).catch(() => null),
-        api.getTasks(eventId).catch(() => []),
-        api.getApprovals(eventId).catch(() => []),
-        api.getActivityLogs(eventId).catch(() => []),
-        api.getPlan(eventId).catch(() => null),
-      ]);
-      setBudgetSummary(bSummary);
-      setTasks(tList || []);
-      setApprovals(aList || []);
-      setActivityLogs(logs || []);
-      setPlan(planData);
-    } catch (err) {
-      console.error("Error fetching event details", err);
-    }
-  };
-
-  useEffect(() => {
-    loadInitialData();
-
-    const handleAuthReq = () => {
-      setShowAuthModal(true);
-    };
-    window.addEventListener("celestia_auth_required", handleAuthReq);
-    return () => window.removeEventListener("celestia_auth_required", handleAuthReq);
-  }, []);
-
-  const handleLogout = () => {
-    api.logout();
-    setCurrentUser(null);
-    setActiveEvent(null);
-    setEventsList([]);
-    setShowAuthModal(true);
-  };
-
-  const handleRefresh = async () => {
-    if (activeEvent) {
-      const refreshedEvent = await api.getEvent(activeEvent.id);
-      setActiveEvent(refreshedEvent);
-      await fetchEventDetails(activeEvent.id);
-    }
-  };
-
-  const handleToggleAiPause = async () => {
-    if (!activeEvent) return;
-    try {
-      const updated = await api.updateEvent(activeEvent.id, {
-        ai_paused: !activeEvent.ai_paused
-      });
-      setActiveEvent(updated);
-      handleRefresh();
-    } catch (err: any) {
-      alert(`Error toggling AI pause: ${err.message}`);
-    }
-  };
-
-  const handleLoadPrimaryScenario = async () => {
-    // Find or create Mumbai Wedding
-    const existing = eventsList.find(e => e.title.includes("Anjali") || e.title.includes("Mumbai"));
-    if (existing) {
-      setActiveEvent(existing);
-      await fetchEventDetails(existing.id);
-      setCurrentTab("dashboard");
-    } else {
-      handleSelectPreset("wedding");
-    }
-  };
-
-  const handleSelectPreset = async (presetKey: string) => {
-    setIsLoading(true);
-    try {
-      let payload: any = {};
-      if (presetKey === "wedding") {
-        payload = {
-          title: "Anjali & Rahul's Royal Mumbai Wedding",
-          event_type: "wedding",
-          city: "Mumbai",
-          guest_count: 300,
-          budget_minor: 150000000,
-          currency: "INR",
-          preferences: {
-            dietary: "Pure Vegetarian",
-            theme: "Royal Marigold & Polished Brass",
-            regional_culture: "Maharashtrian Traditional"
-          }
-        };
-      } else if (presetKey === "birthday") {
-        payload = {
-          title: "Aarav's Starlight Carnival 1st Birthday",
-          event_type: "birthday",
-          city: "Mumbai",
-          guest_count: 80,
-          budget_minor: 35000000,
-          currency: "INR",
-          preferences: {
-            dietary: "Vegetarian Buffet",
-            theme: "Enchanted Starlight Carnival",
-            regional_culture: "Contemporary Festive"
-          }
-        };
-      } else {
-        payload = {
-          title: "Sanskriti Heritage Community Utsav",
-          event_type: "community",
-          city: "Mumbai",
-          guest_count: 500,
-          budget_minor: 80000000,
-          currency: "INR",
-          preferences: {
-            dietary: "Community Mahaprasad Pure Veg",
-            theme: "Sanskriti Heritage",
-            regional_culture: "Traditional Folk"
-          }
-        };
-      }
-
-      const created = await api.createEvent(payload);
-      setActiveEvent(created);
-      await loadInitialData();
-      setCurrentTab("dashboard");
-    } catch (err: any) {
-      alert(`Error creating preset: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleNaturalLanguageSubmit = async (prompt: string) => {
-    setIsLoading(true);
-    try {
-      const extracted = await api.extractRequirements(prompt);
-      const budgetMinor = Math.round(extracted.budget_rupees * 100);
-      const created = await api.createEvent({
-        title: extracted.title,
-        event_type: extracted.event_type,
-        city: extracted.city,
-        guest_count: extracted.guest_count,
-        budget_minor: budgetMinor,
-        currency: "INR",
-        preparation_months: extracted.preparation_months,
-        preferences: {
-          dietary: extracted.dietary,
-          theme: extracted.theme,
-          regional_culture: extracted.regional_culture,
-          cultural_traditions: extracted.cultural_traditions
-        }
-      });
-      setActiveEvent(created);
-      await loadInitialData();
-      setCurrentTab("dashboard");
-    } catch (err: any) {
-      alert(`Error processing plan: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteEvent = async () => {
-    if (!activeEvent || !confirm(`Are you sure you want to delete ${activeEvent.title}?`)) return;
-    try {
-      await api.deleteEvent(activeEvent.id);
-      await loadInitialData();
-      setCurrentTab("dashboard");
-    } catch (err: any) {
-      alert(`Error deleting event: ${err.message}`);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0B132B] text-[#FAF7F2] flex flex-col font-sans">
-      
-      {/* Header Bar */}
-      <Header
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        event={activeEvent}
-        onNewEvent={() => setShowCreateWizard(true)}
-        onToggleAiPause={handleToggleAiPause}
-        pendingApprovalsCount={approvals.filter(a => a.status === "pending").length}
-        currentUser={currentUser}
-        onOpenAuth={() => setShowAuthModal(true)}
-        onLogout={handleLogout}
-      />
-
-      {/* Hero Showcase (Always visible on dashboard tab) */}
-      {currentTab === "dashboard" && (
-        <LandingHero
-          onLoadPrimaryScenario={handleLoadPrimaryScenario}
-          onSelectPreset={handleSelectPreset}
-          onNaturalLanguageSubmit={handleNaturalLanguageSubmit}
-        />
-      )}
-
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8">
-        
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-slate-400">
-            <span className="w-8 h-8 border-3 border-teal-500 border-t-transparent rounded-full animate-spin"></span>
-            <span className="text-sm">Synchronizing CELESTIA Engine...</span>
+    <div className="min-h-screen bg-[var(--canvas)] text-[var(--ink-primary)] flex flex-col">
+      {/* Top Navigation */}
+      <header className="h-16 border-b border-[var(--border-subtle)] px-6 flex items-center justify-between sticky top-0 z-30 bg-[var(--glass-bg)] backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[var(--brand-teal)] text-white flex items-center justify-center font-bold">
+            <Sparkles className="w-4 h-4" />
           </div>
-        ) : (
-          <>
-            {currentTab === "dashboard" && (
-              <DashboardView
-                event={activeEvent}
-                budgetSummary={budgetSummary}
-                tasks={tasks}
-                approvals={approvals}
-                onNavigate={(tab) => setCurrentTab(tab)}
-                onOpenQuickSim={() => setCurrentTab("budget")}
-              />
-            )}
-
-            {currentTab === "workspace" && (
-              <AIPlanningWorkspace
-                event={activeEvent}
-                plan={plan}
-                onRefreshData={handleRefresh}
-                onNavigateToApprovals={() => setCurrentTab("approvals")}
-              />
-            )}
-
-            {currentTab === "ideas" && (
-              <PersonalizedIdeasExplorer
-                event={activeEvent}
-                onRefreshData={handleRefresh}
-              />
-            )}
-
-            {currentTab === "budget" && (
-              <BudgetManagerView
-                event={activeEvent}
-                budgetSummary={budgetSummary}
-                onRefreshData={handleRefresh}
-                onNavigateToApprovals={() => setCurrentTab("approvals")}
-              />
-            )}
-
-            {currentTab === "timeline" && (
-              <TimelineTaskManagerView
-                event={activeEvent}
-                tasks={tasks}
-                onRefreshData={handleRefresh}
-              />
-            )}
-
-            {currentTab === "vendors" && (
-              <VendorComparisonView
-                event={activeEvent}
-                onRefreshData={handleRefresh}
-              />
-            )}
-
-            {currentTab === "approvals" && (
-              <ApprovalsView
-                event={activeEvent}
-                approvals={approvals}
-                activityLogs={activityLogs}
-                onRefreshData={handleRefresh}
-              />
-            )}
-
-            {currentTab === "settings" && (
-              <SettingsView
-                event={activeEvent}
-                onRefreshData={handleRefresh}
-                onDeleteEvent={handleDeleteEvent}
-              />
-            )}
-          </>
-        )}
-
-      </main>
-
-      {/* Footer */}
-      <footer className="no-print mt-auto py-6 border-t border-white/10 text-center text-xs text-slate-400 bg-[#0A1128]">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span className="font-semibold text-slate-300">
-            CELESTIA AI Event Planning Assistant V2.0
-          </span>
-          <span className="text-slate-500">
-            Deterministic Budgeting • CPM Schedule • Cultural Intelligence • 3-Tier Autonomy
-          </span>
-          <span className="text-teal-400 font-medium">
-            Active Mode: {activeEvent?.autonomy_mode || "Draft"}
+          <span className="font-extrabold tracking-wider text-base text-[var(--ink-primary)]">
+            CELESTIA
           </span>
         </div>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/login"
+            className="text-xs font-semibold text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/register"
+            className="text-xs font-semibold px-4 py-2 rounded-xl bg-[var(--brand-teal)] text-white hover:opacity-90 transition-all shadow-xs"
+          >
+            Get Started
+          </Link>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="px-6 py-20 max-w-5xl mx-auto text-center space-y-6">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] text-xs font-semibold">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Next-Generation Celebration & Event Planning Engine</span>
+        </div>
+        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-[var(--ink-primary)] leading-tight">
+          Where Cultural Grandeur Meets <br />
+          <span className="text-[var(--brand-teal)]">
+            Deterministic Precision
+          </span>
+        </h1>
+        <p className="max-w-2xl mx-auto text-base sm:text-lg text-[var(--ink-secondary)] leading-relaxed">
+          Transform natural-language visions into executable blueprints with
+          zero-rounding integer ledgers, Critical Path (CPM) schedules, and
+          human-in-the-loop approvals.
+        </p>
+
+        {/* Command Bar */}
+        <form onSubmit={handleLaunch} className="max-w-3xl mx-auto pt-4">
+          <div className="flex flex-col sm:flex-row items-center gap-2 p-2 rounded-2xl glass-card border border-[var(--border-subtle)] shadow-xl">
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe your celebration (type, city, budget, dietary, guests)..."
+              className="flex-1 px-4 py-3 text-sm bg-transparent text-[var(--ink-primary)] placeholder-[var(--ink-muted)] focus:outline-none w-full"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[var(--brand-teal)] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
+            >
+              <span>{loading ? "Synthesizing..." : "Generate Plan"}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* Bento Grid */}
+      <section className="px-6 py-12 max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-6 rounded-2xl glass-card space-y-3">
+          <div className="w-10 h-10 rounded-xl bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] flex items-center justify-center">
+            <IndianRupee className="w-5 h-5" />
+          </div>
+          <h3 className="text-base font-bold text-[var(--ink-primary)]">
+            Zero-Rounding Financials
+          </h3>
+          <p className="text-xs text-[var(--ink-secondary)] leading-relaxed">
+            Strict integer paise accounting end-to-end with automated 10%
+            contingency reserves and what-if simulation.
+          </p>
+        </div>
+        <div className="p-6 rounded-2xl glass-card space-y-3">
+          <div className="w-10 h-10 rounded-xl bg-[var(--brand-marigold-subtle)] text-[var(--brand-marigold)] flex items-center justify-center">
+            <CalendarDays className="w-5 h-5" />
+          </div>
+          <h3 className="text-base font-bold text-[var(--ink-primary)]">
+            Critical Path (CPM) Engine
+          </h3>
+          <p className="text-xs text-[var(--ink-secondary)] leading-relaxed">
+            Topologically sorted dependency graphs calculate early/late start
+            dates and highlight bottleneck tasks.
+          </p>
+        </div>
+        <div className="p-6 rounded-2xl glass-card space-y-3">
+          <div className="w-10 h-10 rounded-xl bg-[var(--brand-indigo-subtle)] text-[var(--brand-indigo)] flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <h3 className="text-base font-bold text-[var(--ink-primary)]">
+            3-Tier Autonomy
+          </h3>
+          <p className="text-xs text-[var(--ink-secondary)] leading-relaxed">
+            AI is strictly advisory. All proposals require human sign-off with
+            audit logging and rollback capabilities.
+          </p>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="mt-auto border-t border-[var(--border-subtle)] py-6 text-center text-xs text-[var(--ink-muted)]">
+        CELESTIA Production Edition • Integer Ledgers & Cultural Intelligence
       </footer>
-
-      {/* Print Blueprint View (Only rendered during print) */}
-      <PrintableEventBlueprint
-        event={activeEvent}
-        budgetSummary={budgetSummary}
-        tasks={tasks}
-      />
-
-      {/* New Event Creation Wizard Modal */}
-      <EventCreationWizard
-        isOpen={showCreateWizard}
-        onClose={() => setShowCreateWizard(false)}
-        onEventCreated={(newEvent) => {
-          setActiveEvent(newEvent);
-          handleRefresh();
-          setCurrentTab("dashboard");
-        }}
-      />
-
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => {
-          if (currentUser) setShowAuthModal(false);
-        }}
-        onAuthenticated={(user) => {
-          setCurrentUser(user);
-          setShowAuthModal(false);
-          loadInitialData();
-        }}
-      />
-
     </div>
   );
 }
