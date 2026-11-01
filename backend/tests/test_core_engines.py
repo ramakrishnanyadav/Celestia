@@ -1,15 +1,15 @@
-import pytest
-from zoneinfo import ZoneInfo
 from datetime import datetime
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
-from app.database import Base, get_db
-from app.models import User, Event, Task, TaskDependency, BudgetCategory, Expense, Approval
 from app.auth import create_access_token, hash_password
+from app.database import Base, get_db
+from app.main import app
+from app.models import Approval, Event, User
 
 # Setup in-memory SQLite for fast isolated testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -34,7 +34,7 @@ def setup_database():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
-    
+
     # Create test user
     user = User(
         id="user-m1-test",
@@ -66,29 +66,29 @@ def test_client():
 def test_pure_cpm_solver_linear_chain():
     """Verify CPM calculates correct Early/Late starts and marks all tasks critical in a single chain."""
     from app.engines.cpm_solver import CPMNode, solve_cpm_pure
-    
+
     nodes = [
         CPMNode(id="A", duration_days=5, depends_on_ids=[]),
         CPMNode(id="B", duration_days=10, depends_on_ids=["A"]),
         CPMNode(id="C", duration_days=3, depends_on_ids=["B"]),
     ]
-    
+
     result = solve_cpm_pure(nodes)
     assert not result.has_cycle
     assert result.total_duration_days == 18
     assert set(result.critical_path_ids) == {"A", "B", "C"}
-    
+
     sched = result.schedule
     assert sched["A"].early_start == 0
     assert sched["A"].early_finish == 5
     assert sched["A"].late_start == 0
     assert sched["A"].late_finish == 5
     assert sched["A"].slack == 0
-    
+
     assert sched["B"].early_start == 5
     assert sched["B"].early_finish == 15
     assert sched["B"].slack == 0
-    
+
     assert sched["C"].early_start == 15
     assert sched["C"].early_finish == 18
     assert sched["C"].slack == 0
@@ -96,7 +96,7 @@ def test_pure_cpm_solver_linear_chain():
 def test_pure_cpm_solver_branching_slack():
     """Verify CPM correctly computes slack on non-critical branch in diamond DAG."""
     from app.engines.cpm_solver import CPMNode, solve_cpm_pure
-    
+
     # A -> B (10 days) -> D
     # A -> C (4 days)  -> D
     nodes = [
@@ -105,12 +105,12 @@ def test_pure_cpm_solver_branching_slack():
         CPMNode(id="C", duration_days=4, depends_on_ids=["A"]),
         CPMNode(id="D", duration_days=2, depends_on_ids=["B", "C"]),
     ]
-    
+
     result = solve_cpm_pure(nodes)
     assert not result.has_cycle
     assert result.total_duration_days == 17 # 5 + 10 + 2
     assert set(result.critical_path_ids) == {"A", "B", "D"}
-    
+
     # C should have slack of 10 - 4 = 6 days
     assert result.schedule["C"].slack == 6
     assert not result.schedule["C"].is_critical
@@ -120,14 +120,14 @@ def test_pure_cpm_solver_branching_slack():
 def test_pure_cpm_solver_detects_cycle():
     """Verify CPM solver detects circular dependencies and raises/flags cycle."""
     from app.engines.cpm_solver import CPMNode, solve_cpm_pure
-    
+
     # A -> B -> C -> A
     nodes = [
         CPMNode(id="A", duration_days=5, depends_on_ids=["C"]),
         CPMNode(id="B", duration_days=5, depends_on_ids=["A"]),
         CPMNode(id="C", duration_days=5, depends_on_ids=["B"]),
     ]
-    
+
     result = solve_cpm_pure(nodes)
     assert result.has_cycle
     assert len(result.critical_path_ids) == 0
@@ -135,13 +135,13 @@ def test_pure_cpm_solver_detects_cycle():
 def test_pure_cpm_check_cycle_on_add_edge():
     """Verify pure function detects if adding an edge introduces a cycle."""
     from app.engines.cpm_solver import check_cycle_on_add_edge
-    
+
     existing_edges = [
         ("A", "B"), # A -> B
         ("B", "C"), # B -> C
         ("C", "D"), # C -> D
     ]
-    
+
     # Adding D -> A introduces cycle
     assert check_cycle_on_add_edge(existing_edges, new_edge=("D", "A")) is True
     # Adding self-loop introduces cycle
@@ -158,7 +158,7 @@ def test_pure_cpm_check_cycle_on_add_edge():
 def test_exact_integer_budget_reconciliation_zero_drift():
     """Verify that total_budget_minor == allocated + contingency + unallocated down to 1 paisa."""
     from app.engines.budget_intelligence import reconcile_budget_minor
-    
+
     # Test multiple arbitrary budget values including odd numbers with potential remainder
     budgets = [
         150000000, # 15 Lakhs
@@ -168,7 +168,7 @@ def test_exact_integer_budget_reconciliation_zero_drift():
         1000000,   # 10,000 INR
         9999999999 # Large odd number
     ]
-    
+
     for b in budgets:
         recon = reconcile_budget_minor(
             total_budget_minor=b,
@@ -189,7 +189,7 @@ def test_exact_integer_budget_reconciliation_zero_drift():
 def test_deterministic_feasibility_rules():
     """Verify feasibility engine applies real Indian market ranges per guest."""
     from app.engines.feasibility_engine import check_event_feasibility
-    
+
     # Case 1: Mumbai Wedding 300 guests, 15 Lakhs (5,000/head) -> Feasible
     res1 = check_event_feasibility(
         event_type="wedding",
@@ -201,7 +201,7 @@ def test_deterministic_feasibility_rules():
     assert res1.status == "feasible"
     assert res1.per_guest_rupees == 5000.0
     assert res1.min_recommended_per_guest_rupees == 2500.0
-    
+
     # Case 2: Mumbai Wedding 300 guests, 5 Lakhs (1,666/head) -> Infeasible (Below ₹2,500/head threshold)
     res2 = check_event_feasibility(
         event_type="wedding",
@@ -212,7 +212,7 @@ def test_deterministic_feasibility_rules():
     )
     assert res2.status == "infeasible"
     assert "₹2,500" in res2.recommendations[0] or "₹2,500" in res2.reasons[0]
-    
+
     # Case 3: Mumbai Birthday 80 guests, 3.5 Lakhs (4,375/head) -> Feasible
     res3 = check_event_feasibility(
         event_type="birthday",
@@ -236,7 +236,7 @@ def test_event_input_bounds_rejected(test_client, auth_headers):
         "preparation_months": 6
     }, headers=auth_headers)
     assert res.status_code == 422
-    
+
     # Guest count too high (> 5000)
     res = test_client.post("/api/events", json={
         "title": "Mega Gathering",
@@ -306,7 +306,7 @@ def test_atomic_approval_execution_row_count(test_client, auth_headers):
     )
     db.add(event)
     db.flush()
-    
+
     proposal = Approval(
         id="prop-test-atomic",
         event_id="ev-approval-test",
@@ -354,7 +354,7 @@ def test_explicit_timezone_handling(test_client, auth_headers):
     assert res.status_code == 200
     data = res.json()
     assert data["timezone"] == "Asia/Kolkata"
-    
+
     # Created_at must be an ISO 8601 string
     created_at = datetime.fromisoformat(data["created_at"].replace("Z", "+00:00"))
     assert created_at.tzinfo is not None

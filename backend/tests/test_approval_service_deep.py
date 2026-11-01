@@ -1,8 +1,11 @@
 import uuid
+
 import pytest
 from fastapi import HTTPException
-from app.models import Event, User, Approval, ActivityLog
+
+from app.models import Approval, Event, User
 from app.services.approval_service import ApprovalService
+
 
 @pytest.fixture
 def test_setup(db_session):
@@ -35,7 +38,7 @@ def test_setup(db_session):
     return user, event
 
 def test_approval_service_action_validation_and_rejection(db_session, test_setup):
-    user, event = test_setup
+    _user, event = test_setup
 
     prop = Approval(
         event_id=event.id,
@@ -72,7 +75,7 @@ def test_approval_service_action_validation_and_rejection(db_session, test_setup
     assert exc.value.status_code == 404
 
 def test_approval_service_guest_scaling_and_rollback(db_session, test_setup):
-    user, event = test_setup
+    _user, event = test_setup
 
     prop = Approval(
         event_id=event.id,
@@ -106,7 +109,7 @@ def test_approval_service_guest_scaling_and_rollback(db_session, test_setup):
     assert event.guest_count == 200
 
 def test_approval_service_budget_adjustment_and_rollback(db_session, test_setup):
-    user, event = test_setup
+    _user, event = test_setup
 
     prop = Approval(
         event_id=event.id,

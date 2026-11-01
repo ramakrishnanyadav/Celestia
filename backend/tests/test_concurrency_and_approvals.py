@@ -1,12 +1,15 @@
-import pytest
-import uuid
 import time
-from datetime import datetime, timezone, timedelta
-from app.models import User, Event, Task, BudgetCategory, Expense, Approval, IdempotencyRecord
-from app.auth import hash_password, create_access_token
-from app.services.approval_service import ApprovalService
-from app.idempotency import check_idempotency, record_idempotency
+import uuid
+from datetime import UTC, datetime, timedelta
+
+import pytest
+
+from app.auth import create_access_token, hash_password
 from app.engines.ai_efficiency import AIEfficiencyService
+from app.idempotency import check_idempotency
+from app.models import Approval, BudgetCategory, Event, Expense, IdempotencyRecord, Task, User
+from app.services.approval_service import ApprovalService
+
 
 @pytest.fixture
 def auth_context(db):
@@ -42,7 +45,7 @@ def auth_context(db):
 # ============================================================================
 
 def test_optimistic_concurrency_task_version_conflict(client, auth_context, db):
-    user, event, headers = auth_context
+    _user, event, headers = auth_context
 
     # Create initial task
     task = Task(
@@ -79,7 +82,7 @@ def test_optimistic_concurrency_task_version_conflict(client, auth_context, db):
     assert "expected version 1, current version 2" in res2.json()["detail"]
 
 def test_optimistic_concurrency_expense_version_conflict(client, auth_context, db):
-    user, event, headers = auth_context
+    _user, event, headers = auth_context
 
     cat = BudgetCategory(
         event_id=event.id,
@@ -125,7 +128,7 @@ def test_optimistic_concurrency_expense_version_conflict(client, auth_context, d
 # ============================================================================
 
 def test_idempotency_same_key_returns_cached_response(client, auth_context):
-    user, event, headers = auth_context
+    _user, event, headers = auth_context
     key = f"idem-key-{uuid.uuid4().hex}"
     req_headers = {**headers, "Idempotency-Key": key}
 
@@ -148,7 +151,7 @@ def test_idempotency_same_key_returns_cached_response(client, auth_context):
     assert r2.json()["id"] == first_id
 
 def test_idempotency_changed_payload_is_rejected_with_422(client, auth_context):
-    user, event, headers = auth_context
+    _user, event, headers = auth_context
     key = f"idem-key-{uuid.uuid4().hex}"
     req_headers = {**headers, "Idempotency-Key": key}
 
@@ -169,7 +172,7 @@ def test_idempotency_changed_payload_is_rejected_with_422(client, auth_context):
     assert "different request payload or endpoint" in r2.json()["detail"]
 
 def test_idempotency_scoped_per_user(client, auth_context, db):
-    user1, event1, headers1 = auth_context
+    _user1, event1, headers1 = auth_context
 
     # Create a second distinct user
     user2 = User(
@@ -211,7 +214,7 @@ def test_idempotency_scoped_per_user(client, auth_context, db):
     assert r1.json()["id"] != r2.json()["id"]
 
 def test_idempotency_scoped_per_endpoint(client, auth_context):
-    user, event, headers = auth_context
+    _user, event, headers = auth_context
     key = f"scoped-endpoint-key-{uuid.uuid4().hex}"
 
     # Use key on create task
@@ -225,11 +228,11 @@ def test_idempotency_scoped_per_endpoint(client, auth_context):
     assert "different request payload or endpoint" in r2.json()["detail"]
 
 def test_idempotency_expiry(db, auth_context):
-    user, event, headers = auth_context
+    user, _event, _headers = auth_context
     key = f"expiring-key-{uuid.uuid4().hex}"
 
     # Manually seed an expired record (older than TTL)
-    old_time = datetime.now(timezone.utc) - timedelta(hours=25)
+    old_time = datetime.now(UTC) - timedelta(hours=25)
     rec = IdempotencyRecord(
         key=key,
         user_id=user.id,
@@ -255,7 +258,7 @@ def test_idempotency_expiry(db, auth_context):
 # ============================================================================
 
 def test_approval_service_approve_double_approve_and_rollback(db, auth_context):
-    user, event, headers = auth_context
+    _user, event, _headers = auth_context
 
     initial_guests = event.guest_count
     new_guests = 450
@@ -320,7 +323,7 @@ def test_sanitized_500_error_response_no_traceback_leak(client):
 # ============================================================================
 
 def test_provider_timeout_fallback_in_parallel_engine(db, auth_context):
-    user, event, headers = auth_context
+    _user, event, _headers = auth_context
     import asyncio
 
     t0 = time.perf_counter()

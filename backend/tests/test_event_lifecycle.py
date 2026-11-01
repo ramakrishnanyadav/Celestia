@@ -1,15 +1,19 @@
-import pytest
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy.exc import IntegrityError
-from fastapi.testclient import TestClient
 
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
+
+from app.auth import create_access_token, hash_password
+from app.database import Base, SessionLocal, engine
+from app.engines.budget_intelligence import (
+    calculate_budget_summary,
+    paise_to_rupees,
+    rupees_to_paise,
+    seed_event_budget,
+)
 from app.main import app
-from app.database import SessionLocal, Base, engine
-from app.models import User, Event, BudgetCategory, Expense, Task, TaskDependency, Approval
-from app.auth import hash_password, create_access_token
-from app.engines.budget_intelligence import paise_to_rupees, rupees_to_paise, seed_event_budget, calculate_budget_summary
-from app.engines.planning_intelligence import run_cpm_calculation
+from app.models import Approval, BudgetCategory, Event, User
 
 client = TestClient(app)
 
@@ -54,7 +58,7 @@ def test_integer_money_math_precision():
     """Verify that integer paise math does not lose pennies/fractions and sums exactly match."""
     db = SessionLocal()
     try:
-        user, event, token = create_test_event(db)
+        _user, event, _token = create_test_event(db)
         seed_event_budget(db, event)
         categories = db.query(BudgetCategory).filter(BudgetCategory.event_id == event.id).all()
         summary = calculate_budget_summary(event, categories)
@@ -77,7 +81,7 @@ def test_cycle_detection_in_task_dependencies():
     """Creating a cycle (A -> B -> A or self A -> A) must be rejected with 400 Bad Request."""
     db = SessionLocal()
     try:
-        user, event, token = create_test_event(db)
+        _user, event, token = create_test_event(db)
         headers = {"Authorization": f"Bearer {token}"}
 
         # Create Task A
@@ -146,7 +150,7 @@ def test_atomic_approval_execution_prevents_double_approval():
     """Double-approving an approval proposal must be rejected atomically (409 Conflict)."""
     db = SessionLocal()
     try:
-        user, event, token = create_test_event(db)
+        _user, event, token = create_test_event(db)
         headers = {"Authorization": f"Bearer {token}"}
 
         proposal = Approval(
@@ -186,7 +190,7 @@ def test_numeric_bounds_validation():
     """Unbounded or negative inputs must be rejected with 422 Unprocessable Entity."""
     db = SessionLocal()
     try:
-        user, event, token = create_test_event(db)
+        _user, event, token = create_test_event(db)
         headers = {"Authorization": f"Bearer {token}"}
 
         # 1. Negative guest count
@@ -237,7 +241,7 @@ def test_db_check_constraints_enforced():
     """Database schema must enforce CHECK constraints on columns directly."""
     db = SessionLocal()
     try:
-        user, event, token = create_test_event(db)
+        user, _event, _token = create_test_event(db)
         # Attempt to insert an event with negative budget directly into DB session
         bad_event = Event(
             user_id=user.id,
@@ -261,7 +265,7 @@ def test_optimistic_concurrency_rejects_stale_update():
     """Updating a task or expense with a stale expected_version must fail with 409 Conflict."""
     db = SessionLocal()
     try:
-        user, event, token = create_test_event(db)
+        _user, event, token = create_test_event(db)
         headers = {"Authorization": f"Bearer {token}"}
 
         # 1. Create a task
@@ -299,7 +303,7 @@ def test_optimistic_concurrency_categories_and_expenses():
     """Optimistic concurrency must prevent stale overwrites on categories and expenses."""
     db = SessionLocal()
     try:
-        user, event, token = create_test_event(db)
+        _user, event, token = create_test_event(db)
         headers = {"Authorization": f"Bearer {token}"}
 
         # Create Category
@@ -355,9 +359,9 @@ def test_idempotency_create_endpoints_and_generate_plan():
     """Duplicate requests with same Idempotency-Key must return identical cached responses, and payload mismatches must return 422."""
     db = SessionLocal()
     try:
-        user, event, token = create_test_event(db)
+        _user, event, token = create_test_event(db)
         headers = {"Authorization": f"Bearer {token}"}
-        
+
         # Test Task Creation Idempotency
         idem_key = f"idem-task-{uuid.uuid4().hex[:8]}"
         task_payload = {

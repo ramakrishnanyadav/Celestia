@@ -2,20 +2,20 @@
 M3 Fault Tolerance, Approval Transaction Integrity, Database Migrations,
 Hostile AI Handling, and Frozen Clock Tests.
 """
-import json
 import time
-from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, MagicMock
+from datetime import UTC, datetime, timedelta
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
-from app.database import Base, engine, SessionLocal
-from app.models import User, Event, Approval, Task, BudgetCategory, Expense
-from app.services.approval_service import ApprovalService
+from app.database import SessionLocal
+from app.engines.ai_efficiency import AIProvider
 from app.engines.ai_gateway import ai_gateway
 from app.engines.ai_service import AIService
-from app.engines.ai_efficiency import AIProvider, RuleBasedFallbackProvider
+from app.main import app
+from app.models import Approval, Event, User
+from app.services.approval_service import ApprovalService
 
 client = TestClient(app, raise_server_exceptions=False)
 
@@ -53,9 +53,11 @@ def test_approval_mid_transaction_failure_rollback():
         appr_id = appr.id
 
         # Simulate unexpected mid-transaction crash during update
-        with patch.object(db, "commit", side_effect=RuntimeError("Simulated DB Crash during transaction")):
-            with pytest.raises(RuntimeError):
-                ApprovalService.execute_action(db, event, appr_id, "approve")
+        with (
+            patch.object(db, "commit", side_effect=RuntimeError("Simulated DB Crash during transaction")),
+            pytest.raises(RuntimeError),
+        ):
+            ApprovalService.execute_action(db, event, appr_id, "approve")
 
         # In a new session, verify database state was strictly rolled back
         db2 = SessionLocal()
@@ -73,7 +75,7 @@ def test_fake_ai_provider_malformed_empty_oversized_slow_hostile():
     3. Oversized payload (> 500 KB)
     4. Hostile prompt injection attack
     """
-    event = Event(id="fake-ev", user_id="fake-u", title="Test", event_type="wedding", city="Mumbai", guest_count=300, budget_minor=150000000)
+    Event(id="fake-ev", user_id="fake-u", title="Test", event_type="wedding", city="Mumbai", guest_count=300, budget_minor=150000000)
 
     # 1. Malformed output -> Falls back gracefully
     class MalformedProvider(AIProvider):
@@ -124,8 +126,8 @@ def test_date_logic_with_frozen_clock():
     Frozen Date: 2026-11-01T00:00:00Z
     Event Date:  2027-05-01T00:00:00Z (exactly 181 days out)
     """
-    frozen_now = datetime(2026, 11, 1, 0, 0, 0, tzinfo=timezone.utc)
-    target_event_date = datetime(2027, 5, 1, 0, 0, 0, tzinfo=timezone.utc)
+    frozen_now = datetime(2026, 11, 1, 0, 0, 0, tzinfo=UTC)
+    target_event_date = datetime(2027, 5, 1, 0, 0, 0, tzinfo=UTC)
 
     # Days before event calculation
     delta_days = (target_event_date - frozen_now).days

@@ -1,16 +1,17 @@
-import pytest
 import time
+
 import jwt
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
-from app.database import Base, get_db
-from app.models import User, Event, Task, BudgetCategory, Expense, Approval
-from app.auth import create_access_token, hash_password, verify_password, decode_token
+from app.auth import create_access_token, hash_password, verify_password
 from app.config import settings
+from app.database import Base, get_db
+from app.main import app
+from app.models import User
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
@@ -34,7 +35,7 @@ def setup_security_database():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
-    
+
     # Create User A
     user_a = User(
         id="user-a-uuid",
@@ -105,7 +106,7 @@ def test_demo_login_endpoint(client):
     assert data["token_type"] == "bearer"
     assert data["user"]["is_demo"] is True
     assert "@celestia.demo" in data["user"]["email"]
-    
+
     # Token must be usable
     ev_res = client.get("/api/events", headers={"Authorization": f"Bearer {data['access_token']}"})
     assert ev_res.status_code == 200
@@ -126,11 +127,12 @@ def test_legacy_pbkdf2_rehash_on_login(client):
     """Verify legacy PBKDF2 hash verifies and gets transparently upgraded to Argon2id on login."""
     db = TestingSessionLocal()
     # Insert a user with legacy PBKDF2 hash
-    import hashlib, base64
+    import base64
+    import hashlib
     salt = "celestia_salt_indian_wedding_2026"
-    raw_hash = hashlib.pbkdf2_hmac('sha256', "legacyPass123".encode('utf-8'), salt.encode('utf-8'), 100000)
+    raw_hash = hashlib.pbkdf2_hmac('sha256', b"legacyPass123", salt.encode('utf-8'), 100000)
     legacy_hash = base64.b64encode(raw_hash).decode('utf-8')
-    
+
     legacy_user = User(
         id="legacy-user-id",
         email="legacy@celestia.ai",

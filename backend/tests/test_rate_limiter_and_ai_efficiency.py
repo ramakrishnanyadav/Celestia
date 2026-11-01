@@ -1,18 +1,21 @@
-import pytest
 import time
+
+import pytest
 from fastapi import HTTPException, Request
-from app.rate_limiter import InMemoryRateLimiter, get_client_ip
+
 from app.engines.ai_efficiency import (
     AICircuitBreaker,
-    TokenCostTracker,
-    CompactPromptBuilder,
-    UserPlanCache,
     AIEfficiencyService,
-    RuleBasedFallbackProvider,
+    CompactPromptBuilder,
     RealGeminiProvider,
+    RuleBasedFallbackProvider,
+    TokenCostTracker,
+    UserPlanCache,
     get_ai_provider,
 )
 from app.models import Event, EventPreference
+from app.rate_limiter import InMemoryRateLimiter, get_client_ip
+
 
 def test_in_memory_rate_limiter_sliding_window_and_lockout():
     limiter = InMemoryRateLimiter(max_keys=5)

@@ -2,8 +2,8 @@
 Comprehensive CPM Graph Structure & Mutation Verification Tests.
 Tests Diamond Graphs, Disconnected Graphs, and verifies the Slack Formula Invariant.
 """
-import pytest
-from app.engines.cpm_solver import CPMNode, solve_cpm_pure, check_cycle_on_add_edge
+from app.engines.cpm_solver import CPMNode, solve_cpm_pure
+
 
 def test_cpm_diamond_graph():
     r"""

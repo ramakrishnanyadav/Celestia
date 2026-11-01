@@ -11,15 +11,15 @@ Validates:
 8. Dynamic security: XSS, CSV formula injection, account enumeration, mismatched IDs
 9. Account export & delete GDPR workflows
 """
-import pytest
 import time
+
+import pytest
 from fastapi.testclient import TestClient
-from app.main import app
-from app.config import settings, Settings
-from app.database import get_db, Base, engine, SessionLocal
-from app.models import User, Event, Task, BudgetCategory, RefreshToken
-from app.rate_limiter import limiter
+
+from app.config import Settings, settings
 from app.engines.ai_gateway import ai_gateway
+from app.main import app
+from app.rate_limiter import limiter
 
 client = TestClient(app, raise_server_exceptions=False)
 
@@ -31,7 +31,7 @@ def clean_rate_limits():
 
 def test_rate_limiting_auth_endpoints():
     """Verify rate limiter blocks rapid requests with HTTP 429 and Retry-After header."""
-    for i in range(10):
+    for _i in range(10):
         res = client.post("/api/auth/login", json={"email": "nonexistent@celestia.ai", "password": "wrong"})
         assert res.status_code in (401, 429)
 

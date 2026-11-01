@@ -8,11 +8,10 @@ Validates:
 5. Full Authorization Matrix (Anonymous, Owner, Other User across core endpoints)
 """
 import time
-import pytest
+
 from fastapi.testclient import TestClient
+
 from app.main import app
-from app.models import User, Event, Task, BudgetCategory
-from app.database import SessionLocal
 from app.rate_limiter import limiter
 
 client = TestClient(app, raise_server_exceptions=False)
@@ -33,7 +32,7 @@ def create_test_user_and_token(email_prefix: str):
 def test_stored_xss_sanitization():
     """Verify stored XSS payloads in task descriptions and budget category names do not execute."""
     _, _, auth_hdr = create_test_user_and_token("xss_user")
-    
+
     # Create event
     ev_res = client.post("/api/events", headers=auth_hdr, json={
         "title": "Clean Event", "event_type": "wedding", "guest_count": 150, "budget_minor": 30000000
@@ -42,7 +41,7 @@ def test_stored_xss_sanitization():
     ev_id = ev_res.json()["id"]
 
     xss_payload = "<script>alert('pwned')</script><img src=x onerror=alert(1)>"
-    
+
     # Create task with XSS payload
     task_res = client.post(f"/api/events/{ev_id}/tasks", headers=auth_hdr, json={
         "title": xss_payload,
@@ -64,7 +63,7 @@ def test_stored_xss_sanitization():
 def test_csv_formula_injection_neutralization():
     """Verify CSV export prepends single quote to cells starting with =, +, -, @ to prevent DDE execution."""
     _, _, auth_hdr = create_test_user_and_token("csv_user")
-    
+
     ev_res = client.post("/api/events", headers=auth_hdr, json={
         "title": "Formula Event", "event_type": "wedding", "guest_count": 200, "budget_minor": 40000000
     })
@@ -123,8 +122,8 @@ def test_account_enumeration_prevention():
 
 def test_mismatched_parent_child_id_authorization():
     """Verify attempting to access or modify a task using another event's ID returns HTTP 404."""
-    user1_id, _, auth_hdr1 = create_test_user_and_token("parent_child_u1")
-    user2_id, _, auth_hdr2 = create_test_user_and_token("parent_child_u2")
+    _user1_id, _, auth_hdr1 = create_test_user_and_token("parent_child_u1")
+    _user2_id, _, auth_hdr2 = create_test_user_and_token("parent_child_u2")
 
     # User 1 creates Event 1 and Task 1
     ev1_res = client.post("/api/events", headers=auth_hdr1, json={
@@ -167,8 +166,8 @@ def test_full_authorization_matrix():
     - Owner -> 200 OK
     - Other Authenticated User -> 404 Not Found (or 403 Forbidden)
     """
-    owner_id, _, owner_hdr = create_test_user_and_token("matrix_owner")
-    other_id, _, other_hdr = create_test_user_and_token("matrix_other")
+    _owner_id, _, owner_hdr = create_test_user_and_token("matrix_owner")
+    _other_id, _, other_hdr = create_test_user_and_token("matrix_other")
 
     ev_res = client.post("/api/events", headers=owner_hdr, json={
         "title": "Matrix Wedding", "event_type": "wedding", "guest_count": 300, "budget_minor": 150000000
@@ -187,10 +186,7 @@ def test_full_authorization_matrix():
 
     for method, path in endpoints:
         # 1. Anonymous (No Auth, No Cookies) -> Must return 401
-        if method == "GET":
-            anon_res = anon_client.get(path)
-        else:
-            anon_res = anon_client.post(path)
+        anon_res = anon_client.get(path) if method == "GET" else anon_client.post(path)
         assert anon_res.status_code == 401, f"Failed anonymous check for {path}"
 
         # 2. Other User -> Must return 404 (event not found for other user)
@@ -248,7 +244,7 @@ def test_password_policy_and_pwned_check():
 def test_logout_all_and_sessions_management():
     """Verify listing active sessions and revoking all sessions on logout-all."""
     limiter.reset_all()
-    _, token1, hdr1 = create_test_user_and_token("sessions_u")
+    _, _token1, hdr1 = create_test_user_and_token("sessions_u")
 
     # Get active sessions
     sess_res = client.get("/api/auth/sessions", headers=hdr1)

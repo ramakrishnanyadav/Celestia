@@ -1,8 +1,11 @@
-import uuid
-import pytest
 import io
-from app.models import Event, User, Vendor, Quotation
+import uuid
+
+import pytest
+
 from app.auth import create_access_token
+from app.models import Event, User
+
 
 @pytest.fixture
 def test_setup(db_session):
@@ -37,7 +40,7 @@ def test_setup(db_session):
     return user, event, headers
 
 def test_vendor_lifecycle_and_quotations(client, db_session, test_setup):
-    user, event, headers = test_setup
+    _user, event, headers = test_setup
 
     # 1. List vendors (empty)
     res = client.get(f"/api/events/{event.id}/vendors", headers=headers)
@@ -88,7 +91,7 @@ def test_vendor_lifecycle_and_quotations(client, db_session, test_setup):
     assert data["category"] == "Catering"
 
 def test_vendor_document_upload_validation(client, test_setup):
-    user, event, headers = test_setup
+    _user, event, headers = test_setup
 
     # 1. Valid PDF upload
     file_content = b"%PDF-1.4 Mock valid contract content"
@@ -114,6 +117,7 @@ def test_vendor_document_upload_validation(client, test_setup):
 
 def test_vendor_indirect_injection_neutralization(client, test_setup):
     from fastapi import HTTPException
+
     from app.engines.ai_gateway import ai_gateway
 
     # Injected prompt inside vendor terms is intercepted and neutralized

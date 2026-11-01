@@ -4,10 +4,12 @@ Validates that the test suite is sensitive to regressions by introducing
 8 deliberate code mutations and verifying that test assertions catch each one.
 """
 import pytest
-from app.engines.cpm_solver import CPMNode, solve_cpm_pure, check_cycle_on_add_edge
-from app.currency import rupees_to_minor, format_inr_minor, calculate_budget_allocation
+
+from app.currency import calculate_budget_allocation, rupees_to_minor
 from app.engines.budget_intelligence import reconcile_budget_minor
+from app.engines.cpm_solver import CPMNode, check_cycle_on_add_edge, solve_cpm_pure
 from app.routers.budget_routes import sanitize_csv_cell
+
 
 def test_mutation_1_cpm_slack_formula():
     """Mutation: Slack calculated as (Early Start - Late Start) instead of (Late Start - Early Start)."""
@@ -35,7 +37,8 @@ def test_mutation_2_cycle_detection_bypass():
     assert check_cycle_on_add_edge(edges, new_cyclic_edge) is True
 
     # Mutation: Function hardcoded to return False
-    mutated_cycle_detector = lambda edges, new_edge: False
+    def mutated_cycle_detector(edges, new_edge):
+        return False
     with pytest.raises(AssertionError):
         assert mutated_cycle_detector(edges, new_cyclic_edge) is True
 
@@ -71,7 +74,8 @@ def test_mutation_5_csv_formula_injection_bypass():
     assert sanitized.startswith("'=")
 
     # Mutation: Bypass sanitizer
-    mutated_sanitizer = lambda val: str(val)
+    def mutated_sanitizer(val):
+        return str(val)
     with pytest.raises(AssertionError):
         assert mutated_sanitizer(dangerous_cell).startswith("'=")
 
@@ -110,7 +114,7 @@ def test_mutation_8_temporary_lockout_counter_reset():
     """Mutation: Failed login attempt counter fails to increment."""
     failures = [1.0, 2.0, 3.0, 4.0]
     # Adding 5th failure must trigger lockout
-    new_failures = failures + [5.0]
+    new_failures = [*failures, 5.0]
     is_locked = (len(new_failures) >= 5)
     assert is_locked is True
 

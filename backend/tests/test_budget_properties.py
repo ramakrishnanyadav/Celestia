@@ -2,13 +2,19 @@
 Hypothesis Property-Based Tests for CELESTIA Monetary & Ledger Invariants.
 Validates algebraic correctness across thousands of pseudorandom financial inputs.
 """
-from hypothesis import given, strategies as st
+from hypothesis import given
+from hypothesis import strategies as st
+
 from app.currency import (
-    rupees_to_minor, minor_to_rupees, format_inr_minor,
-    format_inr_compact, calculate_budget_allocation, PAISE_PER_RUPEE
+    calculate_budget_allocation,
+    format_inr_compact,
+    format_inr_minor,
+    minor_to_rupees,
+    rupees_to_minor,
 )
 from app.engines.budget_intelligence import reconcile_budget_minor
 from app.engines.cpm_solver import CPMNode, solve_cpm_pure
+
 
 @given(st.integers(min_value=0, max_value=10_000_000_000))
 def test_budget_reconciliation_invariant(total_minor: int):
@@ -52,7 +58,7 @@ def test_minor_currency_formatting_properties(minor: int):
 
 def test_currency_edge_cases_and_parsing():
     """Verify parsing string currency representations, negatives, and compact notation."""
-    from app.currency import rupees_to_minor, minor_to_rupees, format_inr_compact, format_inr_minor
+    from app.currency import format_inr_compact, format_inr_minor
 
     assert rupees_to_minor("₹15,00,000") == 150000000
     assert rupees_to_minor("₹15,00,000.50") == 150000050
@@ -80,7 +86,7 @@ def test_cpm_slack_algebraic_invariant(d1: int, d2: int):
     ]
     res = solve_cpm_pure(nodes)
     assert not res.has_cycle
-    for nid, sched in res.schedule.items():
+    for _nid, sched in res.schedule.items():
         slack_ls_es = sched.late_start - sched.early_start
         slack_lf_ef = sched.late_finish - sched.early_finish
         assert sched.slack == slack_ls_es

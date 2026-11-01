@@ -1,12 +1,13 @@
 import uuid
-import pytest
-from sqlalchemy import event as sa_event
-from fastapi.testclient import TestClient
 
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import event as sa_event
+
+from app.auth import create_access_token, hash_password
+from app.database import Base, SessionLocal, engine
 from app.main import app
-from app.database import SessionLocal, Base, engine
-from app.models import User, Event, BudgetCategory, Expense, Task, TaskDependency
-from app.auth import hash_password, create_access_token
+from app.models import BudgetCategory, Event, Expense, Task, TaskDependency, User
 
 client = TestClient(app)
 

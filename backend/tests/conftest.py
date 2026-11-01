@@ -1,4 +1,5 @@
 import os
+
 import pytest
 
 # Enforce testing environment before any modules load
@@ -7,9 +8,10 @@ os.environ["ENVIRONMENT"] = "test"
 os.environ["SECRET_KEY"] = "super-secret-deterministic-test-key-32-chars-long"
 
 from fastapi.testclient import TestClient
-from app.main import app
-from app.database import Base, engine, get_db
 from sqlalchemy.orm import sessionmaker
+
+from app.database import Base, engine, get_db
+from app.main import app
 
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

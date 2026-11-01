@@ -1,7 +1,10 @@
 import uuid
+
 import pytest
-from app.models import Event, User, Task, EventPreference, EventPlan
+
 from app.auth import create_access_token
+from app.models import Event, User
+
 
 @pytest.fixture
 def test_setup(db_session):
@@ -37,7 +40,7 @@ def test_setup(db_session):
     return user, event, headers
 
 def test_event_preferences_and_lifecycle(client, db_session, test_setup):
-    user, event, headers = test_setup
+    _user, event, headers = test_setup
 
     # 1. Update event
     patch_res = client.patch(f"/api/events/{event.id}", headers=headers, json={"city": "Udaipur", "guest_count": 250, "ai_paused": True})
@@ -115,7 +118,7 @@ def test_demo_user_deletion_prevention(client, db_session):
     assert "read-only" in del_res.json()["detail"]
 
 def test_task_routes_dependencies_and_cpm(client, db_session, test_setup):
-    user, event, headers = test_setup
+    _user, event, headers = test_setup
 
     # 1. Create two tasks
     t1_data = {

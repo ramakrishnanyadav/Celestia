@@ -9,15 +9,16 @@ Validates:
 """
 import json
 from pathlib import Path
+
 import pytest
+
 from app.engines.ai_service import AIService
 from app.engines.feasibility_engine import check_event_feasibility
-from app.engines.cpm_solver import CPMNode, solve_cpm_pure
 
 SCENARIOS_PATH = Path(__file__).parent.parent / "app" / "data" / "scenarios_v1.json"
 
 def load_deterministic_scenarios():
-    with open(SCENARIOS_PATH, "r", encoding="utf-8") as f:
+    with open(SCENARIOS_PATH, encoding="utf-8") as f:
         data = json.load(f)
         return data["scenarios"]
 

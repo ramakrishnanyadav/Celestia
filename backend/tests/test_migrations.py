@@ -1,9 +1,9 @@
-import os
-import pytest
-from alembic.config import Config
 from alembic import command
+from alembic.config import Config
 from sqlalchemy import create_engine, inspect
+
 from app.models import Base
+
 
 def test_alembic_migration_upgrade_and_downgrade(tmp_path):
     """

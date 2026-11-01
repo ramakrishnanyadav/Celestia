@@ -1,19 +1,32 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from app.auth import create_access_token, decode_token, hash_password, verify_password
 from app.database import Base
-from app.models import User, Event, EventPreference, BudgetCategory, Expense, Task, TaskDependency, Approval
-from app.auth import hash_password, verify_password, create_access_token, decode_token
+from app.engines.ai_service import AIService
 from app.engines.budget_intelligence import (
-    paise_to_rupees, rupees_to_paise, seed_event_budget,
-    calculate_budget_summary, simulate_what_if_changes
-)
-from app.engines.planning_intelligence import seed_event_tasks, run_cpm_calculation
-from app.engines.vendor_intelligence import (
-    seed_sample_vendors_and_quotations, analyze_quotation_risks, compare_quotations_for_category
+    calculate_budget_summary,
+    paise_to_rupees,
+    rupees_to_paise,
+    seed_event_budget,
+    simulate_what_if_changes,
 )
 from app.engines.celebration_intelligence import generate_personalized_ideas
-from app.engines.ai_service import AIService
+from app.engines.planning_intelligence import run_cpm_calculation, seed_event_tasks
+from app.engines.vendor_intelligence import (
+    analyze_quotation_risks,
+    compare_quotations_for_category,
+    seed_sample_vendors_and_quotations,
+)
+from app.models import (
+    Approval,
+    BudgetCategory,
+    Event,
+    EventPreference,
+    Task,
+    User,
+)
 
 # In-memory SQLite for high-speed isolated testing
 TEST_DB_URL = "sqlite:///:memory:"
@@ -112,7 +125,7 @@ def test_deterministic_budget_allocation_and_contingency(db, sample_event):
 def test_what_if_guest_scaling_simulation(db, sample_event):
     seed_event_budget(db, sample_event)
     categories = db.query(BudgetCategory).filter(BudgetCategory.event_id == sample_event.id).all()
-    
+
     # Scale from 300 to 350 guests (+50 guests)
     sim = simulate_what_if_changes(sample_event, categories, 350)
     assert sim["original_guests"] == 300
@@ -127,10 +140,10 @@ def test_what_if_guest_scaling_simulation(db, sample_event):
 def test_cpm_and_dag_dependencies(db, sample_event):
     seed_event_tasks(db, sample_event)
     cpm_res = run_cpm_calculation(db, sample_event.id)
-    
+
     assert cpm_res["total_duration_days"] > 0
     assert len(cpm_res["critical_path_task_ids"]) > 0
-    
+
     tasks = db.query(Task).filter(Task.event_id == sample_event.id).all()
     # Check that critical tasks have total_slack == 0
     crit_tasks = [t for t in tasks if t.is_critical]
@@ -184,14 +197,14 @@ def test_natural_language_requirement_extraction():
 # --- 7. AUTONOMY & APPROVAL WORKFLOW TESTS ---
 def test_ai_autonomy_draft_proposal_workflow(db, sample_event):
     seed_event_budget(db, sample_event)
-    
+
     # Process command to scale guests to 350
     result = AIService.process_natural_language_command(
         db, sample_event, "Scale guest count to 350 pax"
     )
     assert result["autonomy_level"] == "Draft"
     assert result["proposal_created"] is True
-    
+
     # Verify proposal in DB
     proposal = db.query(Approval).filter(Approval.id == result["proposal_id"]).first()
     assert proposal is not None
