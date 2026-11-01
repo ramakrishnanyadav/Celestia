@@ -47,7 +47,7 @@ def bootstrap_primary_demonstration_scenario():
     db = SessionLocal()
     try:
         demo_user = get_or_create_demo_user(db)
-        
+
         # 1. Wedding (Maharashtrian, 300 pax, 15L, Pure Veg)
         existing_wedding = db.query(Event).filter(
             Event.user_id == demo_user.id,

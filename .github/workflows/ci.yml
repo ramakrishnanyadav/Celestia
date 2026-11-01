@@ -83,7 +83,7 @@ jobs:
 
       - name: Install Frontend Dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: TypeScript Typecheck
         working-directory: frontend
@@ -118,9 +118,17 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install playwright axe-playwright-python
+          pip install -r backend/requirements.txt
+          pip install playwright axe-playwright-python uvicorn
           playwright install --with-deps chromium firefox webkit
-          cd frontend && npm ci && npm run build
+          cd frontend && npm ci --legacy-peer-deps && npm run build
+
+      - name: Start Background Application Servers
+        run: |
+          export PYTHONPATH="backend"
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+          cd frontend && npm run start &
+          sleep 6
 
       - name: Run Playwright E2E & Axe-core A11y Verification
         run: |

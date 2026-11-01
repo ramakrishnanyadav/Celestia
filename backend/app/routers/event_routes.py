@@ -1,5 +1,8 @@
 
+from __future__ import annotations
+
 import hashlib
+from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -211,7 +214,7 @@ def get_event_overview(
     next_tasks = [enrich_task_item(t) for t in next_tasks_db]
 
     pending_approvals = [a for a in event.approvals if a.status == "pending"]
-    recent_logs = sorted(event.activity_logs, key=lambda l: l.timestamp, reverse=True)[:5]
+    recent_logs = sorted(event.activity_logs, key=lambda log_entry: log_entry.timestamp, reverse=True)[:5]
 
     response.headers["ETag"] = f'"{etag}"'
     response.headers["Cache-Control"] = "private, must-revalidate, max-age=10"
