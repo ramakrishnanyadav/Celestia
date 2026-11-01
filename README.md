@@ -1,6 +1,6 @@
 # CELESTIA — AI Celebration & Event Planning Platform
 
-[![CI Quality Gate](https://github.com/celestia/celestia/actions/workflows/ci.yml/badge.svg)](https://github.com/celestia/celestia/actions)
+[![CI Quality Gate](https://github.com/ramakrishnanyadav/Celestia/actions/workflows/ci.yml/badge.svg)](https://github.com/ramakrishnanyadav/Celestia/actions)
 [![Backend Branch Coverage](https://img.shields.io/badge/backend%20branch%20cov-90.85%25-brightgreen)](docs/TRACEABILITY.md)
 [![Frontend Line Coverage](https://img.shields.io/badge/frontend%20line%20cov-96.19%25-brightgreen)](docs/TRACEABILITY.md)
 [![TypeScript Strict](https://img.shields.io/badge/typescript-strict%20100%25-blue)](frontend/tsconfig.json)
