@@ -3,7 +3,7 @@
 fastapi==0.115.11
 uvicorn[standard]==0.34.0
 gunicorn==22.0.0
-sqlalchemy==2.0.38
+sqlalchemy==2.1.6
 pydantic==2.10.6
 python-multipart==0.0.32
 PyJWT==2.13.0
