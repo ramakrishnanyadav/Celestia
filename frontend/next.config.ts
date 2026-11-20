@@ -1,5 +1,15 @@
 import type { NextConfig } from "next";
 
+const apiOrigin = process.env.NEXT_PUBLIC_API_URL
+  ? (() => {
+      try {
+        return new URL(process.env.NEXT_PUBLIC_API_URL).origin;
+      } catch {
+        return "";
+      }
+    })()
+  : "";
+
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
@@ -9,7 +19,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000",
+      `connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 https://*.onrender.com https://*.vercel.app ${apiOrigin}`.trim(),
       "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",

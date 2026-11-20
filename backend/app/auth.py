@@ -8,6 +8,7 @@ import time
 import urllib.error
 import urllib.request
 from datetime import UTC, datetime, timedelta
+from typing import Literal
 
 import jwt
 from argon2 import PasswordHasher
@@ -315,6 +316,7 @@ def set_auth_cookies(
     In production, Secure=True is enforced.
     """
     is_prod = (settings.ENV == "production")
+    samesite_mode: Literal["lax", "none"] = "none" if is_prod else "lax"
 
     # Access token in HttpOnly cookie
     response.set_cookie(
@@ -322,7 +324,7 @@ def set_auth_cookies(
         value=access_token,
         httponly=True,
         secure=is_prod,
-        samesite="lax",
+        samesite=samesite_mode,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/"
     )
@@ -333,7 +335,7 @@ def set_auth_cookies(
             value=refresh_token,
             httponly=True,
             secure=is_prod,
-            samesite="lax",
+            samesite=samesite_mode,
             max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
             path="/api/auth"
         )
@@ -345,16 +347,18 @@ def set_auth_cookies(
             value=csrf_token,
             httponly=False,
             secure=is_prod,
-            samesite="lax",
+            samesite=samesite_mode,
             max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
             path="/"
         )
 
 def clear_auth_cookies(response: Response):
     """Clears all authentication cookies."""
-    response.delete_cookie("access_token", path="/")
-    response.delete_cookie("refresh_token", path="/api/auth")
-    response.delete_cookie("csrf_token", path="/")
+    is_prod = (settings.ENV == "production")
+    samesite_mode: Literal["lax", "none"] = "none" if is_prod else "lax"
+    response.delete_cookie("access_token", path="/", secure=is_prod, samesite=samesite_mode)
+    response.delete_cookie("refresh_token", path="/api/auth", secure=is_prod, samesite=samesite_mode)
+    response.delete_cookie("csrf_token", path="/", secure=is_prod, samesite=samesite_mode)
 
 def get_or_create_demo_user(db: Session) -> User:
     """

@@ -18,3 +18,4 @@ frontend-verify:
 	cd frontend && npm run verify
 
 all: backend-verify frontend-verify
+

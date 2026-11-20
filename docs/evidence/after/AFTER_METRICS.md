@@ -49,3 +49,4 @@
 | **CQ-02** | OpenApi schema drift and schema type extraction | `c7c8797` | `npx openapi-typescript docs/openapi.json -o src/lib/api/schema.ts` cleanly executed |
 | **CQ-03** | Unused import in `auth_routes.py` triggering Ruff | `c7c8797` | `python -m ruff check backend/app` $\rightarrow$ All checks passed! (0 errors) |
 | **CQ-04** | Cross-platform gate execution across OS environments | `c7c8797` | Created [`tools/verify_all.py`](tools/verify_all.py) executing 6-tier pipeline cleanly |
+

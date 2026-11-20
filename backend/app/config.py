@@ -19,6 +19,7 @@ class Settings(BaseModel):
         "DATABASE_URL",
         f"sqlite:///{os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'celestia.db'))}".replace("\\", "/")
     )
+    ALLOW_SQLITE_PROD: bool = os.getenv("ALLOW_SQLITE_PROD", "false").lower() in ("true", "1")
 
     # Demo account controlled by explicit flag, OFF by default in production
     DEMO_ACCOUNT_ENABLED: bool = (
@@ -60,10 +61,10 @@ class Settings(BaseModel):
                     f"FATAL: Insecure or default SECRET_KEY in '{self.ENV}' environment. "
                     "Fail-closed policy: SECRET_KEY must be a cryptographically secure string with at least 32 characters for all non-development/testing environments."
                 )
-            if self.ENV in ("production", "prod") and "sqlite" in self.DATABASE_URL.lower():
+            if self.ENV in ("production", "prod") and "sqlite" in self.DATABASE_URL.lower() and not self.ALLOW_SQLITE_PROD:
                 raise RuntimeError(
-                    "FATAL: SQLite is prohibited in production. "
-                    "Please configure a production PostgreSQL DATABASE_URL."
+                    "FATAL: SQLite is prohibited in production when ALLOW_SQLITE_PROD=false. "
+                    "Please configure a production PostgreSQL DATABASE_URL or set ALLOW_SQLITE_PROD=true."
                 )
 
 settings = Settings()

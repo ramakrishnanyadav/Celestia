@@ -35,3 +35,4 @@
 
 1. `npm run verify` (`eslint`, `tsc`, `test`, `build`) in `frontend/`
 2. `make verify` (`ruff`, `mypy`, `bandit`, `pytest --cov`) in repository root
+
