@@ -19,6 +19,10 @@ class Settings(BaseModel):
         "DATABASE_URL",
         f"sqlite:///{os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'celestia.db'))}".replace("\\", "/")
     )
+
+    def model_post_init(self, __context):
+        if self.DATABASE_URL.startswith("postgres://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
     ALLOW_SQLITE_PROD: bool = os.getenv("ALLOW_SQLITE_PROD", "false").lower() in ("true", "1")
 
     # Demo account controlled by explicit flag, OFF by default in production

@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -34,9 +33,8 @@ logger = logging.getLogger("celestia")
 # Validate environment configuration before booting
 settings.validate_production_config()
 
-# Initialize tables only in test environment; production/staging uses Alembic migrations
-if os.environ.get("TESTING") == "1" or settings.ENV == "testing":
-    Base.metadata.create_all(bind=engine)
+# Initialize tables idempotently if not already present
+Base.metadata.create_all(bind=engine)
 
 def bootstrap_primary_demonstration_scenario():
     """
