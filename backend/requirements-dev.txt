@@ -1,13 +1,13 @@
 # CELESTIA Development, Security, and Testing Dependencies
 # Pinned to exact resolved versions for deterministic and secure CI builds
-ruff==0.17.3
-mypy==1.15.0
+ruff==0.17.5
+mypy==2.4.1
 bandit==1.9.4
 pip-audit==2.10.1
-pytest==9.0.2
-pytest-cov==7.0.0
-pytest-asyncio==1.4.0
-hypothesis==6.151.6
+pytest==9.2.0
+pytest-cov==7.1.0
+pytest-asyncio==1.5.0
+hypothesis==6.170.15
 httpx==0.28.1
-playwright==1.48.0
-axe-playwright-python==0.1.6
+playwright==1.65.2
+axe-playwright-python==0.1.8
