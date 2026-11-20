@@ -202,7 +202,7 @@ class AIEfficiencyService:
             "total_budget_rupees": total_rupees,
             "contingency_reserve_rupees": contingency,
             "allocatable_rupees": total_rupees - contingency,
-            "per_guest_avg_rupees": round(total_rupees / max(1, event.guest_count), 2)
+            "per_guest_avg_rupees": round(total_rupees / max(1, int(event.guest_count or 1)), 2)
         }
 
     @staticmethod
@@ -303,7 +303,7 @@ class AIEfficiencyService:
             return {
                     "total_budget_rupees": paise_to_rupees(event.budget_minor),
                     "contingency_reserve_rupees": round(paise_to_rupees(event.budget_minor) * 0.10, 2),
-                    "per_guest_avg_rupees": round(paise_to_rupees(event.budget_minor) / max(1, event.guest_count), 2)
+                    "per_guest_avg_rupees": round(paise_to_rupees(event.budget_minor) / max(1, int(event.guest_count or 1)), 2)
                 }
         def fallback_timeline():
             return {"total_tasks_seeded": len(WEDDING_TASK_TEMPLATES), "status": "template_fallback"}

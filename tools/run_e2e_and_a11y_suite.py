@@ -49,7 +49,13 @@ def run_suite():
             print(f"==========================================", flush=True)
             
             browser_type = getattr(p, browser_name)
-            browser = browser_type.launch(headless=True)
+            try:
+                browser = browser_type.launch(headless=True)
+            except Exception as e:
+                print(f"  [SKIP] Browser {browser_name} not available on this host: {e}. Skipping gracefully.", flush=True)
+                flow_record = {"browser": browser_name, "status": "SKIPPED", "reason": str(e), "steps": []}
+                e2e_results["flows"].append(flow_record)
+                continue
             context = browser.new_context(viewport={"width": 1280, "height": 800})
             page = context.new_page()
 

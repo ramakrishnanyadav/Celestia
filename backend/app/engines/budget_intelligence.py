@@ -226,7 +226,7 @@ def calculate_budget_summary(event: Event, categories: list[BudgetCategory]) -> 
     allocatable_minor = total_budget_minor - safety_buffer_minor
     allocatable_rupees = paise_to_rupees(allocatable_minor)
 
-    unallocated_minor = max(0, total_budget_minor - allocated_minor - contingency_reserve_minor)
+    unallocated_minor = max(0, int(total_budget_minor) - int(allocated_minor) - int(contingency_reserve_minor))
     unallocated_rupees = paise_to_rupees(unallocated_minor)
     is_reconciled = (total_budget_minor == (allocated_minor + contingency_reserve_minor + unallocated_minor))
 
