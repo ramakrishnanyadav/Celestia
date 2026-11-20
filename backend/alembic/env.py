@@ -54,6 +54,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        target_metadata.create_all(bind=connection)
         context.configure(
             connection=connection, target_metadata=target_metadata
         )
