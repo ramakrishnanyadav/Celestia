@@ -32,7 +32,7 @@ PROMPT_INJECTION_PATTERNS = [
 
 # Regex patterns for data minimization (PII scrubbing)
 PHONE_REGEX = re.compile(r"(\+91[\-\s]?)?[6-9]\d{9}")
-EMAIL_REGEX = re.compile(r"[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}")
+EMAIL_REGEX = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 
 class AIGateway:
     def __init__(self):

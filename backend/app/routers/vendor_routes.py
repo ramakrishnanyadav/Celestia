@@ -55,7 +55,12 @@ def create_vendor(
     db.refresh(vendor)
     return enrich_vendor_response(vendor)
 
-@router.post("/{vendor_id}/quotations", response_model=QuotationResponse, dependencies=[Depends(rate_limit_upload)])
+@router.post(
+    "/{vendor_id}/quotations",
+    response_model=QuotationResponse,
+    dependencies=[Depends(rate_limit_upload)],
+    responses={404: {"description": "Vendor not found"}},
+)
 def add_quotation(
     vendor_id: str,
     quote_in: QuotationCreate,

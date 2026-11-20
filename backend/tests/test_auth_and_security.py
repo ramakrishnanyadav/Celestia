@@ -162,7 +162,7 @@ def test_security_headers_enforcement():
     # Prohibit deprecated X-XSS-Protection
     assert "X-XSS-Protection" not in headers
 
-def test_demo_login_ephemeral_account_and_env_gate():
+def test_demo_login_ephemeral_account_and_env_gate(monkeypatch):
     """Verify demo login creates a fresh temporary account and respects DEMO_ACCOUNT_ENABLED flag."""
     # When enabled: creates fresh demo session with 24h expiry
     res1 = client.post("/api/auth/demo-login")
@@ -178,14 +178,10 @@ def test_demo_login_ephemeral_account_and_env_gate():
     assert user1["id"] != user2["id"]
 
     # When disabled: strictly returns HTTP 403 Forbidden
-    original_flag = settings.DEMO_ACCOUNT_ENABLED
-    try:
-        settings.DEMO_ACCOUNT_ENABLED = False
-        forbidden_res = client.post("/api/auth/demo-login")
-        assert forbidden_res.status_code == 403
-        assert "disabled in production" in forbidden_res.json()["detail"]
-    finally:
-        settings.DEMO_ACCOUNT_ENABLED = original_flag
+    monkeypatch.setattr(settings, "DEMO_ACCOUNT_ENABLED", False)
+    forbidden_res = client.post("/api/auth/demo-login")
+    assert forbidden_res.status_code == 403
+    assert "disabled in production" in forbidden_res.json()["detail"]
 
 def test_ai_gateway_prompt_injection_defense():
     """Verify AI gateway neutralizes prompt injection in user commands and vendor quotations."""

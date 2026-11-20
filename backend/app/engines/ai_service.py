@@ -16,6 +16,65 @@ from .planning_intelligence import seed_event_tasks
 from .vendor_intelligence import seed_sample_vendors_and_quotations
 
 
+def _detect_event_type(text: str) -> str:
+    if "birthday" in text or "bday" in text:
+        return "birthday"
+    if "community" in text or "festival" in text or "society" in text or "gathering" in text:
+        return "community"
+    return "wedding"
+
+def _extract_guest_count(text: str) -> int:
+    guest_match = re.search(r'\b(\d+)\s*(?:guests?|people|pax|attendees)\b', text, re.IGNORECASE)
+    if guest_match:
+        return max(10, min(5000, int(guest_match.group(1))))
+    return 300
+
+def _extract_budget_rupees(text: str) -> float:
+    lakh_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l)\b', text, re.IGNORECASE)
+    if lakh_match:
+        return float(lakh_match.group(1)) * 100000.0
+    raw_num_match = re.search(r'(?:₹|rs\.?|inr)\s*([\d,]+)', text)
+    if raw_num_match:
+        clean_num = raw_num_match.group(1).replace(',', '')
+        return float(clean_num)
+    return 1500000.0
+
+def _detect_city(text: str) -> str:
+    city_map = {
+        "mumbai": "Mumbai", "pune": "Pune", "delhi": "Delhi",
+        "bengaluru": "Bengaluru", "bangalore": "Bengaluru",
+        "hyderabad": "Hyderabad", "chennai": "Chennai",
+        "kolkata": "Kolkata", "jaipur": "Jaipur", "ahmedabad": "Ahmedabad"
+    }
+    for c, formatted in city_map.items():
+        if c in text:
+            return formatted
+    return "Mumbai"
+
+def _detect_dietary(text: str) -> str:
+    if "jain" in text:
+        return "Strict Jain Vegetarian (No Root Veggies)"
+    if "non-veg" in text or "chicken" in text or "mutton" in text:
+        return "Multi-Cuisine Non-Vegetarian & Vegetarian"
+    return "Pure Vegetarian"
+
+def _detect_culture_and_traditions(text: str) -> tuple[str, list[str]]:
+    if "gujarati" in text:
+        return "Gujarati Traditional", ["Chandlo Matli", "Gol Dhana", "Garba / Dandiya Night", "Mameru", "Hasta Melap"]
+    if "south indian" in text or "tamil" in text or "kannada" in text or "telugu" in text:
+        return "South Indian Traditional", ["Nichayathartham", "Kashi Yatra", "Oonjal (Swing Ritual)", "Kanyadaanam", "Muhurtham"]
+    if "punjabi" in text or "sikh" in text:
+        return "Punjabi Traditional", ["Roka", "Chooda & Kaleere", "Jaggo Night", "Anand Karaj / Phere", "Bhangra Reception"]
+    return "Maharashtrian Traditional", ["Sakhar Puda", "Muhurtham", "Haldi", "Sangeet", "Satyanarayan Puja"]
+
+def _detect_theme(text: str) -> str:
+    if "pastel" in text or "minimalist" in text:
+        return "Minimalist Pastel Flora & Cascading Mogra"
+    if "temple" in text or "peshwai" in text:
+        return "Peshwai Temple Grandeur"
+    return "Royal Marigold & Polished Brass"
+
+
 class AIService:
     @staticmethod
     def extract_requirements_from_text(prompt: str) -> ExtractedRequirement:
@@ -24,68 +83,13 @@ class AIService:
         Uses sophisticated domain heuristics to extract guests, budget, cultural nuances, and city.
         """
         text = prompt.lower()
-
-        # Determine event type
-        event_type = "wedding"
-        if "birthday" in text or "bday" in text:
-            event_type = "birthday"
-        elif "community" in text or "festival" in text or "society" in text or "gathering" in text:
-            event_type = "community"
-
-        # Extract guest count
-        guest_count = 300 # Default
-        guest_match = re.search(r'\b(\d+)\s*(?:guests?|people|pax|attendees)\b', text, re.IGNORECASE)
-        if guest_match:
-            guest_count = max(10, min(5000, int(guest_match.group(1))))
-
-        # Extract budget
-        budget_rupees = 1500000.0 # Default ₹15,00,000
-        # Check for Lakhs / L / Cr / Rupees patterns
-        lakh_match = re.search(r'(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l)\b', text, re.IGNORECASE)
-        if lakh_match:
-            budget_rupees = float(lakh_match.group(1)) * 100000.0
-        else:
-            raw_num_match = re.search(r'(?:₹|rs\.?|inr)\s*([\d,]+)', text)
-            if raw_num_match:
-                clean_num = raw_num_match.group(1).replace(',', '')
-                budget_rupees = float(clean_num)
-
-        # City detection
-        city = "Mumbai"
-        for c in ["mumbai", "pune", "delhi", "bengaluru", "bangalore", "hyderabad", "chennai", "kolkata", "jaipur", "ahmedabad"]:
-            if c in text:
-                city = c.capitalize()
-                if city == "Bangalore":
-                    city = "Bengaluru"
-                break
-
-        # Dietary preferences
-        dietary = "Pure Vegetarian"
-        if "jain" in text:
-            dietary = "Strict Jain Vegetarian (No Root Veggies)"
-        elif "non-veg" in text or "chicken" in text or "mutton" in text:
-            dietary = "Multi-Cuisine Non-Vegetarian & Vegetarian"
-
-        # Regional cultural traditions
-        regional_culture = "Maharashtrian Traditional"
-        traditions = ["Sakhar Puda", "Muhurtham", "Haldi", "Sangeet", "Satyanarayan Puja"]
-
-        if "gujarati" in text:
-            regional_culture = "Gujarati Traditional"
-            traditions = ["Chandlo Matli", "Gol Dhana", "Garba / Dandiya Night", "Mameru", "Hasta Melap"]
-        elif "south indian" in text or "tamil" in text or "kannada" in text or "telugu" in text:
-            regional_culture = "South Indian Traditional"
-            traditions = ["Nichayathartham", "Kashi Yatra", "Oonjal (Swing Ritual)", "Kanyadaanam", "Muhurtham"]
-        elif "punjabi" in text or "sikh" in text:
-            regional_culture = "Punjabi Traditional"
-            traditions = ["Roka", "Chooda & Kaleere", "Jaggo Night", "Anand Karaj / Phere", "Bhangra Reception"]
-
-        # Themes
-        theme = "Royal Marigold & Polished Brass"
-        if "pastel" in text or "minimalist" in text:
-            theme = "Minimalist Pastel Flora & Cascading Mogra"
-        elif "temple" in text or "peshwai" in text:
-            theme = "Peshwai Temple Grandeur"
+        event_type = _detect_event_type(text)
+        guest_count = _extract_guest_count(text)
+        budget_rupees = _extract_budget_rupees(text)
+        city = _detect_city(text)
+        dietary = _detect_dietary(text)
+        regional_culture, traditions = _detect_culture_and_traditions(text)
+        theme = _detect_theme(text)
 
         title = f"{regional_culture.split()[0]} {event_type.capitalize()} Celebration in {city}"
         if event_type == "wedding":

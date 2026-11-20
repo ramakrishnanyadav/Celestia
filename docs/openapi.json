@@ -1011,6 +1011,12 @@
               }
             }
           },
+          "404": {
+            "description": "Category not found"
+          },
+          "409": {
+            "description": "Conflict: Version mismatch"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1078,6 +1084,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Category not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1147,6 +1156,12 @@
               }
             }
           },
+          "404": {
+            "description": "Expense not found"
+          },
+          "409": {
+            "description": "Conflict: Version mismatch"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1200,6 +1215,9 @@
                 "schema": {}
               }
             }
+          },
+          "404": {
+            "description": "Expense not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1375,6 +1393,9 @@
               }
             }
           },
+          "400": {
+            "description": "Circular dependency detected in task graph"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1443,8 +1464,11 @@
               }
             }
           },
+          "400": {
+            "description": "Circular dependency detected in task graph"
+          },
           "404": {
-            "description": "Task not found"
+            "description": "Task or prerequisite not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1800,6 +1824,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Vendor not found"
           },
           "422": {
             "description": "Validation Error",
@@ -3426,6 +3453,12 @@
               }
             }
           },
+          "404": {
+            "description": "Category not found"
+          },
+          "409": {
+            "description": "Conflict: Version mismatch"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3493,6 +3526,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Category not found"
           },
           "422": {
             "description": "Validation Error",
@@ -3562,6 +3598,12 @@
               }
             }
           },
+          "404": {
+            "description": "Expense not found"
+          },
+          "409": {
+            "description": "Conflict: Version mismatch"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3615,6 +3657,9 @@
                 "schema": {}
               }
             }
+          },
+          "404": {
+            "description": "Expense not found"
           },
           "422": {
             "description": "Validation Error",
@@ -3790,6 +3835,9 @@
               }
             }
           },
+          "400": {
+            "description": "Circular dependency detected in task graph"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -3858,8 +3906,11 @@
               }
             }
           },
+          "400": {
+            "description": "Circular dependency detected in task graph"
+          },
           "404": {
-            "description": "Task not found"
+            "description": "Task or prerequisite not found"
           },
           "422": {
             "description": "Validation Error",
@@ -4215,6 +4266,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Vendor not found"
           },
           "422": {
             "description": "Validation Error",

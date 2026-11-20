@@ -67,7 +67,7 @@ def test_approval_mid_transaction_failure_rollback():
     finally:
         db.close()
 
-def test_fake_ai_provider_malformed_empty_oversized_slow_hostile():
+def test_fake_ai_provider_malformed_empty_oversized_slow_hostile(monkeypatch):
     """
     Verify AI Gateway and Service resilience when downstream AI returns:
     1. Malformed JSON
@@ -112,13 +112,10 @@ def test_fake_ai_provider_malformed_empty_oversized_slow_hostile():
     assert "prompt injection" in str(exc_info.value).lower()
 
     # 5. Paused switch -> Rejected
-    ai_gateway.global_paused = True
-    try:
-        with pytest.raises(Exception) as pause_exc:
-            ai_gateway.check_pause_switch()
-        assert "paused" in str(pause_exc.value).lower()
-    finally:
-        ai_gateway.global_paused = False
+    monkeypatch.setattr(ai_gateway, "global_paused", True)
+    with pytest.raises(Exception) as pause_exc:
+        ai_gateway.check_pause_switch()
+    assert "paused" in str(pause_exc.value).lower()
 
 def test_date_logic_with_frozen_clock():
     """

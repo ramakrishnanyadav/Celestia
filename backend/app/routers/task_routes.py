@@ -14,6 +14,11 @@ router = APIRouter(prefix="/events/{event_id}/tasks", tags=["Planning & Tasks"])
 
 TASK_NOT_FOUND = "Task not found"
 RESPONSES_404_TASK = {404: {"description": TASK_NOT_FOUND}}
+RESPONSES_400_CYCLE = {400: {"description": "Circular dependency detected in task graph"}}
+RESPONSES_DEP = {
+    400: {"description": "Circular dependency detected in task graph"},
+    404: {"description": "Task or prerequisite not found"},
+}
 
 def enrich_task_response(task: Task) -> TaskResponse:
     res = TaskResponse.model_validate(task)
@@ -30,7 +35,7 @@ def list_tasks(
     ).order_by(Task.days_before_event.desc()).all()
     return [enrich_task_response(t) for t in tasks]
 
-@router.post("", response_model=TaskResponse)
+@router.post("", response_model=TaskResponse, responses=RESPONSES_400_CYCLE)
 def create_task(
     task_in: TaskCreate,
     event: Event = Depends(get_event_for_user),
@@ -74,7 +79,7 @@ def create_task(
     record_idempotency(db, idempotency_key, event.user_id, f"create_task_{event.id}", task_in.model_dump(), 200, res.model_dump(mode="json"))
     return res
 
-@router.post("/{task_id}/dependencies", response_model=TaskResponse, responses=RESPONSES_404_TASK)
+@router.post("/{task_id}/dependencies", response_model=TaskResponse, responses=RESPONSES_DEP)
 def add_task_dependency(
     task_id: str,
     dep_in: TaskDependencyCreate,

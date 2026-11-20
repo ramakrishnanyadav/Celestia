@@ -91,7 +91,10 @@ def create_category(
     db.refresh(cat)
     return enrich_category_response(cat)
 
-@router.patch("/categories/{category_id}", response_model=BudgetCategoryResponse)
+@router.patch("/categories/{category_id}", response_model=BudgetCategoryResponse, responses={
+    404: {"description": "Category not found"},
+    409: {"description": "Conflict: Version mismatch"},
+})
 def update_category(
     category_id: str,
     cat_in: BudgetCategoryUpdate,
@@ -122,7 +125,9 @@ def update_category(
     db.refresh(cat)
     return enrich_category_response(cat)
 
-@router.post("/categories/{category_id}/expenses", response_model=ExpenseResponse)
+@router.post("/categories/{category_id}/expenses", response_model=ExpenseResponse, responses={
+    404: {"description": "Category not found"},
+})
 def add_expense(
     category_id: str,
     exp_in: ExpenseCreate,
@@ -153,7 +158,10 @@ def add_expense(
     res.actual_rupees = paise_to_rupees(exp.actual_amount_minor)
     return res
 
-@router.patch("/expenses/{expense_id}", response_model=ExpenseResponse)
+@router.patch("/expenses/{expense_id}", response_model=ExpenseResponse, responses={
+    404: {"description": "Expense not found"},
+    409: {"description": "Conflict: Version mismatch"},
+})
 def update_expense(
     expense_id: str,
     exp_in: ExpenseUpdate,
@@ -188,7 +196,9 @@ def update_expense(
     res.actual_rupees = paise_to_rupees(exp.actual_amount_minor)
     return res
 
-@router.delete("/expenses/{expense_id}")
+@router.delete("/expenses/{expense_id}", responses={
+    404: {"description": "Expense not found"},
+})
 def delete_expense(
     expense_id: str,
     event: Event = Depends(get_event_for_user),

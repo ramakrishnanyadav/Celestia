@@ -72,6 +72,106 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
 
 let refreshPromise: Promise<unknown> | null = null;
 
+function buildRequestHeaders(
+  customHeaders: HeadersInit,
+  method: string,
+  idempotencyKey?: string
+): Headers {
+  const headers = new Headers(customHeaders);
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json");
+  }
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrfToken = getCsrfTokenFromCookie();
+    if (csrfToken && !headers.has("X-CSRF-Token")) {
+      headers.set("X-CSRF-Token", csrfToken);
+    }
+    if (idempotencyKey && !headers.has("Idempotency-Key")) {
+      headers.set("Idempotency-Key", idempotencyKey);
+    }
+  }
+  return headers;
+}
+
+function buildRequestBody(
+  body: unknown,
+  headers: Headers
+): BodyInit | undefined {
+  if (body === undefined) return undefined;
+  if (
+    typeof body === "string" ||
+    body instanceof FormData ||
+    body instanceof Blob
+  ) {
+    return body;
+  }
+  headers.set("Content-Type", "application/json");
+  return JSON.stringify(body);
+}
+
+async function handleUnauthorizedFlow<T>(
+  endpoint: string,
+  options: RequestOptions
+): Promise<T | null> {
+  const isAuthEndpoint =
+    endpoint.includes("/auth/refresh") ||
+    endpoint.includes("/auth/login") ||
+    endpoint.includes("/auth/demo-login");
+
+  if (isAuthEndpoint || options._isRetry) {
+    return null;
+  }
+
+  refreshPromise ??= apiClient("/auth/refresh", {
+    method: "POST",
+    _isRetry: true,
+  }).finally(() => {
+    refreshPromise = null;
+  });
+
+  try {
+    await refreshPromise;
+    return await apiClient<T>(endpoint, {
+      ...options,
+      _isRetry: true,
+    });
+  } catch {
+    if (
+      typeof window !== "undefined" &&
+      !window.location.pathname.startsWith("/login")
+    ) {
+      const returnTo = encodeURIComponent(
+        window.location.pathname + window.location.search
+      );
+      window.location.href = `/login?returnTo=${returnTo}`;
+    }
+    return null;
+  }
+}
+
+async function parseErrorResponse(response: Response): Promise<never> {
+  const contentType = response.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+  let errorMessage = `HTTP ${response.status} ${response.statusText}`;
+  let errorDetails: unknown = null;
+
+  if (isJson) {
+    try {
+      const errData = await response.json();
+      errorDetails = errData;
+      errorMessage = formatErrorDetail(
+        errData.detail || errData.message || errorMessage
+      );
+    } catch {
+      // fallback
+    }
+  } else {
+    const text = await response.text();
+    if (text) errorMessage = text;
+  }
+  throw new ApiError(response.status, errorMessage, errorDetails);
+}
+
 export async function apiClient<T>(
   endpoint: string,
   options: RequestOptions = {}
@@ -89,42 +189,15 @@ export async function apiClient<T>(
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   const method = (fetchOptions.method || "GET").toUpperCase();
-  const headers = new Headers(customHeaders);
-
-  if (!headers.has("Accept")) {
-    headers.set("Accept", "application/json");
-  }
-
-  // Set CSRF token on mutating requests
-  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-    const csrfToken = getCsrfTokenFromCookie();
-    if (csrfToken && !headers.has("X-CSRF-Token")) {
-      headers.set("X-CSRF-Token", csrfToken);
-    }
-    if (idempotencyKey && !headers.has("Idempotency-Key")) {
-      headers.set("Idempotency-Key", idempotencyKey);
-    }
-  }
-
-  let requestBody: BodyInit | undefined;
-  if (body !== undefined) {
-    if (
-      typeof body === "string" ||
-      body instanceof FormData ||
-      body instanceof Blob
-    ) {
-      requestBody = body;
-    } else {
-      headers.set("Content-Type", "application/json");
-      requestBody = JSON.stringify(body);
-    }
-  }
+  const headers = buildRequestHeaders(customHeaders, method, idempotencyKey);
+  const requestBody = buildRequestBody(body, headers);
 
   try {
     const pathPrefix = endpoint.startsWith("/") ? "" : "/";
     const url = endpoint.startsWith("http")
       ? endpoint
       : `${API_BASE}${pathPrefix}${endpoint}`;
+
     const init: RequestInit = {
       ...fetchOptions,
       method,
@@ -135,74 +208,27 @@ export async function apiClient<T>(
     if (requestBody !== undefined) {
       init.body = requestBody;
     }
-    const response = await fetch(url, init);
 
+    const response = await fetch(url, init);
     clearTimeout(timeoutId);
 
-    // 204 No Content
     if (response.status === 204) {
       return null as T;
     }
 
-    // 401 Unauthorized: Attempt single-flight silent refresh
     if (response.status === 401) {
-      const isAuthEndpoint =
-        endpoint.includes("/auth/refresh") ||
-        endpoint.includes("/auth/login") ||
-        endpoint.includes("/auth/demo-login");
-
-      if (!isAuthEndpoint && !_isRetry) {
-        refreshPromise ??= apiClient("/auth/refresh", {
-          method: "POST",
-          _isRetry: true,
-        }).finally(() => {
-          refreshPromise = null;
-        });
-
-        try {
-          await refreshPromise;
-          return await apiClient<T>(endpoint, {
-            ...options,
-            _isRetry: true,
-          });
-        } catch {
-          if (
-            typeof window !== "undefined" &&
-            !window.location.pathname.startsWith("/login")
-          ) {
-            const returnTo = encodeURIComponent(
-              window.location.pathname + window.location.search
-            );
-            window.location.href = `/login?returnTo=${returnTo}`;
-          }
-        }
+      const retryResult = await handleUnauthorizedFlow<T>(endpoint, options);
+      if (retryResult !== null) {
+        return retryResult;
       }
+    }
+
+    if (!response.ok) {
+      await parseErrorResponse(response);
     }
 
     const contentType = response.headers.get("content-type") || "";
-    const isJson = contentType.includes("application/json");
-
-    if (!response.ok) {
-      let errorMessage = `HTTP ${response.status} ${response.statusText}`;
-      let errorDetails: unknown = null;
-      if (isJson) {
-        try {
-          const errData = await response.json();
-          errorDetails = errData;
-          errorMessage = formatErrorDetail(
-            errData.detail || errData.message || errorMessage
-          );
-        } catch {
-          // fallback to statusText
-        }
-      } else {
-        const text = await response.text();
-        if (text) errorMessage = text;
-      }
-      throw new ApiError(response.status, errorMessage, errorDetails);
-    }
-
-    if (isJson) {
+    if (contentType.includes("application/json")) {
       return (await response.json()) as T;
     }
 

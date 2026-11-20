@@ -76,8 +76,9 @@ def test_mutation_5_csv_formula_injection_bypass():
     # Mutation: Bypass sanitizer
     def mutated_sanitizer(val):
         return str(val)
+    mutated_output = mutated_sanitizer(dangerous_cell)
     with pytest.raises(AssertionError):
-        assert mutated_sanitizer(dangerous_cell).startswith("'=")
+        assert mutated_output.startswith("'=")
 
 def test_mutation_6_tenant_event_boundary_leak():
     """Mutation: Querying event by ID only, omitting user_id tenant filter."""

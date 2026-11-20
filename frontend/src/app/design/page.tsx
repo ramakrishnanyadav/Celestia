@@ -18,7 +18,6 @@ import { BentoCard } from "@/components/ui/BentoCard";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Skeleton } from "@/components/ui/Skeleton";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -32,7 +31,6 @@ import {
 
 export default function DesignSystemPage() {
   const toast = useToast();
-  const [sliderVal, setSliderVal] = useState(300);
   const [countUpTarget, setCountUpTarget] = useState(1500000);
   const [alertOpen, setAlertOpen] = useState(false);
 

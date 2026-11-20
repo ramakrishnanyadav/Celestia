@@ -342,10 +342,10 @@ def set_auth_cookies(
 
     if csrf_token:
         # CSRF token is deliberately NOT HttpOnly so frontend JS can read and send in header
-        response.set_cookie(
+        response.set_cookie(  # NOSONAR - Double-submit CSRF pattern requires JS readable cookie
             key="csrf_token",
             value=csrf_token,
-            httponly=False,  # NOSONAR - Double-submit CSRF pattern requires JS readable cookie
+            httponly=False,  # NOSONAR
             secure=is_prod,
             samesite=samesite_mode,
             max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,

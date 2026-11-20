@@ -25,40 +25,26 @@ class CPMResult:
     has_cycle: bool
     topological_order: list[str] = field(default_factory=list)
 
-def solve_cpm_pure(nodes: list[CPMNode]) -> CPMResult:
-    """
-    Pure Critical Path Method (CPM) solver.
-    Operates solely on pure Python dataclasses without database or ORM dependencies.
-    Performs cycle detection (Kahn's Algorithm), Forward Pass (ES/EF),
-    and Backward Pass (LF/LS) to compute slack and identify critical path tasks.
-    """
-    if not nodes:
-        return CPMResult(
-            total_duration_days=0,
-            critical_path_ids=[],
-            schedule={},
-            has_cycle=False,
-            topological_order=[]
-        )
-
-    node_map = {n.id: n for n in nodes}
-
-    # Predecessors: tasks that task_id depends on
-    # Successors: tasks that depend on task_id
+def _build_predecessors_and_successors(
+    nodes: list[CPMNode], node_map: dict[str, CPMNode]
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     predecessors: dict[str, list[str]] = {n.id: [] for n in nodes}
     successors: dict[str, list[str]] = {n.id: [] for n in nodes}
-
     for n in nodes:
         for dep_id in n.depends_on_ids:
             if dep_id in node_map:
                 predecessors[n.id].append(dep_id)
                 successors[dep_id].append(n.id)
+    return predecessors, successors
 
-    # Topological Sort via Kahn's Algorithm
+def _compute_topological_order(
+    nodes: list[CPMNode],
+    predecessors: dict[str, list[str]],
+    successors: dict[str, list[str]]
+) -> list[str]:
     in_degree = {n.id: len(predecessors[n.id]) for n in nodes}
     queue = deque([n.id for n in nodes if in_degree[n.id] == 0])
     topological_order: list[str] = []
-
     while queue:
         curr = queue.popleft()
         topological_order.append(curr)
@@ -66,54 +52,51 @@ def solve_cpm_pure(nodes: list[CPMNode]) -> CPMResult:
             in_degree[succ] -= 1
             if in_degree[succ] == 0:
                 queue.append(succ)
+    return topological_order
 
-    # Cycle Detection check
-    if len(topological_order) < len(nodes):
-        return CPMResult(
-            total_duration_days=0,
-            critical_path_ids=[],
-            schedule={},
-            has_cycle=True,
-            topological_order=[]
-        )
-
-    # --- FORWARD PASS: Early Start (ES) and Early Finish (EF) ---
+def _forward_pass(
+    topological_order: list[str],
+    node_map: dict[str, CPMNode],
+    predecessors: dict[str, list[str]]
+) -> tuple[dict[str, int], dict[str, int], int]:
     es: dict[str, int] = {}
     ef: dict[str, int] = {}
-
     for n_id in topological_order:
         duration = max(1, node_map[n_id].duration_days)
-        if not predecessors[n_id]:
-            es[n_id] = 0
-        else:
-            es[n_id] = max(ef[p_id] for p_id in predecessors[n_id])
+        es[n_id] = 0 if not predecessors[n_id] else max(ef[p_id] for p_id in predecessors[n_id])
         ef[n_id] = es[n_id] + duration
-
     total_duration = max(ef.values()) if ef else 0
+    return es, ef, total_duration
 
-    # --- BACKWARD PASS: Late Finish (LF) and Late Start (LS) ---
+def _backward_pass(
+    topological_order: list[str],
+    node_map: dict[str, CPMNode],
+    successors: dict[str, list[str]],
+    total_duration: int
+) -> tuple[dict[str, int], dict[str, int]]:
     ls: dict[str, int] = {}
     lf: dict[str, int] = {}
-
     for n_id in reversed(topological_order):
         duration = max(1, node_map[n_id].duration_days)
-        if not successors[n_id]:
-            lf[n_id] = total_duration
-        else:
-            lf[n_id] = min(ls[s_id] for s_id in successors[n_id])
+        lf[n_id] = total_duration if not successors[n_id] else min(ls[s_id] for s_id in successors[n_id])
         ls[n_id] = lf[n_id] - duration
+    return ls, lf
 
-    # --- SLACK & CRITICAL PATH ---
+def _build_cpm_schedule(
+    nodes: list[CPMNode],
+    es: dict[str, int],
+    ef: dict[str, int],
+    ls: dict[str, int],
+    lf: dict[str, int]
+) -> tuple[list[str], dict[str, CPMSchedule]]:
     critical_path_ids: list[str] = []
     schedule: dict[str, CPMSchedule] = {}
-
     for n in nodes:
         n_id = n.id
         slack = ls[n_id] - es[n_id]
         is_crit = (slack <= 0)
         if is_crit:
             critical_path_ids.append(n_id)
-
         schedule[n_id] = CPMSchedule(
             early_start=es[n_id],
             early_finish=ef[n_id],
@@ -122,6 +105,29 @@ def solve_cpm_pure(nodes: list[CPMNode]) -> CPMResult:
             slack=slack,
             is_critical=is_crit
         )
+    return critical_path_ids, schedule
+
+def solve_cpm_pure(nodes: list[CPMNode]) -> CPMResult:
+    """
+    Pure Critical Path Method (CPM) solver.
+    Operates solely on pure Python dataclasses without database or ORM dependencies.
+    Performs cycle detection (Kahn's Algorithm), Forward Pass (ES/EF),
+    and Backward Pass (LF/LS) to compute slack and identify critical path tasks.
+    """
+    if not nodes:
+        return CPMResult(total_duration_days=0, critical_path_ids=[], schedule={}, has_cycle=False, topological_order=[])
+
+    node_map = {n.id: n for n in nodes}
+    predecessors, successors = _build_predecessors_and_successors(nodes, node_map)
+    topological_order = _compute_topological_order(nodes, predecessors, successors)
+
+    # Cycle Detection check
+    if len(topological_order) < len(nodes):
+        return CPMResult(total_duration_days=0, critical_path_ids=[], schedule={}, has_cycle=True, topological_order=[])
+
+    es, ef, total_duration = _forward_pass(topological_order, node_map, predecessors)
+    ls, lf = _backward_pass(topological_order, node_map, successors, total_duration)
+    critical_path_ids, schedule = _build_cpm_schedule(nodes, es, ef, ls, lf)
 
     return CPMResult(
         total_duration_days=total_duration,
