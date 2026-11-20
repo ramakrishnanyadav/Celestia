@@ -25,14 +25,14 @@ PROMPT_INJECTION_PATTERNS = [
     re.compile(r"system\s+(override|prompt|directive)", re.IGNORECASE),
     re.compile(r"you\s+are\s+now\s+(in\s+)?(developer|dan|unrestricted|god)\s+mode", re.IGNORECASE),
     re.compile(r"disregard\s+(safety|rules|instructions|guidelines)", re.IGNORECASE),
-    re.compile(r"mark\s+all\s+(items|tasks|quotes)?\s*approved\s+without\s+review", re.IGNORECASE),
+    re.compile(r"mark\s+all\s+(?:items|tasks|quotes\s+)?approved\s+without\s+review", re.IGNORECASE),
     re.compile(r"(reveal|output|leak|dump|show)\s+(all\s+)?(system|prompt|api\s*keys?|passwords|instructions)", re.IGNORECASE),
     re.compile(r"<script>.*?</script>", re.IGNORECASE | re.DOTALL),
 ]
 
 # Regex patterns for data minimization (PII scrubbing)
 PHONE_REGEX = re.compile(r"(\+91[\-\s]?)?[6-9]\d{9}")
-EMAIL_REGEX = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
+EMAIL_REGEX = re.compile(r"[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}")
 
 class AIGateway:
     def __init__(self):

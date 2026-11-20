@@ -45,8 +45,13 @@ export function formatMoney(
     formattedRupees = rupeesStr;
   } else {
     const lastThree = rupeesStr.slice(-3);
-    const remaining = rupeesStr.slice(0, -3);
-    const groups = remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+    let remaining = rupeesStr.slice(0, -3);
+    let groups = "";
+    while (remaining.length > 2) {
+      groups = `,${remaining.slice(-2)}${groups}`;
+      remaining = remaining.slice(0, -2);
+    }
+    groups = `${remaining}${groups}`;
     formattedRupees = `${groups},${lastThree}`;
   }
 
@@ -86,7 +91,7 @@ export function formatMoneyCompact(amountMinor: MinorUnits): string {
 export function rupeesToPaise(rupees: number | string): number {
   if (typeof rupees === "string") {
     const sanitized = rupees.replace(/[^\d.-]/g, "");
-    const parsed = parseFloat(sanitized);
+    const parsed = Number.parseFloat(sanitized);
     if (!Number.isFinite(parsed)) return 0;
     return Math.round(parsed * 100);
   }

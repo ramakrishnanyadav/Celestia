@@ -30,7 +30,7 @@ def get_argon2_hasher() -> PasswordHasher:
     In production, uses RFC 9106 recommended parameters (time=3, mem=64MB, parallelism=4).
     """
     if os.environ.get("TESTING") == "1":
-        return PasswordHasher(time_cost=1, memory_cost=1024, parallelism=1, hash_len=16)
+        return PasswordHasher(time_cost=2, memory_cost=19456, parallelism=1, hash_len=32)
     return PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4, hash_len=32)
 
 LEGACY_PBKDF2_SALT = "celestia_salt_indian_wedding_2026"

@@ -77,7 +77,8 @@ def run_suite():
 
                 # Flow 3: Critical User Flow Verification (DOM elements check)
                 body_visible = page.locator("body").is_visible()
-                assert body_visible, "Body must be visible"
+                if not body_visible:
+                    raise RuntimeError("Body must be visible")
                 flow_record["steps"].append({"step": "DOM Render & Root Mount", "status": "PASS"})
                 print("  [PASS] DOM Render & Root Mount verified", flush=True)
 

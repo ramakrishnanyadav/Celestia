@@ -61,13 +61,14 @@ export function CommandPalette({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
-      onClick={() => onOpenChange(false)}
-    >
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4 animate-in fade-in duration-150">
       <div
-        className="w-full max-w-xl rounded-2xl glass-3 border border-[var(--border-subtle)] bg-[var(--canvas-elevated)] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+        onClick={() => onOpenChange(false)}
+        aria-hidden="true"
+      />
+      <div
+        className="relative z-10 w-full max-w-xl rounded-2xl glass-3 border border-[var(--border-subtle)] bg-[var(--canvas-elevated)] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
         aria-label="CELESTIA Command Palette"

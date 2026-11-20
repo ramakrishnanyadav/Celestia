@@ -34,14 +34,14 @@ class AIService:
 
         # Extract guest count
         guest_count = 300 # Default
-        guest_match = re.search(r'(\d+)\s*(?:guests?|people|pax|attendees)', text)
+        guest_match = re.search(r'\b(\d+)\s*(?:guests?|people|pax|attendees)\b', text, re.IGNORECASE)
         if guest_match:
             guest_count = max(10, min(5000, int(guest_match.group(1))))
 
         # Extract budget
         budget_rupees = 1500000.0 # Default ₹15,00,000
         # Check for Lakhs / L / Cr / Rupees patterns
-        lakh_match = re.search(r'(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l\b)', text)
+        lakh_match = re.search(r'(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l)\b', text, re.IGNORECASE)
         if lakh_match:
             budget_rupees = float(lakh_match.group(1)) * 100000.0
         else:
@@ -213,7 +213,7 @@ class AIService:
         cmd = command_text.lower()
 
         # Check for guest count change intent: e.g. "Increase guest count to 350"
-        guest_match = re.search(r'(?:increase|decrease|change|scale|set)?\s*guests?\s*(?:count)?\s*(?:to|by)?\s*(\d+)', cmd)
+        guest_match = re.search(r'guests?(?:\s+count)?(?:\s+(?:to|by))?\s+(\d+)', cmd)
         if guest_match:
             new_guests = int(guest_match.group(1))
             sim_res = simulate_what_if_changes(event, event.budget_categories, new_guests)
@@ -268,7 +268,7 @@ class AIService:
                 }
 
         # Check for budget change intent: e.g. "Adjust budget to 18 lakhs"
-        lakh_match = re.search(r'(?:adjust|change|increase|decrease|set)?\s*budget\s*(?:to)?\s*(?:₹|rs\.?)?\s*(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l\b)', cmd)
+        lakh_match = re.search(r'budget(?:\s+to)?\s*(?:₹|rs\.?)?\s*(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l)\b', cmd)
         if lakh_match:
             new_budget_rupees = float(lakh_match.group(1)) * 100000.0
             new_budget_minor = rupees_to_paise(new_budget_rupees)

@@ -132,13 +132,14 @@ export function MobileTabBar({
 
       {/* Mobile Drawer Sheet */}
       {sheetOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end lg:hidden animate-in fade-in duration-200"
-          onClick={() => setSheetOpen(false)}
-        >
+        <div className="fixed inset-0 z-50 flex flex-col justify-end lg:hidden animate-in fade-in duration-200">
           <div
-            className="w-full bg-[var(--canvas-elevated)] rounded-t-3xl border-t border-[var(--border-subtle)] p-6 space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-200 max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={() => setSheetOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            className="relative z-10 w-full bg-[var(--canvas-elevated)] rounded-t-3xl border-t border-[var(--border-subtle)] p-6 space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-200 max-h-[80vh] overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-label="Additional Navigation Options"

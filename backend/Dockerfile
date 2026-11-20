@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 # Install python dependencies from pinned requirements (argon2-cffi, no legacy passlib/bcrypt)
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --only-binary :all: -r requirements.txt
 
 COPY app/ ./app/
 

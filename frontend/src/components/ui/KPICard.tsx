@@ -37,7 +37,7 @@ export function KPICard({
 
   // Smooth count-up animation on numericTarget via rAF
   useEffect(() => {
-    if (numericTarget === undefined || isNaN(numericTarget)) {
+    if (numericTarget === undefined || Number.isNaN(numericTarget)) {
       setDisplayNum(null);
       return;
     }

@@ -199,17 +199,6 @@ async def global_unhandled_exception_handler(request: Request, exc: Exception):
         }
     )
 
-# Strict CORS Allowlist
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_origin_regex=r"https://.*\.onrender\.com|https://.*\.vercel\.app|http://localhost:\d+",
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-CSRF-Token", "Idempotency-Key", "Accept", "X-Requested-With"],
-    expose_headers=["X-Request-ID"]
-)
-
 # Gzip compression for responses > 1000 bytes
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
@@ -248,6 +237,17 @@ async def add_security_headers_middleware(request: Request, call_next):
     if "X-XSS-Protection" in response.headers:
         del response.headers["X-XSS-Protection"]
     return response
+
+# Strict CORS Allowlist (added last so it is the outermost middleware handling preflights first)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https://.*\.onrender\.com|https://.*\.vercel\.app|http://localhost:\d+",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-CSRF-Token", "Idempotency-Key", "Accept", "X-Requested-With"],
+    expose_headers=["X-Request-ID"]
+)
 
 # Include Routers (/api and /api/v1 prefix)
 for prefix in ("/api", "/api/v1"):

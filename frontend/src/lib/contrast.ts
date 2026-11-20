@@ -11,7 +11,7 @@ export function parseHex(hex: string): [number, number, number] {
       .map((c) => c + c)
       .join("");
   }
-  const num = parseInt(clean, 16);
+  const num = Number.parseInt(clean, 16);
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 }
 

@@ -11,10 +11,10 @@ jobs:
     name: Backend Lint, Types, SAST & Vulnerability Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -44,10 +44,10 @@ jobs:
       SECRET_KEY: "test_secret_key_for_ci_minimum_32_characters_long_entropy"
       ENV: "testing"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -70,10 +70,10 @@ jobs:
     name: Frontend Unit Tests (Vitest >=85%), Typecheck & Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: 20
           cache: 'npm'
@@ -92,7 +92,8 @@ jobs:
         run: npm run test:coverage
 
       - name: OpenAPI Contract Drift Check
-        run: npx openapi-typescript docs/openapi.json --export-type
+        working-directory: frontend
+        run: npx --yes openapi-typescript@7.4.3 ../docs/openapi.json --export-type
 
       - name: Next.js Production Build
         working-directory: frontend
@@ -102,20 +103,21 @@ jobs:
     name: Cross-Browser E2E (Chromium/Firefox/WebKit) & Axe-Core Matrix
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: '3.11'
 
       - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: 20
 
       - name: Install Dependencies
         run: |
+          python -m pip install pip==25.0.1
           pip install --only-binary :all: -r backend/requirements.txt -r backend/requirements-dev.txt
           playwright install --with-deps chromium || playwright install chromium
           playwright install firefox webkit || true
@@ -136,10 +138,10 @@ jobs:
     name: Secret Detection with Gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e7d8ef52e496eb4e5a4ab46fc5970e459 # v2.3.8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
