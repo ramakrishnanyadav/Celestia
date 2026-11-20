@@ -268,7 +268,7 @@ class AIService:
                 }
 
         # Check for budget change intent: e.g. "Adjust budget to 18 lakhs"
-        lakh_match = re.search(r'budget(?:\s+to)?\s*(?:₹|rs\.?)?\s*(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l)\b', cmd)
+        lakh_match = re.search(r'budget\b.*?(\d+(?:\.\d+)?)\s*(?:lakh|lac|l)\b', cmd)
         if lakh_match:
             new_budget_rupees = float(lakh_match.group(1)) * 100000.0
             new_budget_minor = rupees_to_paise(new_budget_rupees)

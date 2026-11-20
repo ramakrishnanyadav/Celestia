@@ -21,7 +21,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install pip==25.0.1
+          python -m pip install --only-binary=:all: pip==25.0.1
           pip install --only-binary=:all: -r backend/requirements.txt -r backend/requirements-dev.txt
 
       - name: Lint with Ruff
@@ -54,7 +54,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install pip==25.0.1
+          python -m pip install --only-binary=:all: pip==25.0.1
           pip install --only-binary=:all: -r backend/requirements.txt -r backend/requirements-dev.txt
 
       - name: Run Test Suite with >=90% Branch Coverage Gate
@@ -93,7 +93,7 @@ jobs:
 
       - name: OpenAPI Contract Drift Check
         working-directory: frontend
-        run: npx --yes openapi-typescript@7.4.3 ../docs/openapi.json --export-type
+        run: npm run api:drift-check
 
       - name: Next.js Production Build
         working-directory: frontend
@@ -117,7 +117,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install pip==25.0.1
+          python -m pip install --only-binary=:all: pip==25.0.1
           pip install --only-binary=:all: -r backend/requirements.txt -r backend/requirements-dev.txt
           playwright install --with-deps chromium || playwright install chromium
           playwright install firefox webkit || true

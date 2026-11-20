@@ -42,13 +42,19 @@ export function PreferencesForm({
     }
   };
 
-  const saveAnnouncement = saved
-    ? "Preferences saved successfully"
-    : saving
-    ? "Saving preferences..."
-    : "";
+  let saveAnnouncement = "";
+  if (saved) {
+    saveAnnouncement = "Preferences saved successfully";
+  } else if (saving) {
+    saveAnnouncement = "Saving preferences...";
+  }
 
-  const saveButtonText = saved ? "Saved" : saving ? "Saving..." : "Save Preferences";
+  let saveButtonText = "Save Preferences";
+  if (saved) {
+    saveButtonText = "Saved";
+  } else if (saving) {
+    saveButtonText = "Saving...";
+  }
 
   return (
     <form

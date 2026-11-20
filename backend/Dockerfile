@@ -9,11 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-# Install python dependencies from pinned requirements (argon2-cffi, no legacy passlib/bcrypt)
-RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt
-
-# Run as non-root user
-RUN groupadd -g 1001 celestia && useradd -u 1001 -g celestia celestia
+# Install python dependencies from pinned requirements and create non-root user
+RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt && \
+    groupadd -g 1001 celestia && \
+    useradd -u 1001 -g celestia celestia
 
 COPY app/ ./app/
 RUN chown -R celestia:celestia /app

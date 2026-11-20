@@ -25,6 +25,11 @@ from ..schemas import (
 router = APIRouter(prefix="/events", tags=["Events"])
 
 EVENT_NOT_FOUND = "Event not found"
+RESPONSES_404_EVENT = {404: {"description": EVENT_NOT_FOUND}}
+RESPONSES_DELETE_EVENT = {
+    404: {"description": EVENT_NOT_FOUND},
+    403: {"description": "Demonstration celebration workspace is read-only and events cannot be deleted."}
+}
 
 def enrich_event_response(event: Event) -> EventResponse:
     res = EventResponse.model_validate(event)
@@ -94,7 +99,7 @@ def create_event(
     record_idempotency(db, idempotency_key, current_user.id, "create_event", event_in.model_dump(), 200, res.model_dump(mode="json"))
     return res
 
-@router.get("/{event_id}", response_model=EventResponse)
+@router.get("/{event_id}", response_model=EventResponse, responses=RESPONSES_404_EVENT)
 def get_event(
     event_id: str,
     db: Session = Depends(get_db),
@@ -162,7 +167,7 @@ def enrich_task_item(task: Task) -> dict[str, Any]:
         "depends_on_ids": [d.depends_on_task_id for d in task.dependencies]
     }
 
-@router.get("/{event_id}/overview", response_model=EventOverviewResponse)
+@router.get("/{event_id}/overview", response_model=EventOverviewResponse, responses=RESPONSES_404_EVENT)
 def get_event_overview(
     event_id: str,
     request: Request,
@@ -230,7 +235,7 @@ def get_event_overview(
         "recent_activities": recent_logs
     }
 
-@router.patch("/{event_id}", response_model=EventResponse)
+@router.patch("/{event_id}", response_model=EventResponse, responses=RESPONSES_404_EVENT)
 def update_event(
     event_id: str,
     update_data: EventUpdate,
@@ -248,7 +253,7 @@ def update_event(
     db.refresh(event)
     return enrich_event_response(event)
 
-@router.delete("/{event_id}")
+@router.delete("/{event_id}", responses=RESPONSES_DELETE_EVENT)
 def delete_event(
     event_id: str,
     db: Session = Depends(get_db),
@@ -268,7 +273,7 @@ def delete_event(
     db.commit()
     return {"message": "Event deleted successfully"}
 
-@router.get("/{event_id}/preferences", response_model=EventPreferenceResponse)
+@router.get("/{event_id}/preferences", response_model=EventPreferenceResponse, responses=RESPONSES_404_EVENT)
 def get_preferences(
     event_id: str,
     db: Session = Depends(get_db),
@@ -285,7 +290,7 @@ def get_preferences(
         return pref
     return event.preference
 
-@router.put("/{event_id}/preferences", response_model=EventPreferenceResponse)
+@router.put("/{event_id}/preferences", response_model=EventPreferenceResponse, responses=RESPONSES_404_EVENT)
 def update_preferences(
     event_id: str,
     pref_in: EventPreferenceCreate,
@@ -308,7 +313,7 @@ def update_preferences(
     db.refresh(pref)
     return pref
 
-@router.get("/{event_id}/plans")
+@router.get("/{event_id}/plans", responses=RESPONSES_404_EVENT)
 def get_active_plan(
     event_id: str,
     db: Session = Depends(get_db),

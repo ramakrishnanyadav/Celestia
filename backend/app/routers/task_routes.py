@@ -13,6 +13,7 @@ from ..schemas import CPMResultResponse, TaskCreate, TaskDependencyCreate, TaskR
 router = APIRouter(prefix="/events/{event_id}/tasks", tags=["Planning & Tasks"])
 
 TASK_NOT_FOUND = "Task not found"
+RESPONSES_404_TASK = {404: {"description": TASK_NOT_FOUND}}
 
 def enrich_task_response(task: Task) -> TaskResponse:
     res = TaskResponse.model_validate(task)
@@ -73,7 +74,7 @@ def create_task(
     record_idempotency(db, idempotency_key, event.user_id, f"create_task_{event.id}", task_in.model_dump(), 200, res.model_dump(mode="json"))
     return res
 
-@router.post("/{task_id}/dependencies", response_model=TaskResponse)
+@router.post("/{task_id}/dependencies", response_model=TaskResponse, responses=RESPONSES_404_TASK)
 def add_task_dependency(
     task_id: str,
     dep_in: TaskDependencyCreate,
@@ -104,7 +105,7 @@ def add_task_dependency(
     db.refresh(task)
     return enrich_task_response(task)
 
-@router.patch("/{task_id}", response_model=TaskResponse)
+@router.patch("/{task_id}", response_model=TaskResponse, responses=RESPONSES_404_TASK)
 def update_task(
     task_id: str,
     task_in: TaskUpdate,
@@ -137,7 +138,7 @@ def update_task(
     db.refresh(task)
     return enrich_task_response(task)
 
-@router.delete("/{task_id}")
+@router.delete("/{task_id}", responses=RESPONSES_404_TASK)
 def delete_task(
     task_id: str,
     event: Event = Depends(get_event_for_user),

@@ -158,7 +158,7 @@ def run_security_probe():
     tests_run += 1
     print("\n[Probe 5] Testing SQL Injection & Exception Message Sanitization...")
     sqli_payload = "' OR 1=1; --"
-    res_sqli = client.get(f"/api/events/{sqli_payload}", headers={"Authorization": f"Bearer {token_a}"})
+    res_sqli = client.get(f"{API_EVENTS}/{sqli_payload}", headers={"Authorization": f"Bearer {token_a}"})
     if res_sqli.status_code in (404, 422, 400):
         print(f"  [PASS] SQL injection safely rejected with HTTP {res_sqli.status_code}. No unhandled SQL syntax error.")
     elif res_sqli.status_code == 500:
@@ -177,7 +177,7 @@ def run_security_probe():
     tests_run += 1
     print("\n[Probe 6] Testing Stored XSS Neutralization...")
     xss_payload = "<script>alert('pwned')</script>"
-    res_xss = client.post(f"/api/events/{alice_ev_id}/tasks", headers={"Authorization": f"Bearer {token_a}"}, json={
+    res_xss = client.post(f"{API_EVENTS}/{alice_ev_id}/tasks", headers={"Authorization": f"Bearer {token_a}"}, json={
         "title": xss_payload,
         "description": xss_payload,
         "category": "Stage",
@@ -206,7 +206,7 @@ def run_security_probe():
     # ---------------------------------------------------------
     tests_run += 1
     print("\n[Probe 7] Testing Security Headers & Deprecated Header Absence...")
-    headers = client.get("/api/events", headers={"Authorization": f"Bearer {token_a}"}).headers
+    headers = client.get(API_EVENTS, headers={"Authorization": f"Bearer {token_a}"}).headers
     missing_headers = []
     for h in ["X-Content-Type-Options", "X-Frame-Options", "Referrer-Policy", "Strict-Transport-Security", "Content-Security-Policy"]:
         if h not in headers:
@@ -259,7 +259,7 @@ def run_security_probe():
     client_csrf.cookies.set("access_token", token_a)
     client_csrf.cookies.set("csrf_token", "probe_csrf_secret_token_123")
     # Attempt mutation without X-CSRF-Token header -> must be rejected with 403
-    cookie_mutation = client_csrf.post("/api/events", json={
+    cookie_mutation = client_csrf.post(API_EVENTS, json={
         "title": "CSRF Event Attempt", "event_type": "birthday", "guest_count": 50, "budget_minor": 10000000
     })
     if cookie_mutation.status_code == 403:
