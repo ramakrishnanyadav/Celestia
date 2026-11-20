@@ -49,15 +49,16 @@ def run():
 
     # Pre-authenticate demo session via API to ensure cookies are 100% active
     auth_cookies = []
+    auth_data = {}
     try:
         req = urllib.request.Request(f"{API_URL}/auth/demo-login", data=b"", headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+            auth_data = json.loads(resp.read().decode("utf-8"))
             auth_cookies = [
-                {"name": "access_token", "value": data["access_token"], "domain": "localhost", "path": "/"},
-                {"name": "csrf_token", "value": data["csrf_token"], "domain": "localhost", "path": "/"},
+                {"name": "access_token", "value": auth_data["access_token"], "domain": "localhost", "path": "/"},
+                {"name": "csrf_token", "value": auth_data["csrf_token"], "domain": "localhost", "path": "/"},
             ]
-            print(f"     Pre-authenticated session for {data['user']['name']} ({data['user']['email']})", flush=True)
+            print(f"     Pre-authenticated session for {auth_data['user']['name']} ({auth_data['user']['email']})", flush=True)
     except Exception as e:
         print(f"     [WARN] Could not pre-authenticate: {e}", flush=True)
 
@@ -78,6 +79,12 @@ def run():
             context.add_cookies(auth_cookies)
 
         page = context.new_page()
+
+        if auth_data and "access_token" in auth_data:
+            page.add_init_script(f"""
+                localStorage.setItem('celestia_access_token', '{auth_data["access_token"]}');
+                localStorage.setItem('celestia_refresh_token', '{auth_data.get("refresh_token", "")}');
+            """)
 
         try:
             # ==========================================
@@ -106,16 +113,19 @@ def run():
             page.screenshot(path=str(FRAMES_DIR / "01_landing_hero.png"))
 
             # Click Demo Workspace CTA
-            demo_btn = page.locator("button:has-text('Explore Read-Only Demo Workspace')").first
+            demo_btn = page.locator("button:has-text('Explore Pre-Seeded Celebrations'), button:has-text('Explore Read-Only Demo Workspace'), button:has-text('Explore Demo')").first
             if demo_btn.is_visible():
                 demo_btn.click()
-                page.wait_for_timeout(2000)
+                try:
+                    page.wait_for_url("**/app/events**", timeout=8000)
+                except Exception:
+                    page.goto(f"{BASE_URL}/app/events", wait_until="networkidle")
             else:
-                page.goto(f"{BASE_URL}/app/events", wait_until="domcontentloaded")
+                page.goto(f"{BASE_URL}/app/events", wait_until="networkidle")
 
             # Ensure on events page
             if "/app/events" not in page.url:
-                page.goto(f"{BASE_URL}/app/events", wait_until="domcontentloaded")
+                page.goto(f"{BASE_URL}/app/events", wait_until="networkidle")
 
             page.wait_for_timeout(2000)
 
@@ -123,7 +133,7 @@ def run():
             # SCENE 2: CELEBRATIONS GALLERY (3 SCENARIOS)
             # ==========================================
             print("  >> Scene 2: Celebrations Gallery (3 Seeded Scenarios)...", flush=True)
-            page.wait_for_selector("text=Your Celebrations", timeout=15000)
+            page.wait_for_selector("h1:has-text('Your Celebrations'), h1:has-text('Celebrations'), h1", timeout=15000)
             page.wait_for_timeout(1500)
 
             # Check celebration cards
@@ -304,6 +314,13 @@ def run():
 
             print("[CELESTIA RECORDER] Walkthrough sequence completed successfully!", flush=True)
 
+        except Exception as e:
+            print(f"  [ERROR] Failed at URL {page.url}: {e}", flush=True)
+            try:
+                page.screenshot(path=str(FRAMES_DIR / "error_debug.png"))
+            except Exception:
+                pass
+            raise
         finally:
             print("  >> Flushing and finalizing HD video stream...", flush=True)
             context.close()
