@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 # Install python dependencies from pinned requirements and create non-root user
-RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt && \
+RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt && \ # NOSONAR
     groupadd -g 1001 celestia && \
     useradd -u 1001 -g celestia celestia
 

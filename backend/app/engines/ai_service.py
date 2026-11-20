@@ -30,7 +30,7 @@ def _extract_guest_count(text: str) -> int:
     return 300
 
 def _extract_budget_rupees(text: str) -> float:
-    lakh_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l)\b', text, re.IGNORECASE)
+    lakh_match = re.search(r'(\d+(?:\.\d+)?)\s*l(?:akhs?|acs?)?\b', text, re.IGNORECASE)
     if lakh_match:
         return float(lakh_match.group(1)) * 100000.0
     raw_num_match = re.search(r'(?:₹|rs\.?|inr)\s*([\d,]+)', text)
@@ -272,7 +272,7 @@ class AIService:
                 }
 
         # Check for budget change intent: e.g. "Adjust budget to 18 lakhs"
-        lakh_match = re.search(r'budget\b.*?(\d+(?:\.\d+)?)\s*(?:lakh|lac|l)\b', cmd)
+        lakh_match = re.search(r'budget\b[^\d\n]*(\d+(?:\.\d+)?)\s*l(?:akhs?|acs?)?\b', cmd)
         if lakh_match:
             new_budget_rupees = float(lakh_match.group(1)) * 100000.0
             new_budget_minor = rupees_to_paise(new_budget_rupees)

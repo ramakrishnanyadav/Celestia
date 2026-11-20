@@ -13,10 +13,11 @@ from ..schemas import CPMResultResponse, TaskCreate, TaskDependencyCreate, TaskR
 router = APIRouter(prefix="/events/{event_id}/tasks", tags=["Planning & Tasks"])
 
 TASK_NOT_FOUND = "Task not found"
+CIRCULAR_DEPENDENCY_ERROR = "Circular dependency detected in task graph"
 RESPONSES_404_TASK = {404: {"description": TASK_NOT_FOUND}}
-RESPONSES_400_CYCLE = {400: {"description": "Circular dependency detected in task graph"}}
+RESPONSES_400_CYCLE = {400: {"description": CIRCULAR_DEPENDENCY_ERROR}}
 RESPONSES_DEP = {
-    400: {"description": "Circular dependency detected in task graph"},
+    400: {"description": CIRCULAR_DEPENDENCY_ERROR},
     404: {"description": "Task or prerequisite not found"},
 }
 
@@ -66,7 +67,7 @@ def create_task(
         if dep_id == task.id or check_dependency_cycle(db, event.id, task.id, dep_id):
             db.delete(task)
             db.commit()
-            raise HTTPException(status_code=400, detail="Circular dependency detected in task graph")
+            raise HTTPException(status_code=400, detail=CIRCULAR_DEPENDENCY_ERROR)
         dep = TaskDependency(task_id=task.id, depends_on_task_id=dep_id)
         db.add(dep)
 
@@ -95,7 +96,7 @@ def add_task_dependency(
         raise HTTPException(status_code=404, detail="Prerequisite task not found")
 
     if task_id == dep_in.depends_on_task_id or check_dependency_cycle(db, event.id, task_id, dep_in.depends_on_task_id):
-        raise HTTPException(status_code=400, detail="Circular dependency detected in task graph")
+        raise HTTPException(status_code=400, detail=CIRCULAR_DEPENDENCY_ERROR)
 
     existing = db.query(TaskDependency).filter(
         TaskDependency.task_id == task_id,

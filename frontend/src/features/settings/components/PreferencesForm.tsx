@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import type { EventItem, EventPreference } from "@/lib/api/types";
+import type { EventPreference } from "@/lib/api/types";
 import { Save, Check } from "lucide-react";
 
 interface PreferencesFormProps {

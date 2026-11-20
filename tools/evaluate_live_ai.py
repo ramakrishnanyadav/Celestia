@@ -54,7 +54,6 @@ def run_live_ai_evaluation():
         passed = type_match and city_match and guest_match and budget_match
         if passed:
             passed_cases += 1
-            total_score += 1.0
 
         results.append({
             "id": case_id,

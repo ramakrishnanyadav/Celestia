@@ -172,6 +172,17 @@ async function parseErrorResponse(response: Response): Promise<never> {
   throw new ApiError(response.status, errorMessage, errorDetails);
 }
 
+async function parseSuccessResponse<T>(response: Response): Promise<T> {
+  if (response.status === 204) {
+    return null as T;
+  }
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    return (await response.json()) as T;
+  }
+  return (await response.text()) as unknown as T;
+}
+
 export async function apiClient<T>(
   endpoint: string,
   options: RequestOptions = {}
@@ -212,10 +223,6 @@ export async function apiClient<T>(
     const response = await fetch(url, init);
     clearTimeout(timeoutId);
 
-    if (response.status === 204) {
-      return null as T;
-    }
-
     if (response.status === 401) {
       const retryResult = await handleUnauthorizedFlow<T>(endpoint, options);
       if (retryResult !== null) {
@@ -227,12 +234,7 @@ export async function apiClient<T>(
       await parseErrorResponse(response);
     }
 
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      return (await response.json()) as T;
-    }
-
-    return (await response.text()) as unknown as T;
+    return await parseSuccessResponse<T>(response);
   } catch (err: unknown) {
     clearTimeout(timeoutId);
     if (err instanceof ApiError) throw err;

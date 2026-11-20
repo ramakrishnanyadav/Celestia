@@ -26,11 +26,15 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+POSTGRES_PREFIX = "postgres://"
+POSTGRESQL_PREFIX = "postgresql://"
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     url = os.getenv("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
-    if url and url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
+    if url and url.startswith(POSTGRES_PREFIX):
+        url = url.replace(POSTGRES_PREFIX, POSTGRESQL_PREFIX, 1)
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -47,8 +51,8 @@ def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section, {})
     db_url = os.getenv("DATABASE_URL")
     if db_url:
-        if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        if db_url.startswith(POSTGRES_PREFIX):
+            db_url = db_url.replace(POSTGRES_PREFIX, POSTGRESQL_PREFIX, 1)
         configuration["sqlalchemy.url"] = db_url
 
     connectable = engine_from_config(
