@@ -10,15 +10,26 @@ export type ProvenanceSource =
   | "Vendor quote"
   | "CPM Solver"
   | "What-If Engine"
-  | string;
+  | (string & {});
 
-export type ConfidenceLevel = "High" | "Medium" | "Low" | string;
+export type ConfidenceLevel = "High" | "Medium" | "Low" | (string & {});
 
 interface ProvenanceBadgeProps {
-  source: ProvenanceSource;
-  confidence?: ConfidenceLevel | undefined;
-  assumption?: string | undefined;
-  className?: string | undefined;
+  readonly source: ProvenanceSource;
+  readonly confidence?: ConfidenceLevel | undefined;
+  readonly assumption?: string | undefined;
+  readonly className?: string | undefined;
+}
+
+function getConfidenceColor(confidence: string): string {
+  const c = confidence.toLowerCase();
+  if (c.includes("high")) {
+    return "text-[var(--status-success)] bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/40";
+  }
+  if (c.includes("med")) {
+    return "text-[var(--brand-marigold)] bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40";
+  }
+  return "text-[var(--status-danger)] bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/40";
 }
 
 export function ProvenanceBadge({
@@ -41,18 +52,15 @@ export function ProvenanceBadge({
     return <Sparkles className="w-3 h-3 text-[var(--brand-teal)]" aria-hidden="true" />;
   };
 
-  const confidenceColor =
-    confidence.toLowerCase().includes("high")
-      ? "text-[var(--status-success)] bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/40"
-      : confidence.toLowerCase().includes("med")
-      ? "text-[var(--brand-marigold)] bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40"
-      : "text-[var(--status-danger)] bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/40";
+  const confidenceColor = getConfidenceColor(confidence);
+  const assumptionSuffix = assumption ? `, assumption: ${assumption}` : "";
+  const ariaLabelText = `Data provenance: Source ${source}, confidence ${confidence}${assumptionSuffix}`;
 
   return (
     <div
       className={`inline-flex flex-wrap items-center gap-1.5 text-[11px] font-medium ${className}`}
       role="note"
-      aria-label={`Data provenance: Source ${source}, confidence ${confidence}${assumption ? `, assumption: ${assumption}` : ""}`}
+      aria-label={ariaLabelText}
     >
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--canvas-sunken)] border border-[var(--border-subtle)] text-[var(--ink-secondary)]">
         {getSourceIcon(source)}

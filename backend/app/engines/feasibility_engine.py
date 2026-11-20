@@ -102,7 +102,6 @@ def check_event_feasibility(
 
     reasons: list[str] = []
     recommendations: list[str] = []
-    status = "feasible"
 
     if budget_rupees < fixed_floor:
         status = "infeasible"

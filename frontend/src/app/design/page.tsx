@@ -5,21 +5,9 @@ import Link from "next/link";
 import {
   Sparkles,
   CheckCircle2,
-  AlertTriangle,
-  Info,
-  Sliders,
-  Store,
   CalendarDays,
   IndianRupee,
-  Layers,
-  ArrowRight,
-  ShieldCheck,
-  Flame,
-  Search,
-  Check,
   RotateCcw,
-  User,
-  Bot,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";

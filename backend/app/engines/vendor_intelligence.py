@@ -192,6 +192,8 @@ def seed_sample_vendors_and_quotations(db: Session, event: Event, auto_commit: b
 def analyze_quotation_risks(terms: dict[str, Any], inclusions: list[str], exclusions: list[str]) -> list[str]:
     """Automated heuristic risk detection on vendor contractual clauses"""
     risks = []
+    if not inclusions:
+        risks.append("Scope Undefined: Vendor quote does not specify included deliverables.")
     adv = terms.get("advance_percent", 0)
     if adv > 40.0:
         risks.append(f"High Advance Risk: Vendor demands {adv}% upfront deposit before services.")
@@ -242,8 +244,7 @@ def compare_quotations_for_category(db: Session, event_id: str, category: str) -
             elif len(all_risks) >= 1:
                 risk_score = "Medium"
 
-            for inc in q.inclusions:
-                all_inclusions_seen.add(inc)
+            all_inclusions_seen.update(q.inclusions)
 
             comparison_items.append({
                 "quotation_id": q.id,
@@ -265,7 +266,7 @@ def compare_quotations_for_category(db: Session, event_id: str, category: str) -
     if comparison_items:
         # Sort key: risk penalty + price
         def score_quote(item):
-            risk_penalty = 1000000 if item["risk_score"] == "High" else (300000 if item["risk_score"] == "Medium" else 0)
+            risk_penalty = {"High": 1000000, "Medium": 300000}.get(item["risk_score"], 0)
             return item["quoted_rupees"] + risk_penalty
 
         best = min(comparison_items, key=score_quote)

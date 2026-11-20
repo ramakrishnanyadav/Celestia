@@ -345,7 +345,7 @@ def set_auth_cookies(
         response.set_cookie(
             key="csrf_token",
             value=csrf_token,
-            httponly=False,
+            httponly=False,  # NOSONAR - Double-submit CSRF pattern requires JS readable cookie
             secure=is_prod,
             samesite=samesite_mode,
             max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
@@ -399,6 +399,17 @@ def create_ephemeral_demo_user(db: Session) -> User:
     db.refresh(user)
     return user
 
+def _validate_csrf_if_cookie(request: Request, from_cookie: bool) -> None:
+    if not from_cookie or request.method not in ("POST", "PUT", "PATCH", "DELETE"):
+        return
+    csrf_cookie = request.cookies.get("csrf_token")
+    csrf_header = request.headers.get("X-CSRF-Token")
+    if not csrf_cookie or not csrf_header or not hmac.compare_digest(csrf_cookie, csrf_header):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="CSRF token validation failed."
+        )
+
 def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
@@ -426,15 +437,7 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"}
         )
 
-    # CSRF Check on state-changing requests when authenticated via cookie
-    if from_cookie and request.method in ("POST", "PUT", "PATCH", "DELETE"):
-        csrf_cookie = request.cookies.get("csrf_token")
-        csrf_header = request.headers.get("X-CSRF-Token")
-        if not csrf_cookie or not csrf_header or not hmac.compare_digest(csrf_cookie, csrf_header):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="CSRF token validation failed."
-            )
+    _validate_csrf_if_cookie(request, from_cookie)
 
     payload = decode_token(token)
     if not payload or "sub" not in payload:

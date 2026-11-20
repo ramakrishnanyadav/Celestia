@@ -17,7 +17,7 @@ import { BudgetTable } from "@/features/budget/components/BudgetTable";
 export default function EventBudgetPage({
   params,
 }: {
-  params: Promise<{ eventId: string }>;
+  readonly params: Promise<{ readonly eventId: string }>;
 }) {
   const { eventId } = use(params);
   const { data: event, isLoading } = useEvent(eventId);

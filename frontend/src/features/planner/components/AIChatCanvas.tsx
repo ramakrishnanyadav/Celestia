@@ -5,9 +5,9 @@ import type { EventItem, EventPreference } from "@/lib/api/types";
 import { Bot, Send, Sparkles } from "lucide-react";
 
 interface AIChatCanvasProps {
-  event: EventItem;
-  preferences?: EventPreference | null;
-  onSendCommand?: (cmd: string) => Promise<{ response: string }>;
+  readonly event: EventItem;
+  readonly preferences?: EventPreference | null;
+  readonly onSendCommand?: (cmd: string) => Promise<{ response: string }>;
 }
 
 export function AIChatCanvas({
@@ -17,9 +17,10 @@ export function AIChatCanvas({
 }: AIChatCanvasProps) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<
-    Array<{ sender: "user" | "ai"; text: string }>
+    Array<{ id: string; sender: "user" | "ai"; text: string }>
   >([
     {
+      id: "initial-ai-msg",
       sender: "ai",
       text: `Hello! I'm your CELESTIA assistant for ${event.title}. I'm calibrated for ${preferences?.regional_culture || "Indian traditions"} with ${preferences?.dietary || "specified dietary requirements"}. How can I assist your celebration plan?`,
     },
@@ -30,17 +31,25 @@ export function AIChatCanvas({
     e.preventDefault();
     if (!input.trim() || loading) return;
     const userMsg = input.trim();
+    const userMsgId = `user-${Date.now()}`;
     setInput("");
-    setMessages((prev) => [...prev, { sender: "user", text: userMsg }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: userMsgId, sender: "user", text: userMsg },
+    ]);
     setLoading(true);
     try {
       if (onSendCommand) {
         const res = await onSendCommand(userMsg);
-        setMessages((prev) => [...prev, { sender: "ai", text: res.response }]);
+        setMessages((prev) => [
+          ...prev,
+          { id: `ai-${Date.now()}`, sender: "ai", text: res.response },
+        ]);
       } else {
         setMessages((prev) => [
           ...prev,
           {
+            id: `ai-${Date.now()}`,
             sender: "ai",
             text: "Suggestion noted and evaluated against deterministic constraints.",
           },
@@ -78,9 +87,9 @@ export function AIChatCanvas({
         aria-live="polite"
         aria-label="Chat Conversation History"
       >
-        {messages.map((msg, idx) => (
+        {messages.map((msg) => (
           <div
-            key={idx}
+            key={msg.id}
             className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             <div

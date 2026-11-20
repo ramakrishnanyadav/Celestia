@@ -83,7 +83,7 @@ export default function EventsGalleryPage() {
         )}
 
         {/* Empty State */}
-        {events && events.length === 0 && (
+        {events?.length === 0 && (
           <div className="p-12 rounded-3xl glass-card text-center space-y-4">
             <Sparkles className="w-10 h-10 mx-auto text-[var(--brand-teal)]" aria-hidden="true" />
             <h2 className="text-lg font-bold text-[var(--ink-primary)]">

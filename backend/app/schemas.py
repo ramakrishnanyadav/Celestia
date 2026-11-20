@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
+DEFAULT_TIMEZONE = "Asia/Kolkata"
+
 
 def sanitize_free_text(v: Any) -> Any:
     """Strips control chars and escapes HTML tags without breaking apostrophes."""
@@ -86,7 +88,7 @@ class EventPreferenceResponse(EventPreferenceBase):
         if dt is None:
             return None
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            dt = dt.replace(tzinfo=ZoneInfo(DEFAULT_TIMEZONE))
         return dt.isoformat()
 
     model_config = ConfigDict(from_attributes=True)
@@ -101,7 +103,7 @@ class EventCreate(BaseModel):
     budget_minor: int = Field(150000000, ge=1000000, le=10000000000) # ₹10,000 to ₹10,00,00,000 in paise
     budget_rupees: float | None = Field(None, ge=10000.0, le=100000000.0)
     currency: str = "INR"
-    timezone: str = "Asia/Kolkata"
+    timezone: str = DEFAULT_TIMEZONE
     preparation_months: int = Field(6, ge=1, le=36)
     target_date: datetime | None = None
     autonomy_mode: str = "Draft" # Suggest, Draft, Approve
@@ -155,7 +157,7 @@ class EventResponse(BaseModel):
         if dt is None:
             return None
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            dt = dt.replace(tzinfo=ZoneInfo(DEFAULT_TIMEZONE))
         return dt.isoformat()
 
     model_config = ConfigDict(from_attributes=True)

@@ -2,21 +2,21 @@
 
 import React, { useEffect, useState } from "react";
 import { ProvenanceBadge, ProvenanceSource, ConfidenceLevel } from "./ProvenanceBadge";
-import { TrendingUp, TrendingDown, HelpCircle } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 export interface KPICardProps {
-  title: string;
-  value: string;
-  numericTarget?: number | undefined;
-  subtext?: string | undefined;
-  delta?: { value: string; isPositive: boolean } | undefined;
-  icon: React.ElementType;
-  iconColor?: string | undefined;
-  isMoney?: boolean | undefined;
-  source?: ProvenanceSource | undefined;
-  confidence?: ConfidenceLevel | undefined;
-  assumption?: string | undefined;
-  className?: string | undefined;
+  readonly title: string;
+  readonly value: string;
+  readonly numericTarget?: number | undefined;
+  readonly subtext?: string | undefined;
+  readonly delta?: { readonly value: string; readonly isPositive: boolean } | undefined;
+  readonly icon: React.ElementType;
+  readonly iconColor?: string | undefined;
+  readonly isMoney?: boolean | undefined;
+  readonly source?: ProvenanceSource | undefined;
+  readonly confidence?: ConfidenceLevel | undefined;
+  readonly assumption?: string | undefined;
+  readonly className?: string | undefined;
 }
 
 export function KPICard({
@@ -74,9 +74,8 @@ export function KPICard({
   }, [numericTarget]);
 
   return (
-    <div
+    <section
       className={`p-5 rounded-2xl glass-card flex flex-col justify-between space-y-3 ${className}`}
-      role="region"
       aria-label={`${title}: ${value}`}
     >
       <div className="flex items-center justify-between">
@@ -139,7 +138,7 @@ export function KPICard({
           />
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

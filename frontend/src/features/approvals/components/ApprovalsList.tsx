@@ -6,9 +6,19 @@ import { CheckCheck, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 
 interface ApprovalsListProps {
-  approvals: ApprovalItem[];
-  onAction?: (proposalId: string, action: "approve" | "reject") => void;
-  loadingId?: string | null;
+  readonly approvals: ApprovalItem[];
+  readonly onAction?: (proposalId: string, action: "approve" | "reject") => void;
+  readonly loadingId?: string | null;
+}
+
+function getApprovalBadgeClass(status: string): string {
+  if (status === "approved") {
+    return "bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] border border-[var(--brand-teal)]/30";
+  }
+  if (status === "rejected") {
+    return "bg-red-50 dark:bg-red-950/60 text-[var(--status-danger)] border border-[var(--status-danger)]/30";
+  }
+  return "bg-[var(--brand-marigold-subtle)] text-[var(--brand-marigold)] border border-[var(--brand-marigold)]/30";
 }
 
 export function ApprovalsList({
@@ -45,13 +55,9 @@ export function ApprovalsList({
                     {item.title}
                   </h4>
                   <span
-                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                      item.status === "approved"
-                        ? "bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] border border-[var(--brand-teal)]/30"
-                        : item.status === "rejected"
-                          ? "bg-red-50 dark:bg-red-950/60 text-[var(--status-danger)] border border-[var(--status-danger)]/30"
-                          : "bg-[var(--brand-marigold-subtle)] text-[var(--brand-marigold)] border border-[var(--brand-marigold)]/30"
-                    }`}
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold uppercase ${getApprovalBadgeClass(
+                      item.status
+                    )}`}
                   >
                     {item.status === "approved" && (
                       <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />

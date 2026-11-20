@@ -54,7 +54,7 @@ export function blendRgbaOverRgb(
   return [
     Math.round(r1 * a + r2 * (1 - a)),
     Math.round(g1 * a + g2 * (1 - a)),
-    Math.round(b1 * a + bgRgb[2] * (1 - a)),
+    Math.round(b1 * a + b2 * (1 - a)),
   ];
 }
 

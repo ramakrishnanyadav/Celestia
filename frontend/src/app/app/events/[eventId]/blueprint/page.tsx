@@ -10,7 +10,7 @@ import { Printer } from "lucide-react";
 export default function EventBlueprintPage({
   params,
 }: {
-  params: Promise<{ eventId: string }>;
+  readonly params: Promise<{ readonly eventId: string }>;
 }) {
   const { eventId } = use(params);
   const { data: event, isLoading: eventLoading } = useEvent(eventId);

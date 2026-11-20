@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 interface DemoTourOverlayProps {
-  eventId: string;
+  readonly eventId: string;
 }
 
 interface TourStep {
@@ -236,7 +236,7 @@ export function DemoTourOverlay({ eventId }: DemoTourOverlayProps) {
               <div className="flex items-center gap-1.5" aria-hidden="true">
                 {steps.map((_, idx) => (
                   <button
-                    key={idx}
+                    key={`dot-${steps[idx]?.title ?? idx}`}
                     type="button"
                     onClick={() => setCurrentStep(idx)}
                     className={`w-2.5 h-2.5 rounded-full transition-all min-h-[24px] min-w-[24px] flex items-center justify-center p-0 ${

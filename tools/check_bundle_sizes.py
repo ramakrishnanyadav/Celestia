@@ -36,10 +36,8 @@ def analyze_bundles():
     for route, config in sorted(pages.items()):
         chunks = set(config.get("otherChunks", []))
         # Add root main files and polyfills required to boot the route
-        for rf in root_main:
-            chunks.add(rf)
-        for pf in polyfill_files:
-            chunks.add(pf)
+        chunks.update(root_main)
+        chunks.update(polyfill_files)
             
         total_raw = 0
         total_gz = 0

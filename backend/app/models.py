@@ -19,6 +19,10 @@ from sqlalchemy.orm import relationship
 
 from .database import Base
 
+CASCADE_ALL_DELETE = "all, delete-orphan"
+FK_USERS_ID = "users.id"
+FK_EVENTS_ID = "events.id"
+
 
 def generate_uuid() -> str:
     return str(uuid.uuid4())
@@ -39,14 +43,14 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
-    events = relationship("Event", back_populates="user", cascade="all, delete-orphan")
-    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+    events = relationship("Event", back_populates="user", cascade=CASCADE_ALL_DELETE)
+    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade=CASCADE_ALL_DELETE)
 
 class Event(Base):
     __tablename__ = "events"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(String(36), ForeignKey(FK_USERS_ID, ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     event_type = Column(String(50), nullable=False, index=True) # "wedding", "birthday", "community"
     city = Column(String(100), default="Mumbai")
@@ -71,20 +75,20 @@ class Event(Base):
         CheckConstraint("preparation_months >= 1 AND preparation_months <= 36", name="check_event_prep_months"),
         Index("ix_events_user_created", "user_id", "created_at"),
     )
-    preference = relationship("EventPreference", back_populates="event", uselist=False, cascade="all, delete-orphan")
-    plans = relationship("EventPlan", back_populates="event", cascade="all, delete-orphan")
-    budget_categories = relationship("BudgetCategory", back_populates="event", cascade="all, delete-orphan")
-    tasks = relationship("Task", back_populates="event", cascade="all, delete-orphan")
-    vendors = relationship("Vendor", back_populates="event", cascade="all, delete-orphan")
-    documents = relationship("Document", back_populates="event", cascade="all, delete-orphan")
-    approvals = relationship("Approval", back_populates="event", cascade="all, delete-orphan")
-    activity_logs = relationship("ActivityLog", back_populates="event", cascade="all, delete-orphan")
+    preference = relationship("EventPreference", back_populates="event", uselist=False, cascade=CASCADE_ALL_DELETE)
+    plans = relationship("EventPlan", back_populates="event", cascade=CASCADE_ALL_DELETE)
+    budget_categories = relationship("BudgetCategory", back_populates="event", cascade=CASCADE_ALL_DELETE)
+    tasks = relationship("Task", back_populates="event", cascade=CASCADE_ALL_DELETE)
+    vendors = relationship("Vendor", back_populates="event", cascade=CASCADE_ALL_DELETE)
+    documents = relationship("Document", back_populates="event", cascade=CASCADE_ALL_DELETE)
+    approvals = relationship("Approval", back_populates="event", cascade=CASCADE_ALL_DELETE)
+    activity_logs = relationship("ActivityLog", back_populates="event", cascade=CASCADE_ALL_DELETE)
 
 class EventPreference(Base):
     __tablename__ = "event_preferences"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), unique=True, nullable=False)
+    event_id = Column(String(36), ForeignKey(FK_EVENTS_ID, ondelete="CASCADE"), unique=True, nullable=False)
     dietary = Column(String(100), default="Pure Vegetarian")
     theme = Column(String(255), default="Royal Marigold & Polished Brass")
     regional_culture = Column(String(100), default="Maharashtrian Traditional")
@@ -101,7 +105,7 @@ class EventPlan(Base):
     __tablename__ = "event_plans"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_id = Column(String(36), ForeignKey(FK_EVENTS_ID, ondelete="CASCADE"), nullable=False, index=True)
     version = Column(Integer, default=1)
     title = Column(String(255), default="Master Event Blueprint")
     summary = Column(Text, nullable=True)
@@ -115,7 +119,7 @@ class BudgetCategory(Base):
     __tablename__ = "budget_categories"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_id = Column(String(36), ForeignKey(FK_EVENTS_ID, ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(100), nullable=False)
     allocation_basis_points = Column(Integer, default=0, nullable=False) # 100% = 10000 basis points
     allocated_amount_minor = Column(BigInteger, default=0) # Integer minor units (paise)
@@ -134,7 +138,7 @@ class BudgetCategory(Base):
         self.allocation_basis_points = int(round(val * 100))
 
     event = relationship("Event", back_populates="budget_categories")
-    expenses = relationship("Expense", back_populates="category", cascade="all, delete-orphan")
+    expenses = relationship("Expense", back_populates="category", cascade=CASCADE_ALL_DELETE)
 
     __table_args__ = (
         CheckConstraint("allocation_basis_points >= 0 AND allocation_basis_points <= 10000", name="check_cat_allocation_basis_points"),
@@ -167,7 +171,7 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_id = Column(String(36), ForeignKey(FK_EVENTS_ID, ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     category = Column(String(100), default="General") # Venue, Catering, Decor, Photography, Attire, Logistics
@@ -192,13 +196,13 @@ class Task(Base):
         "TaskDependency",
         foreign_keys="TaskDependency.task_id",
         back_populates="task",
-        cascade="all, delete-orphan"
+        cascade=CASCADE_ALL_DELETE
     )
     dependents = relationship(
         "TaskDependency",
         foreign_keys="TaskDependency.depends_on_task_id",
         back_populates="depends_on_task",
-        cascade="all, delete-orphan"
+        cascade=CASCADE_ALL_DELETE
     )
 
     __table_args__ = (
@@ -225,7 +229,7 @@ class Vendor(Base):
     __tablename__ = "vendors"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_id = Column(String(36), ForeignKey(FK_EVENTS_ID, ondelete="CASCADE"), nullable=False, index=True)
     category = Column(String(100), nullable=False) # Catering, Venue, Decor, Photography, Entertainment
     name = Column(String(255), nullable=False)
     contact = Column(String(255), nullable=True)
@@ -235,7 +239,7 @@ class Vendor(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now)
 
     event = relationship("Event", back_populates="vendors")
-    quotations = relationship("Quotation", back_populates="vendor", cascade="all, delete-orphan")
+    quotations = relationship("Quotation", back_populates="vendor", cascade=CASCADE_ALL_DELETE)
 
 class Quotation(Base):
     __tablename__ = "quotations"
@@ -263,7 +267,7 @@ class Document(Base):
     __tablename__ = "documents"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_id = Column(String(36), ForeignKey(FK_EVENTS_ID, ondelete="CASCADE"), nullable=False, index=True)
     file_name = Column(String(255), nullable=False)
     file_type = Column(String(100), default="application/pdf")
     extracted_text = Column(Text, nullable=True)
@@ -276,7 +280,7 @@ class Approval(Base):
     __tablename__ = "approvals"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_id = Column(String(36), ForeignKey(FK_EVENTS_ID, ondelete="CASCADE"), nullable=False, index=True)
     proposal_type = Column(String(100), nullable=False) # "budget_rebalance", "timeline_reschedule", "guest_scaling", "vendor_switch"
     title = Column(String(255), nullable=False)
     summary = Column(Text, nullable=False)
@@ -297,7 +301,7 @@ class ActivityLog(Base):
     __tablename__ = "activity_logs"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    event_id = Column(String(36), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_id = Column(String(36), ForeignKey(FK_EVENTS_ID, ondelete="CASCADE"), nullable=False, index=True)
     actor = Column(String(50), default="AI") # User, AI, System
     action = Column(String(100), nullable=False)
     details = Column(Text, nullable=False)
@@ -315,7 +319,7 @@ class IdempotencyRecord(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     key = Column(String(255), nullable=False, index=True)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(String(36), ForeignKey(FK_USERS_ID, ondelete="CASCADE"), nullable=False, index=True)
     endpoint = Column(String(255), nullable=False)
     request_hash = Column(String(64), nullable=False)
     response_code = Column(Integer, nullable=False, default=200)
@@ -330,7 +334,7 @@ class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(String(36), ForeignKey(FK_USERS_ID, ondelete="CASCADE"), nullable=False, index=True)
     token_hash = Column(String(64), unique=True, nullable=False, index=True)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     revoked = Column(Boolean, default=False)

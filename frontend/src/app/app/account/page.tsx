@@ -6,13 +6,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { useCurrentUser, useEvents } from "@/lib/hooks/queries";
 import {
   ShieldCheck,
-  User as UserIcon,
-  KeyRound,
-  Lock,
   ArrowLeft,
-  Calendar,
-  Layers,
-  Sparkles,
 } from "lucide-react";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 

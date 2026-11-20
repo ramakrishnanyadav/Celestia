@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import { Table, BarChart2 } from "lucide-react";
 
 interface DataTableToggleProps {
-  title: string;
-  summaryText: string;
-  headers: string[];
-  rows: (string | number)[][];
-  children: React.ReactNode;
+  readonly title: string;
+  readonly summaryText: string;
+  readonly headers: readonly string[];
+  readonly rows: readonly (string | number)[][];
+  readonly children: React.ReactNode;
 }
 
 export function DataTableToggle({
@@ -58,7 +58,7 @@ export function DataTableToggle({
             <thead className="bg-[var(--canvas-subtle)] border-b border-[var(--border-subtle)] text-[var(--ink-secondary)] text-xs uppercase font-semibold">
               <tr>
                 {headers.map((h, i) => (
-                  <th key={i} scope="col" className="px-4 py-3">
+                  <th key={`col-${h}-${i}`} scope="col" className="px-4 py-3">
                     {h}
                   </th>
                 ))}
@@ -66,10 +66,10 @@ export function DataTableToggle({
             </thead>
             <tbody className="divide-y divide-[var(--border-subtle)]">
               {rows.map((row, rIdx) => (
-                <tr key={rIdx} className="hover:bg-[var(--canvas-subtle)] transition-colors">
+                <tr key={`row-${row[0] ?? rIdx}`} className="hover:bg-[var(--canvas-subtle)] transition-colors">
                   {row.map((cell, cIdx) => (
                     <td
-                      key={cIdx}
+                      key={`cell-${rIdx}-${cIdx}`}
                       className={`px-4 py-3 ${
                         cIdx === 0
                           ? "font-medium text-[var(--ink-primary)]"

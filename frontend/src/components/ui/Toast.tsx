@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
 import * as ToastPrimitive from "@radix-ui/react-toast";
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 
@@ -35,7 +35,17 @@ export function useToast() {
   return ctx;
 }
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
+function getToastVariantClass(type: string): string {
+  if (type === "error") {
+    return "bg-red-50 dark:bg-red-950/80 border-red-300 dark:border-red-800 text-red-900 dark:text-red-100";
+  }
+  if (type === "success") {
+    return "bg-emerald-50 dark:bg-emerald-950/80 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100";
+  }
+  return "bg-[var(--canvas-card)] border-[var(--border-subtle)] text-[var(--ink-primary)]";
+}
+
+export function ToastProvider({ children }: { readonly children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const removeToast = useCallback((id: string) => {
@@ -86,8 +96,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     [showToast]
   );
 
+  const contextValue = useMemo(
+    () => ({ showToast, success, error, info }),
+    [showToast, success, error, info]
+  );
+
   return (
-    <ToastContext.Provider value={{ showToast, success, error, info }}>
+    <ToastContext.Provider value={contextValue}>
       <ToastPrimitive.Provider swipeDirection="right" duration={5000}>
         {children}
         {toasts.map((toast) => {
@@ -103,13 +118,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               // WCAG AA: errors assertive, others polite
               aria-live={isError ? "assertive" : "polite"}
               role={isError ? "alert" : "status"}
-              className={`flex items-start gap-3 p-4 rounded-xl shadow-xl border backdrop-blur-md transition-all duration-300 pointer-events-auto ${
-                isError
-                  ? "bg-red-50 dark:bg-red-950/80 border-red-300 dark:border-red-800 text-red-900 dark:text-red-100"
-                  : isSuccess
-                  ? "bg-emerald-50 dark:bg-emerald-950/80 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100"
-                  : "bg-[var(--canvas-card)] border-[var(--border-subtle)] text-[var(--ink-primary)]"
-              }`}
+              className={`flex items-start gap-3 p-4 rounded-xl shadow-xl border backdrop-blur-md transition-all duration-300 pointer-events-auto ${getToastVariantClass(
+                toast.type
+              )}`}
             >
               <div className="shrink-0 mt-0.5">
                 {isError && (

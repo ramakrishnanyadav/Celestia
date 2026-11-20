@@ -23,18 +23,14 @@ import {
   CheckCheck,
   ArrowRight,
   Flame,
-  ShieldCheck,
   Sliders,
   Sparkles,
-  Printer,
-  ChevronRight,
-  Clock,
 } from "lucide-react";
 
 export default function EventOverviewPage({
   params,
 }: {
-  params: Promise<{ eventId: string }>;
+  readonly params: Promise<{ readonly eventId: string }>;
 }) {
   const { eventId } = use(params);
   const { data: overview, isLoading: overviewLoading } = useEventOverview(eventId);

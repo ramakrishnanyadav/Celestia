@@ -10,10 +10,6 @@ import {
   ShieldCheck,
   CalendarDays,
   IndianRupee,
-  CheckCircle2,
-  Sliders,
-  Layers,
-  Store,
   Compass,
 } from "lucide-react";
 import { ProgressRing } from "@/components/ui/ProgressRing";

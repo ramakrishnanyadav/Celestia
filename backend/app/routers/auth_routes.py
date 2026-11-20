@@ -1,5 +1,5 @@
 import secrets
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
@@ -201,9 +201,9 @@ def get_user_sessions(
 def change_password(
     pwd_in: PasswordChangeRequest,
     response: Response,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    _rl = Depends(rate_limit_auth)
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    _rl: Annotated[None, Depends(rate_limit_auth)] = None
 ):
     """
     Changes user password:

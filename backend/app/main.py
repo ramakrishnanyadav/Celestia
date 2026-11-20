@@ -3,6 +3,7 @@ import os
 import time
 import uuid
 from contextlib import asynccontextmanager
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,6 +26,8 @@ from .routers import (
     task_routes,
     vendor_routes,
 )
+
+TIMEZONE_KOLKATA = "Asia/Kolkata"
 
 logger = logging.getLogger("celestia")
 
@@ -63,7 +66,7 @@ def bootstrap_primary_demonstration_scenario():
                 guest_count=300,
                 budget_minor=150000000,  # ₹15,00,000
                 currency="INR",
-                timezone="Asia/Kolkata",
+                timezone=TIMEZONE_KOLKATA,
                 preparation_months=6,
                 status="planning",
                 autonomy_mode="Draft"
@@ -101,7 +104,7 @@ def bootstrap_primary_demonstration_scenario():
                 guest_count=50,
                 budget_minor=15000000,  # ₹1,50,000
                 currency="INR",
-                timezone="Asia/Kolkata",
+                timezone=TIMEZONE_KOLKATA,
                 preparation_months=2,
                 status="planning",
                 autonomy_mode="Draft"
@@ -139,7 +142,7 @@ def bootstrap_primary_demonstration_scenario():
                 guest_count=1000,
                 budget_minor=80000000,  # ₹8,00,000
                 currency="INR",
-                timezone="Asia/Kolkata",
+                timezone=TIMEZONE_KOLKATA,
                 preparation_months=3,
                 status="planning",
                 autonomy_mode="Draft"
@@ -164,7 +167,7 @@ def bootstrap_primary_demonstration_scenario():
 
     except Exception as e:
         db.rollback()
-        logger.error(f"Error bootstrapping scenarios: {e}")
+        logger.exception("Error bootstrapping scenarios: %s", e)
     finally:
         db.close()
 
@@ -280,7 +283,7 @@ def liveness():
     return {"status": "ok", "service": "celestia-backend"}
 
 @app.get("/readyz")
-def readiness(db: Session = Depends(get_db)):
+def readiness(db: Annotated[Session, Depends(get_db)]):
     try:
         db.execute(text("SELECT 1"))
         return {"status": "ready", "service": "celestia-backend", "database": "connected"}
@@ -288,7 +291,7 @@ def readiness(db: Session = Depends(get_db)):
         return JSONResponse(status_code=503, content={"status": "not_ready", "error": type(e).__name__})
 
 @app.get("/health")
-def health_check(db: Session = Depends(get_db)):
+def health_check(db: Annotated[Session, Depends(get_db)]):
     """
     Active health check verifying application and database connectivity.
     Returns HTTP 200 if database responds, HTTP 503 if database is unreachable.

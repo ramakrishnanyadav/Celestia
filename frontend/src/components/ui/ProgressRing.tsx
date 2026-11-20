@@ -3,13 +3,13 @@
 import React from "react";
 
 export interface ProgressRingProps {
-  size?: number | undefined;
-  strokeWidth?: number | undefined;
-  allocatedPercent: number; // e.g. 90%
-  contingencyPercent?: number | undefined; // e.g. 10%
-  label?: string | undefined;
-  sublabel?: string | undefined;
-  className?: string | undefined;
+  readonly size?: number | undefined;
+  readonly strokeWidth?: number | undefined;
+  readonly allocatedPercent: number; // e.g. 90%
+  readonly contingencyPercent?: number | undefined; // e.g. 10%
+  readonly label?: string | undefined;
+  readonly sublabel?: string | undefined;
+  readonly className?: string | undefined;
 }
 
 export function ProgressRing({
@@ -31,22 +31,31 @@ export function ProgressRing({
 
   const allocatedDash = (safeAllocated / 100) * circumference;
   const contingencyDash = (safeContingency / 100) * circumference;
-  const remainingDash = Math.max(circumference - allocatedDash - contingencyDash, 0);
 
   return (
     <div
       className={`relative inline-flex flex-col items-center justify-center ${className}`}
-      role="meter"
       aria-label="Budget Allocation Ring with 10% Contingency Safety Reserve"
-      aria-valuenow={safeAllocated}
-      aria-valuemin={0}
-      aria-valuemax={100}
     >
+      <meter
+        className="sr-only"
+        role="meter"
+        value={safeAllocated}
+        min={0}
+        max={100}
+        aria-valuenow={safeAllocated}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Budget Allocation Ring with 10% Contingency Safety Reserve"
+      >
+        {safeAllocated}%
+      </meter>
       <svg
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         className="transform -rotate-90"
+        aria-hidden="true"
       >
         <defs>
           {/* Hatched Pattern for Contingency Reserve Arc */}

@@ -44,9 +44,9 @@ def run_suite():
     with sync_playwright() as p:
         # 1. E2E FLOWS ACROSS BROWSERS
         for browser_name in ["chromium", "firefox", "webkit"]:
-            print(f"\n==========================================", flush=True)
+            print("\n==========================================", flush=True)
             print(f"  Testing E2E Flows on Browser: {browser_name.upper()}", flush=True)
-            print(f"==========================================", flush=True)
+            print("==========================================", flush=True)
             
             browser_type = getattr(p, browser_name)
             try:
@@ -101,9 +101,9 @@ def run_suite():
             e2e_results["flows"].append(flow_record)
 
         # 2. ACCESSIBILITY MATRIX AUDIT (Chromium)
-        print(f"\n==========================================", flush=True)
-        print(f"  Axe-Core Accessibility Matrix Audit", flush=True)
-        print(f"==========================================", flush=True)
+        print("\n==========================================", flush=True)
+        print("  Axe-Core Accessibility Matrix Audit", flush=True)
+        print("==========================================", flush=True)
         
         browser = p.chromium.launch(headless=True)
         
@@ -152,9 +152,9 @@ def run_suite():
                         context.close()
 
         # 3. VISUAL REGRESSION SNAPSHOTS (3 Breakpoints)
-        print(f"\n==========================================", flush=True)
-        print(f"  Capturing Visual Regression Snapshots", flush=True)
-        print(f"==========================================", flush=True)
+        print("\n==========================================", flush=True)
+        print("  Capturing Visual Regression Snapshots", flush=True)
+        print("==========================================", flush=True)
         for bp in [{"name": "mobile_375", "w": 375, "h": 667}, {"name": "tablet_768", "w": 768, "h": 1024}, {"name": "desktop_1280", "w": 1280, "h": 800}]:
             ctx = browser.new_context(viewport={"width": bp["w"], "height": bp["h"]})
             pg = ctx.new_page()

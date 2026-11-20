@@ -17,16 +17,15 @@ import {
   Sun,
   Moon,
   User as UserIcon,
-  CheckCheck,
 } from "lucide-react";
 
 interface TopBarProps {
-  event?: EventItem | null | undefined;
-  events?: EventItem[] | undefined;
-  currentUser?: User | null | undefined;
-  pendingApprovalsCount?: number | undefined;
-  onToggleAiPause?: (() => void) | undefined;
-  onLogout?: (() => void) | undefined;
+  readonly event?: EventItem | null | undefined;
+  readonly events?: EventItem[] | undefined;
+  readonly currentUser?: User | null | undefined;
+  readonly pendingApprovalsCount?: number | undefined;
+  readonly onToggleAiPause?: (() => void) | undefined;
+  readonly onLogout?: (() => void) | undefined;
 }
 
 export function TopBar({

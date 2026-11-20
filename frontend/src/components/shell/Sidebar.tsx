@@ -23,8 +23,8 @@ import {
 } from "lucide-react";
 
 interface SidebarProps {
-  eventId: string;
-  pendingApprovalsCount?: number | undefined;
+  readonly eventId: string;
+  readonly pendingApprovalsCount?: number | undefined;
 }
 
 export function Sidebar({ eventId, pendingApprovalsCount = 0 }: SidebarProps) {

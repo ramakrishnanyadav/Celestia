@@ -1,18 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import {
   Search,
   LayoutDashboard,
   Bot,
-  Lightbulb,
   IndianRupee,
   CalendarDays,
   Store,
   CheckCheck,
-  Settings,
   Printer,
   Compass,
   Play,
@@ -23,12 +21,12 @@ import {
 import type { EventItem } from "@/lib/api/types";
 
 interface CommandPaletteProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  eventId?: string | undefined;
-  events?: EventItem[] | undefined;
-  onToggleAiPause?: (() => void) | undefined;
-  isAiPaused?: boolean | undefined;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly eventId?: string | undefined;
+  readonly events?: EventItem[] | undefined;
+  readonly onToggleAiPause?: (() => void) | undefined;
+  readonly isAiPaused?: boolean | undefined;
 }
 
 export function CommandPalette({

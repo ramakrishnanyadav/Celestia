@@ -17,9 +17,10 @@ OUTPUT_TOKEN_RATE_USD_PER_M = 0.60
 USD_TO_INR_RATE = 86.50
 
 # Configurable Model per Task
+DEFAULT_AI_MODEL = "gemini-1.5-flash"
 TASK_MODEL_MAPPING = {
-    "requirement_extraction": "gemini-1.5-flash",
-    "plan_generation": "gemini-1.5-flash",
+    "requirement_extraction": DEFAULT_AI_MODEL,
+    "plan_generation": DEFAULT_AI_MODEL,
     "vendor_negotiation": "gemini-1.5-pro",
     "cultural_synthesis": "gemini-1.5-pro",
     "offline_fallback": "rule-based-deterministic"
@@ -91,7 +92,7 @@ class RealGeminiProvider(AIProvider):
         self.api_key = api_key
 
     async def generate_completion(self, prompt: str, task_type: str = "plan_generation") -> dict[str, Any]:
-        model = TASK_MODEL_MAPPING.get(task_type, "gemini-1.5-flash")
+        model = TASK_MODEL_MAPPING.get(task_type, DEFAULT_AI_MODEL)
         # When API key is absent or in simulated test conditions, seamlessly routes to rule-based fallback
         if not self.api_key:
             return await RuleBasedFallbackProvider().generate_completion(prompt, task_type)
@@ -120,7 +121,7 @@ class TokenCostTracker:
         return max(1, len(text) // 4)
 
     @classmethod
-    def calculate_cost(cls, prompt_tokens: int, completion_tokens: int, model: str = "gemini-1.5-flash") -> dict[str, Any]:
+    def calculate_cost(cls, prompt_tokens: int, completion_tokens: int, model: str = DEFAULT_AI_MODEL) -> dict[str, Any]:
         cost_usd = (
             (prompt_tokens / 1_000_000.0) * INPUT_TOKEN_RATE_USD_PER_M +
             (completion_tokens / 1_000_000.0) * OUTPUT_TOKEN_RATE_USD_PER_M
@@ -294,7 +295,7 @@ class AIEfficiencyService:
                 UserPlanCache.set(event.user_id, event.id, name, res)
                 ai_circuit_breaker.record_success()
                 return res
-            except (TimeoutError, Exception):
+            except Exception:
                 ai_circuit_breaker.record_failure()
                 return fallback_fn()
 

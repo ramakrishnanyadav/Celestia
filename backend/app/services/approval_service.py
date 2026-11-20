@@ -7,6 +7,62 @@ from ..engines.budget_intelligence import seed_event_budget
 from ..engines.planning_intelligence import run_cpm_calculation
 from ..models import ActivityLog, Approval, Event
 
+STATUS_PROPOSAL_APPROVED = "Proposal Approved"
+STATUS_PROPOSAL_REJECTED = "Proposal Rejected"
+
+
+def _apply_approval_changes(
+    db: Session,
+    event: Event,
+    proposal: Approval,
+    action_clean: str,
+    comment: str | None,
+) -> None:
+    if action_clean == "approve":
+        changes = proposal.proposed_changes_json or {}
+        if proposal.proposal_type == "guest_scaling" and "new_guest_count" in changes:
+            old_count = event.guest_count
+            new_count = int(changes["new_guest_count"])
+            event.guest_count = new_count
+            seed_event_budget(db, event)
+            run_cpm_calculation(db, event.id)
+
+            log = ActivityLog(
+                event_id=event.id,
+                actor="User",
+                action=STATUS_PROPOSAL_APPROVED,
+                details=f"Approved guest scaling from {old_count} to {new_count} guests. Budget and per-head numbers updated.",
+            )
+            db.add(log)
+        elif proposal.proposal_type == "budget_adjustment" and "new_budget_minor" in changes:
+            new_minor = int(changes["new_budget_minor"])
+            event.budget_minor = new_minor
+            seed_event_budget(db, event)
+
+            log = ActivityLog(
+                event_id=event.id,
+                actor="User",
+                action=STATUS_PROPOSAL_APPROVED,
+                details=f"Approved budget adjustment to {new_minor // 100} INR.",
+            )
+            db.add(log)
+        else:
+            log = ActivityLog(
+                event_id=event.id,
+                actor="User",
+                action=STATUS_PROPOSAL_APPROVED,
+                details=f"Approved proposal '{proposal.title}'.",
+            )
+            db.add(log)
+    elif action_clean == "reject":
+        log = ActivityLog(
+            event_id=event.id,
+            actor="User",
+            action=STATUS_PROPOSAL_REJECTED,
+            details=f"Rejected proposal '{proposal.title}'. Comment: {comment or 'None'}.",
+        )
+        db.add(log)
+
 
 class ApprovalService:
     """
@@ -69,53 +125,7 @@ class ApprovalService:
             raise HTTPException(status_code=404, detail="Approval proposal not found")
 
         try:
-            if action_clean == "approve":
-                changes = proposal.proposed_changes_json or {}
-                if proposal.proposal_type == "guest_scaling" and "new_guest_count" in changes:
-                    old_count = event.guest_count
-                    new_count = int(changes["new_guest_count"])
-                    event.guest_count = new_count
-                    seed_event_budget(db, event)
-                    run_cpm_calculation(db, event.id)
-
-                    log = ActivityLog(
-                        event_id=event.id,
-                        actor="User",
-                        action="Proposal Approved",
-                        details=f"Approved guest scaling from {old_count} to {new_count} guests. Budget and per-head numbers updated."
-                    )
-                    db.add(log)
-
-                elif proposal.proposal_type == "budget_adjustment" and "new_budget_minor" in changes:
-                    new_minor = int(changes["new_budget_minor"])
-                    event.budget_minor = new_minor
-                    seed_event_budget(db, event)
-
-                    log = ActivityLog(
-                        event_id=event.id,
-                        actor="User",
-                        action="Proposal Approved",
-                        details=f"Approved budget adjustment to {new_minor // 100} INR."
-                    )
-                    db.add(log)
-                else:
-                    log = ActivityLog(
-                        event_id=event.id,
-                        actor="User",
-                        action="Proposal Approved",
-                        details=f"Approved proposal '{proposal.title}'."
-                    )
-                    db.add(log)
-
-            elif action_clean == "reject":
-                log = ActivityLog(
-                    event_id=event.id,
-                    actor="User",
-                    action="Proposal Rejected",
-                    details=f"Rejected proposal '{proposal.title}'. Comment: {comment or 'None'}."
-                )
-                db.add(log)
-
+            _apply_approval_changes(db, event, proposal, action_clean, comment)
             db.commit()
             db.refresh(proposal)
             return proposal

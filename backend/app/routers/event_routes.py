@@ -24,6 +24,8 @@ from ..schemas import (
 
 router = APIRouter(prefix="/events", tags=["Events"])
 
+EVENT_NOT_FOUND = "Event not found"
+
 def enrich_event_response(event: Event) -> EventResponse:
     res = EventResponse.model_validate(event)
     res.budget_rupees = paise_to_rupees(event.budget_minor)
@@ -100,7 +102,7 @@ def get_event(
 ):
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise HTTPException(status_code=404, detail=EVENT_NOT_FOUND)
     return enrich_event_response(event)
 
 def enrich_category_item(cat: BudgetCategory) -> dict[str, Any]:
@@ -183,7 +185,7 @@ def get_event_overview(
     ).filter(Event.id == event_id, Event.user_id == current_user.id).first()
 
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise HTTPException(status_code=404, detail=EVENT_NOT_FOUND)
 
     # Fetch only the top 10 next operational tasks with dependencies (avoids loading full 500-task graph)
     next_tasks_db = db.query(Task).options(
@@ -237,7 +239,7 @@ def update_event(
 ):
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise HTTPException(status_code=404, detail=EVENT_NOT_FOUND)
 
     for key, val in update_data.model_dump(exclude_unset=True).items():
         setattr(event, key, val)
@@ -260,7 +262,7 @@ def delete_event(
 
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise HTTPException(status_code=404, detail=EVENT_NOT_FOUND)
 
     db.delete(event)
     db.commit()
@@ -274,7 +276,7 @@ def get_preferences(
 ):
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise HTTPException(status_code=404, detail=EVENT_NOT_FOUND)
     if not event.preference:
         pref = EventPreference(event_id=event.id)
         db.add(pref)
@@ -292,7 +294,7 @@ def update_preferences(
 ):
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise HTTPException(status_code=404, detail=EVENT_NOT_FOUND)
 
     pref = event.preference
     if not pref:
@@ -314,7 +316,7 @@ def get_active_plan(
 ):
     event = db.query(Event).filter(Event.id == event_id, Event.user_id == current_user.id).first()
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise HTTPException(status_code=404, detail=EVENT_NOT_FOUND)
 
     plan = db.query(EventPlan).filter(
         EventPlan.event_id == event_id,

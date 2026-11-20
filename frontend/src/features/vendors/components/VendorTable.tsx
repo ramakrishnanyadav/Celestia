@@ -6,8 +6,8 @@ import type { VendorItem } from "@/lib/api/types";
 import { Store, Star, Award } from "lucide-react";
 
 interface VendorTableProps {
-  vendors: VendorItem[];
-  onAddQuoteClick?: (vendorId: string) => void;
+  readonly vendors: readonly VendorItem[];
+  readonly onAddQuoteClick?: (vendorId: string) => void;
 }
 
 export function VendorTable({ vendors, onAddQuoteClick }: VendorTableProps) {

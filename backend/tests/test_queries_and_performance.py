@@ -24,7 +24,6 @@ class QueryCounter:
 def clean_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    yield
 
 def test_query_count_task_list_has_no_n_plus_one():
     """Verify that listing tasks executes exactly 1 or 2 queries (eager loading), not N+1."""

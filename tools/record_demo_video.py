@@ -195,14 +195,14 @@ def run():
             if slider.is_visible():
                 print("     Simulating Guest variations with optimistic live update...", flush=True)
                 for target_val in [340, 380, 420, 450, 480, 420, 300]:
-                    page.evaluate(f"""(val) => {{
+                    page.evaluate("""(val) => {
                         const input = document.querySelector("input[type='range']");
-                        if (input) {{
+                        if (input) {
                             input.value = val;
-                            input.dispatchEvent(new Event('input', {{ bubbles: true }}));
-                            input.dispatchEvent(new Event('change', {{ bubbles: true }}));
-                        }}
-                    }}""", target_val)
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }""", target_val)
                     page.wait_for_timeout(500)
 
             page.wait_for_timeout(1800)
@@ -312,7 +312,7 @@ def run():
     # Move recorded video file to final destination
     recorded_files = list(TEMP_VIDEO_DIR.glob("*.webm"))
     if recorded_files:
-        latest_file = sorted(recorded_files, key=lambda f: f.stat().st_mtime)[-1]
+        latest_file = max(recorded_files, key=lambda f: f.stat().st_mtime)
         shutil.copy2(latest_file, TARGET_VIDEO_PATH)
         file_size_mb = TARGET_VIDEO_PATH.stat().st_size / (1024 * 1024)
         print(f"[SUCCESS] Winning Demo Video recorded: {TARGET_VIDEO_PATH} ({file_size_mb:.2f} MB)", flush=True)

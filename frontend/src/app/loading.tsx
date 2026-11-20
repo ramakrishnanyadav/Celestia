@@ -2,10 +2,9 @@ import React from "react";
 
 export default function RootLoading() {
   return (
-    <div
-      className="min-h-screen flex flex-col bg-[var(--canvas)] animate-pulse"
+    <output
+      className="min-h-screen flex flex-col bg-[var(--canvas)] animate-pulse block"
       aria-label="Loading CELESTIA"
-      role="status"
     >
       <header className="h-16 border-b border-[var(--border-subtle)] bg-[var(--canvas-elevated)] px-6 flex items-center justify-between">
         <div className="w-32 h-6 rounded bg-[var(--canvas-sunken)]" />
@@ -19,7 +18,7 @@ export default function RootLoading() {
           <div className="h-40 rounded-2xl bg-[var(--canvas-sunken)]" />
         </div>
       </main>
-    </div>
+    </output>
   );
 }
 

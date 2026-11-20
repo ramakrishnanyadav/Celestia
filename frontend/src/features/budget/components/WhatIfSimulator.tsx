@@ -8,8 +8,7 @@ import { Sliders, CheckCircle2, AlertTriangle } from "lucide-react";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 
 interface WhatIfSimulatorProps {
-  event: EventItem;
-  onApplyProposal?: () => void;
+  readonly event: EventItem;
 }
 
 export function WhatIfSimulator({

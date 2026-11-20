@@ -7,14 +7,14 @@ import { MobileTabBar } from "./MobileTabBar";
 import type { EventItem, User } from "@/lib/api/types";
 
 interface AppShellProps {
-  eventId: string;
-  event?: EventItem | null | undefined;
-  events?: EventItem[] | undefined;
-  currentUser?: User | null | undefined;
-  pendingApprovalsCount?: number | undefined;
-  onToggleAiPause?: (() => void) | undefined;
-  onLogout?: (() => void) | undefined;
-  children: React.ReactNode;
+  readonly eventId: string;
+  readonly event?: EventItem | null | undefined;
+  readonly events?: EventItem[] | undefined;
+  readonly currentUser?: User | null | undefined;
+  readonly pendingApprovalsCount?: number | undefined;
+  readonly onToggleAiPause?: (() => void) | undefined;
+  readonly onLogout?: (() => void) | undefined;
+  readonly children: React.ReactNode;
 }
 
 export function AppShell({

@@ -5,9 +5,8 @@ import type { EventItem, EventPreference } from "@/lib/api/types";
 import { Save, Check } from "lucide-react";
 
 interface PreferencesFormProps {
-  event: EventItem;
-  preferences?: EventPreference | null;
-  onSave?: (data: Partial<EventPreference>) => Promise<void>;
+  readonly preferences?: EventPreference | null;
+  readonly onSave?: (data: Partial<EventPreference>) => Promise<void>;
 }
 
 export function PreferencesForm({
@@ -43,6 +42,14 @@ export function PreferencesForm({
     }
   };
 
+  const saveAnnouncement = saved
+    ? "Preferences saved successfully"
+    : saving
+    ? "Saving preferences..."
+    : "";
+
+  const saveButtonText = saved ? "Saved" : saving ? "Saving..." : "Save Preferences";
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -51,7 +58,7 @@ export function PreferencesForm({
     >
       {/* Live Region for Save Status */}
       <div aria-live="polite" className="sr-only">
-        {saved ? "Preferences saved successfully" : saving ? "Saving preferences..." : ""}
+        {saveAnnouncement}
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
@@ -73,9 +80,7 @@ export function PreferencesForm({
           ) : (
             <Save className="w-4 h-4 shrink-0" aria-hidden="true" />
           )}
-          <span>
-            {saved ? "Saved" : saving ? "Saving..." : "Save Preferences"}
-          </span>
+          <span>{saveButtonText}</span>
         </button>
       </div>
 

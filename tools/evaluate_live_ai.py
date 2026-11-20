@@ -31,7 +31,6 @@ def run_live_ai_evaluation():
         scenarios = data.get("scenarios", [])
 
     results = []
-    total_score = 0.0
     passed_cases = 0
 
     print(f"=== Starting Live AI Evaluation ({len(scenarios)} Scenarios) ===")

@@ -2,10 +2,9 @@ import React from "react";
 
 export default function EventDashboardLoading() {
   return (
-    <div
-      className="space-y-8 animate-pulse"
+    <output
+      className="space-y-8 animate-pulse block"
       aria-label="Loading celebration workspace"
-      role="status"
     >
       {/* Event Header Banner Skeleton - fixed dimensions */}
       <div className="h-28 rounded-2xl bg-[var(--canvas-elevated)] border border-[var(--border-subtle)] p-6 flex flex-col justify-center space-y-3">
@@ -41,7 +40,7 @@ export default function EventDashboardLoading() {
           <div className="h-64 rounded-xl bg-[var(--canvas-sunken)]" />
         </div>
       </div>
-    </div>
+    </output>
   );
 }
 

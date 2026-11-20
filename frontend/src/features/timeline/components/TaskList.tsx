@@ -5,8 +5,8 @@ import type { TaskItem } from "@/lib/api/types";
 import { CheckCircle2, Circle, Clock, AlertTriangle, Flame } from "lucide-react";
 
 interface TaskListProps {
-  tasks: TaskItem[];
-  onToggleComplete?: (task: TaskItem) => void;
+  readonly tasks: readonly TaskItem[];
+  readonly onToggleComplete?: (task: TaskItem) => void;
 }
 
 export function TaskList({ tasks, onToggleComplete }: TaskListProps) {

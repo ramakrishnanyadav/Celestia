@@ -6,6 +6,8 @@ import json
 from datetime import datetime, timezone, timedelta
 
 DB_FILE = "perf_benchmark.db"
+DEFAULT_ISO_DATE = "2026-10-31T00:00:00Z"
+EVENT_TARGET_DATE = "2027-02-14T00:00:00Z"
 
 def setup_benchmark_database():
     if os.path.exists(DB_FILE):
@@ -114,7 +116,7 @@ def setup_benchmark_database():
     t0 = time.perf_counter()
     
     # 1. 50 Users
-    user_rows = [(f"user-{i}", f"user{i}@example.com", "hash", f"User {i}", "planner", "2026-10-31T00:00:00Z") for i in range(50)]
+    user_rows = [(f"user-{i}", f"user{i}@example.com", "hash", f"User {i}", "planner", DEFAULT_ISO_DATE) for i in range(50)]
     cur.executemany("INSERT INTO users VALUES (?,?,?,?,?,?)", user_rows)
     
     # 2. 200 Events
@@ -123,8 +125,8 @@ def setup_benchmark_database():
         u_id = f"user-{i % 50}"
         event_rows.append((
             f"event-{i}", u_id, f"Celebration {i}", "wedding" if i % 2 == 0 else "birthday",
-            "Mumbai", "2027-02-14T00:00:00Z", 300, 150000000, "INR", "Asia/Kolkata", 6,
-            "planning", "Draft", False, "2026-10-31T00:00:00Z", "2026-10-31T00:00:00Z"
+            "Mumbai", EVENT_TARGET_DATE, 300, 150000000, "INR", "Asia/Kolkata", 6,
+            "planning", "Draft", False, DEFAULT_ISO_DATE, DEFAULT_ISO_DATE
         ))
     cur.executemany("INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", event_rows)
     
@@ -140,17 +142,17 @@ def setup_benchmark_database():
     exp_rows = []
     exp_idx = 0
     for c in range(40):
-        for k in range(12):
+        for _ in range(12):
             exp_rows.append((
                 f"exp-{exp_idx}", f"cat-0-{c}", f"Item {exp_idx}", 300000, 250000,
-                "USER_PROVIDED", "2026-10-31T00:00:00Z", "2026-10-31T00:00:00Z"
+                "USER_PROVIDED", DEFAULT_ISO_DATE, DEFAULT_ISO_DATE
             ))
             exp_idx += 1
             
     while exp_idx < 5000:
         exp_rows.append((
             f"exp-{exp_idx}", f"cat-0-{exp_idx % 40}", f"Item {exp_idx}", 100000, 50000,
-            "CALCULATED", "2026-10-31T00:00:00Z", "2026-10-31T00:00:00Z"
+            "CALCULATED", DEFAULT_ISO_DATE, DEFAULT_ISO_DATE
         ))
         exp_idx += 1
     cur.executemany("INSERT INTO expenses VALUES (?,?,?,?,?,?,?,?)", exp_rows)
@@ -161,8 +163,8 @@ def setup_benchmark_database():
     for t in range(500):
         task_rows.append((
             f"task-0-{t}", "event-0", f"Stress Task {t}", "Desc", "Planning",
-            3, "2027-02-14T00:00:00Z", False, None, False, 0, 0, 0, 0, 0,
-            "AI_SUGGESTED", "2026-10-31T00:00:00Z", "2026-10-31T00:00:00Z"
+            3, EVENT_TARGET_DATE, False, None, False, 0, 0, 0, 0, 0,
+            "AI_SUGGESTED", DEFAULT_ISO_DATE, DEFAULT_ISO_DATE
         ))
         if t > 0:
             dep_rows.append((f"dep-0-{t}", f"task-0-{t}", f"task-0-{t-1}", "FS"))
@@ -172,8 +174,8 @@ def setup_benchmark_database():
         ev = f"event-{t % 200}"
         task_rows.append((
             f"task-{t}", ev, f"General Task {t}", "Desc", "General",
-            2, "2027-02-14T00:00:00Z", False, None, False, 0, 0, 0, 0, 0,
-            "USER_PROVIDED", "2026-10-31T00:00:00Z", "2026-10-31T00:00:00Z"
+            2, EVENT_TARGET_DATE, False, None, False, 0, 0, 0, 0, 0,
+            "USER_PROVIDED", DEFAULT_ISO_DATE, DEFAULT_ISO_DATE
         ))
     cur.executemany("INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", task_rows)
     cur.executemany("INSERT INTO task_dependencies VALUES (?,?,?,?)", dep_rows)

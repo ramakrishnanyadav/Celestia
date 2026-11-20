@@ -7,8 +7,8 @@ import { IndianRupee, Layers } from "lucide-react";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 
 interface BudgetTableProps {
-  categories: BudgetCategory[];
-  onAddExpenseClick?: (categoryId: string) => void;
+  readonly categories: readonly BudgetCategory[];
+  readonly onAddExpenseClick?: (categoryId: string) => void;
 }
 
 export function BudgetTable({

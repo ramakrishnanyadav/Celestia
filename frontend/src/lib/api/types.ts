@@ -1,4 +1,4 @@
-import type { components, paths } from "./schema";
+import type { components } from "./schema";
 
 export type User = components["schemas"]["UserResponse"];
 export type TokenResponse = components["schemas"]["Token"];

@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 
 interface MobileTabBarProps {
-  eventId: string;
-  pendingApprovalsCount?: number | undefined;
+  readonly eventId: string;
+  readonly pendingApprovalsCount?: number | undefined;
 }
 
 export function MobileTabBar({

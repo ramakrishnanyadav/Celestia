@@ -30,7 +30,7 @@ async def run_ai_benchmark():
     compact_tokens = TokenCostTracker.estimate_tokens(compact_prompt)
     token_reduction = ((verbose_tokens - compact_tokens) / verbose_tokens) * 100.0
 
-    print(f"\n1. PROMPT COMPACTION:")
+    print("\n1. PROMPT COMPACTION:")
     print(f"   - Standard Verbose Prompt: {verbose_tokens} tokens")
     print(f"   - Minimized JSON Prompt:   {compact_tokens} tokens ({token_reduction:.1f}% token reduction)")
 
@@ -51,7 +51,7 @@ async def run_ai_benchmark():
     print(f"   - Speedup:                  {speedup:.2f}x ({pct_reduction:.1f}% latency reduction)")
 
     # 3. Test Per-Call Timeout & Fast Fallback
-    print(f"\n3. FAULT TOLERANCE & TIMEOUT FALLBACK:")
+    print("\n3. FAULT TOLERANCE & TIMEOUT FALLBACK:")
     timeout_threshold = 0.15 # 150 ms timeout
     slow_provider_delay = 1.0 # 1000 ms provider hang
     fallback_res = await AIEfficiencyService.generate_plan_parallel(
@@ -64,7 +64,7 @@ async def run_ai_benchmark():
     print(f"   - Fallback Returned Sections: {list(fallback_res['sections'].keys())}")
     
     # 4. Token & Cost Tracking
-    print(f"\n4. TOKEN & COST TRACKING:")
+    print("\n4. TOKEN & COST TRACKING:")
     metrics = parallel_res["efficiency_metrics"]
     print(f"   - Model:             {metrics['model']}")
     print(f"   - Prompt Tokens:     {metrics['prompt_tokens']}")

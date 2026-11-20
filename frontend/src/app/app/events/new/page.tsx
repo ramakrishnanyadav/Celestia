@@ -5,15 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
-  Users,
   ArrowRight,
-  ShieldCheck,
-  Calendar,
-  IndianRupee,
-  MapPin,
-  Building,
-  Clock,
-  Palette,
 } from "lucide-react";
 import { useCreateEvent } from "@/lib/hooks/queries";
 import { rupeesToPaise } from "@/lib/money";

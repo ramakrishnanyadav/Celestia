@@ -29,7 +29,7 @@ def override_get_db():
     finally:
         db.close()
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(autouse=True)
 def setup_security_database():
     app.dependency_overrides[get_db] = override_get_db
     Base.metadata.drop_all(bind=engine)

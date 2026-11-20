@@ -36,7 +36,7 @@ import {
 export default function EventSettingsPage({
   params,
 }: {
-  params: Promise<{ eventId: string }>;
+  readonly params: Promise<{ readonly eventId: string }>;
 }) {
   const { eventId } = use(params);
   const router = useRouter();

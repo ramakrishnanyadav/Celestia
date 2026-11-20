@@ -32,7 +32,7 @@ def db():
 
 @pytest.fixture
 def db_session(db):
-    yield db
+    return db
 
 @pytest.fixture
 def client(db):

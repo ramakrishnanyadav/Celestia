@@ -61,13 +61,13 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
-  async headers() {
-    return [
+  headers() {
+    return Promise.resolve([
       {
         source: "/:path*",
         headers: securityHeaders,
       },
-    ];
+    ]);
   },
   cacheComponents: true,
   partialPrefetching: true,

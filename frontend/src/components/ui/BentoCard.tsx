@@ -3,9 +3,15 @@
 import React, { useRef } from "react";
 
 export interface BentoCardProps extends React.HTMLAttributes<HTMLDivElement> {
-  elevation?: 1 | 2 | 3 | undefined;
-  spotlight?: boolean | undefined;
-  children: React.ReactNode;
+  readonly elevation?: 1 | 2 | 3 | undefined;
+  readonly spotlight?: boolean | undefined;
+  readonly children: React.ReactNode;
+}
+
+function getElevationClass(elevation: 1 | 2 | 3): string {
+  if (elevation === 3) return "glass-3";
+  if (elevation === 2) return "glass-2";
+  return "glass-1";
 }
 
 export function BentoCard({
@@ -28,8 +34,7 @@ export function BentoCard({
     el.style.setProperty("--my", `${y}px`);
   };
 
-  const elevationClass =
-    elevation === 3 ? "glass-3" : elevation === 2 ? "glass-2" : "glass-1";
+  const elevationClass = getElevationClass(elevation);
 
   return (
     <div

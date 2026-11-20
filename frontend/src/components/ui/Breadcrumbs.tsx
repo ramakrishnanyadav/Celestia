@@ -5,13 +5,13 @@ import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
 
 export interface BreadcrumbItem {
-  label: string;
-  href?: string;
-  current?: boolean;
+  readonly label: string;
+  readonly href?: string;
+  readonly current?: boolean;
 }
 
 interface BreadcrumbsProps {
-  items: BreadcrumbItem[];
+  readonly items: readonly BreadcrumbItem[];
 }
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
@@ -30,7 +30,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
         {items.map((item, index) => {
           const isLast = index === items.length - 1 || item.current;
           return (
-            <li key={index} className="flex items-center space-x-2">
+            <li key={`${item.label}-${item.href ?? index}`} className="flex items-center space-x-2">
               <ChevronRight
                 className="w-3.5 h-3.5 text-[var(--ink-muted)] shrink-0"
                 aria-hidden="true"

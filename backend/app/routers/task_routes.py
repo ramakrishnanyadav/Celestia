@@ -12,6 +12,8 @@ from ..schemas import CPMResultResponse, TaskCreate, TaskDependencyCreate, TaskR
 
 router = APIRouter(prefix="/events/{event_id}/tasks", tags=["Planning & Tasks"])
 
+TASK_NOT_FOUND = "Task not found"
+
 def enrich_task_response(task: Task) -> TaskResponse:
     res = TaskResponse.model_validate(task)
     res.depends_on_ids = [d.depends_on_task_id for d in task.dependencies]
@@ -80,7 +82,7 @@ def add_task_dependency(
 ):
     task = db.query(Task).filter(Task.id == task_id, Task.event_id == event.id).first()
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail=TASK_NOT_FOUND)
 
     dep_task = db.query(Task).filter(Task.id == dep_in.depends_on_task_id, Task.event_id == event.id).first()
     if not dep_task:
@@ -111,7 +113,7 @@ def update_task(
 ):
     task = db.query(Task).filter(Task.id == task_id, Task.event_id == event.id).first()
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail=TASK_NOT_FOUND)
 
     data = task_in.model_dump(exclude_unset=True)
     if "expected_version" in data:
@@ -143,7 +145,7 @@ def delete_task(
 ):
     task = db.query(Task).filter(Task.id == task_id, Task.event_id == event.id).first()
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail=TASK_NOT_FOUND)
 
     db.delete(task)
     db.commit()

@@ -16,7 +16,7 @@ import {
 export default function IdeasPage({
   params,
 }: {
-  params: Promise<{ eventId: string }>;
+  readonly params: Promise<{ readonly eventId: string }>;
 }) {
   const { eventId } = use(params);
   const { data: event } = useEvent(eventId);
@@ -139,7 +139,7 @@ export default function IdeasPage({
           {activeCategory === "themes" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {themes.map((t, i) => (
-                <div key={i} className="p-5 rounded-2xl glass-card space-y-2">
+                <div key={t.name ?? `theme-${i}`} className="p-5 rounded-2xl glass-card space-y-2">
                   <h2 className="text-base font-bold text-[var(--ink-primary)]">
                     {t.name ?? "Theme Concept"}
                   </h2>
@@ -150,7 +150,7 @@ export default function IdeasPage({
                     <div className="flex flex-wrap gap-2 pt-2">
                       {t.color_palette.map((c, ci) => (
                         <span
-                          key={ci}
+                          key={`${t.name ?? "theme"}-${c}-${ci}`}
                           className="text-xs font-semibold px-2.5 py-1 rounded-md bg-[var(--canvas-sunken)] border border-[var(--border-subtle)] text-[var(--ink-primary)]"
                         >
                           {c}
@@ -166,7 +166,7 @@ export default function IdeasPage({
           {activeCategory === "food" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {food.map((f, i) => (
-                <div key={i} className="p-5 rounded-2xl glass-card space-y-2">
+                <div key={f.dish_name ?? `food-${i}`} className="p-5 rounded-2xl glass-card space-y-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-[var(--brand-teal)]">
                     {f.category ?? "Menu Item"}
                   </span>
@@ -184,7 +184,7 @@ export default function IdeasPage({
           {activeCategory === "entertainment" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {entertainment.map((e, i) => (
-                <div key={i} className="p-5 rounded-2xl glass-card space-y-2">
+                <div key={e.act ?? `ent-${i}`} className="p-5 rounded-2xl glass-card space-y-2">
                   <h2 className="text-base font-bold text-[var(--ink-primary)]">
                     {e.act}
                   </h2>
@@ -199,7 +199,7 @@ export default function IdeasPage({
           {activeCategory === "savings" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savings.map((s, i) => (
-                <div key={i} className="p-5 rounded-2xl glass-card space-y-2">
+                <div key={s.strategy ?? `sav-${i}`} className="p-5 rounded-2xl glass-card space-y-2">
                   <h2 className="text-base font-bold text-[var(--ink-primary)]">
                     {s.strategy}
                   </h2>

@@ -7,10 +7,10 @@ import { IndianRupee, Users, ShieldCheck, Clock } from "lucide-react";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 
 interface OverviewKpiCardsProps {
-  event: EventItem;
-  budgetSummary?: BudgetSummary | null | undefined;
-  taskCount?: number | undefined;
-  criticalTaskCount?: number | undefined;
+  readonly event: EventItem;
+  readonly budgetSummary?: BudgetSummary | null | undefined;
+  readonly taskCount?: number | undefined;
+  readonly criticalTaskCount?: number | undefined;
 }
 
 export function OverviewKpiCards({

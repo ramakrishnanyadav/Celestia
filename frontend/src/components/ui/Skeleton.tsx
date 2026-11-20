@@ -3,7 +3,7 @@
 import React from "react";
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string | undefined;
+  readonly className?: string | undefined;
 }
 
 export function Skeleton({ className = "", ...props }: SkeletonProps) {

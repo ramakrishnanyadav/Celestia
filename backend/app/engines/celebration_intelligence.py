@@ -23,7 +23,7 @@ def generate_personalized_ideas(event: Event, preference: EventPreference | None
     else:
         return get_community_ideas(guest_count, budget_lakhs)
 
-def get_wedding_ideas(culture: str, theme_pref: str, dietary: str, guest_count: int, budget_lakhs: float) -> dict[str, Any]:
+def get_wedding_ideas(_culture: str, _theme_pref: str, dietary: str, _guest_count: int, _budget_lakhs: float) -> dict[str, Any]:
     return {
         "themes": [
             {
@@ -185,7 +185,7 @@ def get_wedding_ideas(culture: str, theme_pref: str, dietary: str, guest_count: 
         ]
     }
 
-def get_birthday_ideas(guest_count: int, budget_lakhs: float) -> dict[str, Any]:
+def get_birthday_ideas(_guest_count: int, _budget_lakhs: float) -> dict[str, Any]:
     return {
         "themes": [
             {"id": "theme-b1", "title": "Enchanted Starlight Carnival", "aesthetic": "Glittering fairy canopies, circus arches, interactive booth games.", "color_palette": ["#3B82F6", "#F59E0B", "#10B981", "#FAF7F2", "#1E293B"], "mood": "Joyful, Energetic", "budget_tier": "Moderate"},
@@ -210,7 +210,7 @@ def get_birthday_ideas(guest_count: int, budget_lakhs: float) -> dict[str, Any]:
         ]
     }
 
-def get_community_ideas(guest_count: int, budget_lakhs: float) -> dict[str, Any]:
+def get_community_ideas(_guest_count: int, _budget_lakhs: float) -> dict[str, Any]:
     return {
         "themes": [
             {"id": "theme-c1", "title": "Sanskriti — Heritage Utsav", "aesthetic": "Traditional rangoli carpet, terracotta diyas, handloom fabric canopies, acoustic stage.", "color_palette": ["#B45309", "#047857", "#1E293B", "#FAF7F2", "#D97706"], "mood": "Community Unity, Cultural Pride", "budget_tier": "Community Scale"}

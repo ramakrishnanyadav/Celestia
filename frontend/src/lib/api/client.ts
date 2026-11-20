@@ -18,9 +18,11 @@ const getApiBase = (): string => {
 
 const API_BASE = getApiBase();
 
+const CSRF_REGEX = /(?:^|;\s*)csrf_token=([^;]+)/;
+
 function getCsrfTokenFromCookie(): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  const match = CSRF_REGEX.exec(document.cookie);
   return match ? decodeURIComponent(match[1] ?? "") : null;
 }
 
@@ -55,10 +57,10 @@ export function formatErrorDetail(detail: unknown): string {
       })
       .join("; ");
   }
-  if (typeof detail === "object") {
+  if (typeof detail === "object" && detail !== null) {
     return JSON.stringify(detail);
   }
-  return String(detail);
+  return typeof detail === "string" ? detail : JSON.stringify(detail);
 }
 
 export interface RequestOptions extends Omit<RequestInit, "body"> {
@@ -119,9 +121,10 @@ export async function apiClient<T>(
   }
 
   try {
+    const pathPrefix = endpoint.startsWith("/") ? "" : "/";
     const url = endpoint.startsWith("http")
       ? endpoint
-      : `${API_BASE}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+      : `${API_BASE}${pathPrefix}${endpoint}`;
     const init: RequestInit = {
       ...fetchOptions,
       method,
@@ -149,14 +152,12 @@ export async function apiClient<T>(
         endpoint.includes("/auth/demo-login");
 
       if (!isAuthEndpoint && !_isRetry) {
-        if (!refreshPromise) {
-          refreshPromise = apiClient("/auth/refresh", {
-            method: "POST",
-            _isRetry: true,
-          }).finally(() => {
-            refreshPromise = null;
-          });
-        }
+        refreshPromise ??= apiClient("/auth/refresh", {
+          method: "POST",
+          _isRetry: true,
+        }).finally(() => {
+          refreshPromise = null;
+        });
 
         try {
           await refreshPromise;

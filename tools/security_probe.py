@@ -33,6 +33,10 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.rate_limiter import limiter
 
+API_AUTH_REGISTER = "/api/auth/register"
+API_EVENTS = "/api/events"
+TEST_PASSWORD = "StrongPassword123!"
+
 def run_security_probe():
     client = TestClient(app, raise_server_exceptions=False)
     findings = []
@@ -45,18 +49,18 @@ def run_security_probe():
     # ---------------------------------------------------------
     tests_run += 1
     print("\n[Probe 1] Testing Unauthenticated Access to Scoped Endpoints...")
-    res = client.get("/api/events")
+    res = client.get(API_EVENTS)
     if res.status_code == 200:
         findings.append({
             "probe_id": "SEC-PROBE-01",
             "name": "Unauthenticated Access Bypass",
             "severity": "Critical",
-            "evidence": f"GET /api/events with no Authorization header returned HTTP 200: {res.text[:100]}",
+            "evidence": f"GET {API_EVENTS} with no Authorization header returned HTTP 200: {res.text[:100]}",
             "vulnerability": "Endpoint fails to enforce authentication."
         })
-        print(f"  [FAIL] Unauthenticated GET /api/events returned HTTP 200!")
+        print(f"  [FAIL] Unauthenticated GET {API_EVENTS} returned HTTP 200!")
     elif res.status_code == 401:
-        print(f"  [PASS] Unauthenticated request strictly rejected with HTTP 401 Unauthorized.")
+        print("  [PASS] Unauthenticated request strictly rejected with HTTP 401 Unauthorized.")
     else:
         print(f"  [STATUS] Unauthenticated request returned HTTP {res.status_code}")
 
@@ -67,11 +71,10 @@ def run_security_probe():
     print("\n[Probe 2] Testing Token Signature Tampering & Alg=None Defense...")
     ts = int(time.time() * 1000)
     email_a = f"alice_probe_{ts}@celestia.ai"
-    reg_a = client.post("/api/auth/register", json={
-        "email": email_a, "name": "Alice Probe", "password": "StrongPassword123!"
+    reg_a = client.post(API_AUTH_REGISTER, json={
+        "email": email_a, "name": "Alice Probe", "password": TEST_PASSWORD
     })
     token_a = reg_a.json().get("access_token", "")
-    user_a = reg_a.json().get("user", {})
 
     # Create tampered token
     parts = token_a.split(".")
@@ -79,7 +82,7 @@ def run_security_probe():
         tampered_token = f"{parts[0]}.{parts[1]}.tampered_invalid_signature_hex"
         res_tampered = client.get("/api/auth/me", headers={"Authorization": f"Bearer {tampered_token}"})
         if res_tampered.status_code == 401:
-            print(f"  [PASS] Tampered JWT signature strictly rejected with HTTP 401 Unauthorized.")
+            print("  [PASS] Tampered JWT signature strictly rejected with HTTP 401 Unauthorized.")
         else:
             findings.append({
                 "probe_id": "SEC-PROBE-02",
@@ -96,21 +99,21 @@ def run_security_probe():
     tests_run += 1
     print("\n[Probe 3] Testing IDOR / BOLA Cross-Tenant Boundary Isolation...")
     email_b = f"bob_probe_{ts}@celestia.ai"
-    reg_b = client.post("/api/auth/register", json={
-        "email": email_b, "name": "Bob Probe", "password": "StrongPassword123!"
+    reg_b = client.post(API_AUTH_REGISTER, json={
+        "email": email_b, "name": "Bob Probe", "password": TEST_PASSWORD
     })
     token_b = reg_b.json().get("access_token", "")
 
     # Alice creates an event
-    ev_a = client.post("/api/events", headers={"Authorization": f"Bearer {token_a}"}, json={
+    ev_a = client.post(API_EVENTS, headers={"Authorization": f"Bearer {token_a}"}, json={
         "title": "Alice Private Celebration", "event_type": "wedding", "guest_count": 250, "budget_minor": 150000000
     })
     alice_ev_id = ev_a.json().get("id")
 
     # Bob attempts to read Alice's event
-    bob_read = client.get(f"/api/events/{alice_ev_id}", headers={"Authorization": f"Bearer {token_b}"})
+    bob_read = client.get(f"{API_EVENTS}/{alice_ev_id}", headers={"Authorization": f"Bearer {token_b}"})
     # Bob attempts to delete Alice's event
-    bob_delete = client.delete(f"/api/events/{alice_ev_id}", headers={"Authorization": f"Bearer {token_b}"})
+    bob_delete = client.delete(f"{API_EVENTS}/{alice_ev_id}", headers={"Authorization": f"Bearer {token_b}"})
 
     if bob_read.status_code in (403, 404) and bob_delete.status_code in (403, 404):
         print(f"  [PASS] IDOR blocked: Bob cannot read ({bob_read.status_code}) or delete ({bob_delete.status_code}) Alice's event.")
@@ -122,17 +125,17 @@ def run_security_probe():
             "evidence": f"Bob read status: {bob_read.status_code}, delete status: {bob_delete.status_code}",
             "vulnerability": "Cross-tenant access control missing on event resource."
         })
-        print(f"  [FAIL] Bob accessed or modified Alice's event!")
+        print("  [FAIL] Bob accessed or modified Alice's event!")
 
     # ---------------------------------------------------------
     # 4. Mass Assignment / Privilege Escalation
     # ---------------------------------------------------------
     tests_run += 1
     print("\n[Probe 4] Testing Mass Assignment / Privilege Escalation on Registration...")
-    reg_malicious = client.post("/api/auth/register", json={
+    reg_malicious = client.post(API_AUTH_REGISTER, json={
         "email": f"attacker_{ts}@celestia.ai",
         "name": "Attacker",
-        "password": "StrongPassword123!",
+        "password": TEST_PASSWORD,
         "role": "admin",
         "is_superuser": True
     })
