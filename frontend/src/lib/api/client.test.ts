@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { apiClient, ApiError, formatErrorDetail } from "./client";
+import { apiClient, ApiError, formatErrorDetail, clearStoredTokens } from "./client";
 
 describe("formatErrorDetail", () => {
   it("formats null or empty detail safely", () => {
@@ -33,6 +33,7 @@ describe("apiClient", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
     document.cookie = "";
+    clearStoredTokens();
   });
 
   afterEach(() => {

@@ -70,6 +70,47 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   _isRetry?: boolean;
 }
 
+const AUTH_TOKEN_KEY = "celestia_access_token";
+const REFRESH_TOKEN_KEY = "celestia_refresh_token";
+
+export function getStoredAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function getStoredRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredTokens(accessToken?: string, refreshToken?: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (accessToken) localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  } catch {
+    // Ignore in restricted iframe or storage limit
+  }
+}
+
+export function clearStoredTokens(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch {
+    // Ignore
+  }
+}
+
 let refreshPromise: Promise<unknown> | null = null;
 
 function buildRequestHeaders(
@@ -80,6 +121,10 @@ function buildRequestHeaders(
   const headers = new Headers(customHeaders);
   if (!headers.has("Accept")) {
     headers.set("Accept", "application/json");
+  }
+  const token = getStoredAccessToken();
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
   if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
     const csrfToken = getCsrfTokenFromCookie();
@@ -122,8 +167,15 @@ async function handleUnauthorizedFlow<T>(
     return null;
   }
 
+  const storedRefreshToken = getStoredRefreshToken();
+  const refreshHeaders: Record<string, string> = {};
+  if (storedRefreshToken) {
+    refreshHeaders["Authorization"] = `Bearer ${storedRefreshToken}`;
+  }
+
   refreshPromise ??= apiClient("/auth/refresh", {
     method: "POST",
+    headers: refreshHeaders,
     _isRetry: true,
   }).finally(() => {
     refreshPromise = null;
@@ -234,7 +286,16 @@ export async function apiClient<T>(
       await parseErrorResponse(response);
     }
 
-    return await parseSuccessResponse<T>(response);
+    const result = await parseSuccessResponse<T>(response);
+    if (result && typeof result === "object" && "access_token" in result) {
+      const tokenData = result as { access_token?: string; refresh_token?: string };
+      setStoredTokens(tokenData.access_token, tokenData.refresh_token);
+    }
+    if (endpoint.includes("/auth/logout")) {
+      clearStoredTokens();
+    }
+
+    return result;
   } catch (err: unknown) {
     clearTimeout(timeoutId);
     if (err instanceof ApiError) throw err;

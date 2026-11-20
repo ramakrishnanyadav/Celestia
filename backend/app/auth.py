@@ -315,7 +315,7 @@ def set_auth_cookies(
     Sets secure HttpOnly, SameSite cookies for tokens and readable CSRF token.
     In production, Secure=True is enforced.
     """
-    is_prod = (settings.ENV == "production")
+    is_prod = (settings.ENV == "production" or os.getenv("RENDER") is not None or os.getenv("PORT") is not None)
     samesite_mode: Literal["lax", "none"] = "none" if is_prod else "lax"
 
     # Access token in HttpOnly cookie
@@ -354,7 +354,7 @@ def set_auth_cookies(
 
 def clear_auth_cookies(response: Response):
     """Clears all authentication cookies."""
-    is_prod = (settings.ENV == "production")
+    is_prod = (settings.ENV == "production" or os.getenv("RENDER") is not None or os.getenv("PORT") is not None)
     samesite_mode: Literal["lax", "none"] = "none" if is_prod else "lax"
     response.delete_cookie("access_token", path="/", secure=is_prod, samesite=samesite_mode)
     response.delete_cookie("refresh_token", path="/api/auth", secure=is_prod, samesite=samesite_mode)

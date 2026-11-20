@@ -7,7 +7,7 @@ class Settings(BaseModel):
     APP_NAME: str = "CELESTIA AI Event Planning Assistant"
     VERSION: str = "2.0.0"
     API_PREFIX: str = "/api"
-    ENV: str = os.getenv("ENV", "development").lower()
+    ENV: str = os.getenv("ENV", "production" if (os.getenv("RENDER") or os.getenv("PORT")) else "development").lower()
 
     # Secret key must be explicitly set and >= 32 chars in production
     SECRET_KEY: str = os.getenv("SECRET_KEY", "celestia_super_secure_secret_key_2026_indian_weddings")
